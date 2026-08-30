@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Project artifacts
+
+- [KnownGate challenge brief](docs/challenge-brief.md) — project context, challenge requirements, product direction, WebMCP contract, judging strategy, and open decisions captured on 30 August 2026.
+
 ## Getting Started
 
 First, run the development server:
