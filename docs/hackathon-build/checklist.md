@@ -25,7 +25,7 @@
   Acceptance: Manual HTTP calls receive the documented responses in mock mode; live mode targets `KNOWNGATE_API_BASE`; transport failures stay operational errors rather than verdicts; no backend base URL enters the browser bundle; freeze IDs and payload size are validated.
   Verify: Invoke every Route Handler with valid and invalid requests, run contract tests/build/lint, inspect browser-facing code for `KNOWNGATE_API_BASE`, and confirm no premise payload logging exists.
 
-- [ ] **3. Deliver the plain-web ruling-room vertical slice**
+- [x] **3. Deliver the plain-web ruling-room vertical slice**
   Spec ref: `spec.md > Architecture > 2. Ruling-room client application`; `spec.md > Data Flow > Premise proposal and confirmation`; `spec.md > Data Flow > Item check`; `spec.md > Data Flow > Place check`
   What to build: Implement the board reducer, invariant tests, manual premise editor with FDA-9 and free-text restrictions, human confirmation gate, manual item/place controls, visible pending/error activity, Human/Agent shared-state toggle, and functional ledger using mock APIs. Premise changes must clear or invalidate old results and reload must forget restrictions.
   Acceptance: A human can confirm a premise, check a conflict product and Panda Express, see an amber question, switch to identical compact Agent JSON, recover from an out-of-order action, and reload to an empty premise. Previous successful results survive later operational errors.

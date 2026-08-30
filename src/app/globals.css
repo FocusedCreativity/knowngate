@@ -1,26 +1,13 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+:root { --paper:#f3f0e8; --ink:#17201f; --petrol:#164e4b; --line:#a7aaa4; --amber:#d89121; --red:#9c332e; --muted:#65706d; }
+* { box-sizing:border-box; } body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-geist-sans),Arial,sans-serif; } button,input,select { font:inherit; }
+button { border:1px solid var(--petrol); background:var(--petrol); color:white; padding:.7rem 1rem; cursor:pointer; font-weight:650; } button:hover { filter:brightness(1.1); } button:disabled { opacity:.35; cursor:not-allowed; } a { color:inherit; }
+.ruling-room { width:min(1440px,100%); margin:auto; padding:clamp(1rem,3vw,3rem); }.masthead { display:flex; justify-content:space-between; gap:2rem; align-items:end; padding:2rem 0 3rem; border-bottom:2px solid var(--ink); }
+.masthead h1 { font-size:clamp(3rem,8vw,7rem); line-height:.84; letter-spacing:-.07em; margin:.4rem 0 0; }.eyebrow,.step,.entry-meta,.source,.status,.confirmed-line span { font-family:var(--font-geist-mono),monospace; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; }.doctrine { font-size:clamp(1rem,2vw,1.4rem); border-left:4px solid var(--amber); padding-left:1rem; margin:0; }
+.panel { border:1px solid var(--line); padding:clamp(1rem,2vw,2rem); background:rgba(255,255,255,.25); }.premise-panel { margin-top:1.5rem; }.section-head { display:flex; align-items:start; justify-content:space-between; gap:1rem; } h2 { font-size:clamp(1.6rem,3vw,2.6rem); margin:.2rem 0 1.5rem; letter-spacing:-.04em; } h3 { margin:.2rem 0 .8rem; }.status { border:1px solid currentColor; padding:.35rem .55rem; }.status.confirmed { color:var(--petrol); }.status.proposed { color:#7a510d; }
+.restriction-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(115px,1fr)); gap:.65rem; border:0; padding:0; margin:1rem 0; }.restriction-grid label { border:1px solid var(--line); padding:.7rem; background:#fbf9f2; }.field { display:grid; gap:.35rem; margin:.75rem 0; font-size:.8rem; font-weight:650; text-transform:uppercase; letter-spacing:.06em; } input,select { width:100%; min-width:0; border:1px solid var(--line); background:#fbf9f2; color:var(--ink); padding:.72rem; text-transform:none; letter-spacing:0; }
+.human-gate { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1.5rem; padding:1rem; border:2px solid var(--amber); background:#fff3d8; }.human-gate p { margin:.35rem 0 0; }.button-row,.toggle { display:flex; gap:.4rem; }.secondary,.toggle button { background:transparent; color:var(--petrol); }.toggle button { padding:.4rem .6rem; }.toggle .active { background:var(--petrol); color:white; }.confirmed-line { border-top:1px solid var(--line); margin:1.5rem 0 0; padding-top:1rem; }.confirmed-line span { color:var(--petrol); font-weight:bold; margin-right:1rem; }
+.work-grid { display:grid; grid-template-columns:minmax(270px,.72fr) minmax(0,1.28fr); gap:1.5rem; margin-top:1.5rem; }.rule { height:1px; background:var(--line); margin:1.5rem 0; }.ledger { min-height:500px; }.entries { display:grid; gap:1rem; }.entry { border-top:5px solid var(--petrol); background:#fbf9f2; padding:1rem; }.entry.pending { opacity:.6; }.entry.error { border-color:var(--red); }.error,.activity .error { color:var(--red); }
+.verdict { font-size:clamp(1.6rem,4vw,3.2rem); line-height:1; text-transform:uppercase; font-weight:800; letter-spacing:-.04em; margin:1rem 0; }.verdict-conflict { color:var(--red); }.verdict-ask_one_question { color:#855811; }.verdict-no_conflict { color:var(--petrol); }.question { border-left:4px solid var(--amber); padding:.7rem; background:#fff3d8; }.source { border-top:1px solid var(--line); padding-top:.7rem; color:var(--muted); }.notable { border:1px solid var(--line); padding:.7rem; margin:.7rem 0; }
+.agent-json { overflow:auto; min-height:350px; padding:1rem; background:#102724; color:#d9efe9; font:12px/1.6 var(--font-geist-mono),monospace; }.empty { color:var(--muted); }.activity { border-top:2px solid var(--ink); margin-top:1.5rem; padding:1rem 0; }.activity p { margin:.3rem 0; }.site-footer { padding:1.5rem clamp(1rem,3vw,3rem); background:var(--ink); color:var(--paper); font-size:.8rem; text-align:center; }.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+@media (max-width:800px) { .masthead,.human-gate { align-items:start; flex-direction:column; }.work-grid { grid-template-columns:1fr; }.doctrine { align-self:stretch; }.button-row { flex-wrap:wrap; } }

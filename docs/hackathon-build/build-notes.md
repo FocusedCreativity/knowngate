@@ -57,3 +57,11 @@
 - Added same-origin handlers for item/place checks, label lookup, and freeze create/read with runtime validation and a 16KB request limit.
 - Added a browser client that knows only same-origin routes; `KNOWNGATE_API_BASE` remains server-only and is documented in `.env.example`.
 - Exercised every handler over local HTTP with valid and invalid requests, including canonical freeze read and mock freeze creation; verified ESLint, production build, and whitespace checks.
+
+## 2026-08-30 — Build Item 3: Plain-Web Ruling Room
+
+- Replaced the starter screen with a functional ruling room backed by one reducer shared by Human and Agent views.
+- Added FDA-9 and free-text premise editing, an explicit human confirmation gate, item/place controls, pending/error activity, sourced ledger cards, and compact Agent JSON.
+- Added reducer recovery tests for out-of-order checks, premise-change invalidation, and preserving earlier successes after later operational errors.
+- Browser-verified the complete mock path: human confirmation, conflict product, ruled Panda Express place, amber menu question, identical Agent state, and reload returning to an empty premise.
+- Verified 12 automated tests, ESLint, Next.js production build, and whitespace checks.
