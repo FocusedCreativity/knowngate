@@ -1,106 +1,55 @@
 "use client";
-
 import { FormEvent, useEffect, useReducer, useRef, useState } from "react";
+import Link from "next/link";
 import { boardReducer, initialBoardState } from "@/lib/board/reducer";
-import { compactBoard } from "@/lib/knowngate/compact";
+import { compactBoard, compactItem, compactPlace } from "@/lib/knowngate/compact";
 import { FDA9_KEYS, type Fda9Key, type ItemResult, type PlaceResult, type Restriction } from "@/lib/knowngate/contracts";
 import { knownGateClient } from "@/lib/knowngate/client";
-import { compactItem, compactPlace } from "@/lib/knowngate/compact";
 import { parseCheckItemRequest, parseCheckPlaceRequest, parsePremise } from "@/lib/knowngate/validation";
 import { rulingRoomSchemas } from "@/lib/webmcp/schemas";
 import { useWebMcpTools } from "@/lib/webmcp/use-webmcp-tools";
 
-const LABELS: Record<Fda9Key, string> = { milk: "Milk", egg: "Egg", fish: "Fish", shellfish: "Shellfish", tree_nut: "Tree nuts", peanut: "Peanut", wheat: "Wheat", soy: "Soy", sesame: "Sesame" };
-const uid = () => crypto.randomUUID();
-const restrictionText = (items: Restriction[]) => items.map((item) => item.note ?? LABELS[item.key as Fda9Key] ?? item.key).join(" · ");
+const LABELS: Record<Fda9Key, string> = { milk:"Milk",egg:"Egg",fish:"Fish",shellfish:"Shellfish",tree_nut:"Tree nuts",peanut:"Peanut",wheat:"Wheat",soy:"Soy",sesame:"Sesame" };
+const uid=()=>crypto.randomUUID();
+const text=(items:Restriction[])=>items.map(x=>x.note??LABELS[x.key as Fda9Key]??x.key).join(" · ");
+const detect=(value:string)=>/^\d{8,14}$/.test(value)?"upc":value.includes(",")?"ingredients":/panda|chipotle|starbucks/i.test(value)?"place":"product_query";
 
-export function RulingRoom() {
-  const [state, dispatch] = useReducer(boardReducer, initialBoardState);
-  const [selected, setSelected] = useState<Fda9Key[]>(["peanut", "sesame"]);
-  const [other, setOther] = useState("");
-  const [freezeRequested, setFreezeRequested] = useState(false);
-  const [freezeUrl, setFreezeUrl] = useState<string | null>(null);
-  const confirmed = state.premise.confirmed;
-  const stateRef = useRef(state);
-  useEffect(() => { stateRef.current = state; }, [state]);
-
-  useWebMcpTools([
-    { name: "propose_premise", description: "Propose a household premise for visible human confirmation.", inputSchema: rulingRoomSchemas.propose_premise, async execute(input) {
-      try { const premise = parsePremise(input); dispatch({ type: "proposePremise", premise }); return { status: "awaiting_human_confirmation", premise }; }
-      catch (error) { return errorBody(error); }
-    } },
-    { name: "check_item", description: "Rule one food subject against the confirmed household premise.", inputSchema: rulingRoomSchemas.check_item, async execute(input) {
-      try { const premise = stateRef.current.premise.confirmed; if (!premise) return { error: { code: "premise_not_confirmed", message: "Premise not confirmed — call propose_premise first." } }; const request = parseCheckItemRequest({ ...(input as object), restrictions: premise.restrictions }); const id = uid(); dispatch({ type: "startCheck", id, kind: "item", label: request.subject.value, eventId: uid() }); const result = await knownGateClient.checkItem(request); dispatch({ type: "completeCheck", id, result, eventId: uid() }); return compactItem(result); } catch (error) { return errorBody(error); }
-    } },
-    { name: "check_place", description: "Rule a venue's published evidence against the confirmed household premise.", inputSchema: rulingRoomSchemas.check_place, async execute(input) {
-      try { const premise = stateRef.current.premise.confirmed; if (!premise) return { error: { code: "premise_not_confirmed", message: "Premise not confirmed — call propose_premise first." } }; const value = input as { venue?: string; location?: string }; const request = parseCheckPlaceRequest({ restrictions: premise.restrictions, venue: { name: value.venue, ...(value.location ? { location: value.location } : {}) } }); const id = uid(); dispatch({ type: "startCheck", id, kind: "place", label: request.venue.name, eventId: uid() }); const result = await knownGateClient.checkPlace(request); dispatch({ type: "completeCheck", id, result, eventId: uid() }); return compactPlace(result); } catch (error) { return errorBody(error); }
-    } },
-    { name: "get_board", description: "Read the current confirmed premise and visible evidence ledger.", inputSchema: rulingRoomSchemas.empty, annotations: { readOnlyHint: true }, async execute() { const current = stateRef.current; return compactBoard(current.premise.confirmed, current.entries.flatMap((entry) => entry.result ? [entry.result] : [])); } },
-    { name: "freeze_check", description: "Request visible human confirmation to freeze the current evidence ledger.", inputSchema: rulingRoomSchemas.empty, async execute() { setFreezeRequested(true); return { status: "awaiting_human_confirmation", message: "A human must confirm freeze in the page." }; } },
-  ]);
-
-  function propose(event: FormEvent) {
-    event.preventDefault();
-    const restrictions: Restriction[] = selected.map((key) => ({ key }));
-    if (other.trim()) restrictions.push({ key: "other", note: other.trim() });
-    if (restrictions.length) dispatch({ type: "proposePremise", premise: { restrictions } });
-  }
-
-  async function checkItem(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const value = String(data.get("item") ?? "").trim();
-    const kind = String(data.get("kind")) as "upc" | "product_query" | "menu_item";
-    const venue = String(data.get("venue") ?? "").trim();
-    const id = uid();
-    dispatch({ type: "startCheck", id, kind: "item", label: value || "item", eventId: uid() });
-    if (!confirmed || !value) return;
-    try {
-      const result = await knownGateClient.checkItem({ restrictions: confirmed.restrictions, subject: { kind, value, ...(kind === "menu_item" ? { venue: venue || "Panda Express" } : {}) } });
-      dispatch({ type: "completeCheck", id, result, eventId: uid() });
-    } catch (error) { dispatch({ type: "failCheck", id, message: error instanceof Error ? error.message : "Item check failed", eventId: uid() }); }
-  }
-
-  async function checkPlace(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const name = String(data.get("place") ?? "").trim();
-    const location = String(data.get("location") ?? "").trim();
-    const id = uid();
-    dispatch({ type: "startCheck", id, kind: "place", label: name || "place", eventId: uid() });
-    if (!confirmed || !name) return;
-    try {
-      const result = await knownGateClient.checkPlace({ restrictions: confirmed.restrictions, venue: { name, ...(location ? { location } : {}) } });
-      dispatch({ type: "completeCheck", id, result, eventId: uid() });
-    } catch (error) { dispatch({ type: "failCheck", id, message: error instanceof Error ? error.message : "Place check failed", eventId: uid() }); }
-  }
-
-  async function freeze() {
-    if (!confirmed) return;
-    const results = state.entries.flatMap((entry) => entry.result ? [entry.result] : []);
-    if (!results.length) return;
-    const record = await knownGateClient.freeze({ premise: confirmed, results });
-    setFreezeUrl(record.url); setFreezeRequested(false);
-  }
-
-  return <main className="ruling-room">
-    <header className="masthead"><div><p className="eyebrow">KNOWNGATE / RULING ROOM</p><h1>Every answer,<br />with its source.</h1></div><p className="doctrine">Agent proposes.<br />Page rules.<br />Human owns the premise.</p></header>
-    <section className="panel premise-panel" aria-labelledby="premise-title">
-      <div className="section-head"><div><p className="step">01 / PREMISE</p><h2 id="premise-title">What must this household avoid?</h2></div><span className={`status ${state.premise.status}`}>{state.premise.status}</span></div>
-      <form onSubmit={propose}><fieldset className="restriction-grid"><legend className="sr-only">FDA major allergens</legend>{FDA9_KEYS.map((key) => <label key={key}><input type="checkbox" checked={selected.includes(key)} onChange={() => setSelected((values) => values.includes(key) ? values.filter((value) => value !== key) : [...values, key])} /> {LABELS[key]}</label>)}</fieldset><label className="field">Other restriction <input value={other} onChange={(event) => setOther(event.target.value)} placeholder="e.g. mustard — free text" /></label><button type="submit">Propose premise</button></form>
-      {state.premise.status === "proposed" && state.premise.draft && <div className="human-gate" role="alert"><div><strong>Human confirmation required</strong><p>{restrictionText(state.premise.draft.restrictions)}</p></div><div className="button-row"><button className="secondary" onClick={() => dispatch({ type: "cancelPremise" })}>Cancel</button><button onClick={() => dispatch({ type: "confirmPremise", eventId: uid() })}>Confirm premise</button></div></div>}
-      {confirmed && state.premise.status === "confirmed" && <p className="confirmed-line"><span>CONFIRMED BY HUMAN</span> {restrictionText(confirmed.restrictions)}</p>}
-    </section>
-    <section className="work-grid">
-      <div className="panel"><p className="step">02 / CHECK</p><h2>Bring a subject</h2><form className="check-form" onSubmit={checkItem}><label className="field">Item <input name="item" defaultValue="0000822910553" required /></label><label className="field">Kind <select name="kind" defaultValue="upc"><option value="upc">UPC</option><option value="product_query">Product query</option><option value="menu_item">Menu item (try Orange Chicken)</option></select></label><label className="field">Venue for menu items <input name="venue" defaultValue="Panda Express" /></label><button disabled={!confirmed}>Check item</button></form><div className="rule" /><form className="check-form" onSubmit={checkPlace}><label className="field">Place <input name="place" defaultValue="Panda Express" required /></label><label className="field">Location <input name="location" defaultValue="Denver" /></label><button disabled={!confirmed}>Check place</button></form></div>
-      <div className="panel ledger"><div className="section-head"><div><p className="step">03 / RULINGS</p><h2>Evidence ledger</h2></div><div className="toggle"><button className={state.view === "human" ? "active" : ""} onClick={() => dispatch({ type: "setView", view: "human" })}>Human</button><button className={state.view === "agent" ? "active" : ""} onClick={() => dispatch({ type: "setView", view: "agent" })}>Agent</button></div></div>{state.view === "agent" ? <pre className="agent-json">{JSON.stringify(compactBoard(confirmed, state.entries.flatMap((entry) => entry.result ? [entry.result] : [])), null, 2)}</pre> : <div className="entries">{!state.entries.length && <p className="empty">No rulings yet. Confirm the premise, then check an item or place.</p>}{state.entries.map((entry) => <article className={`entry ${entry.status}`} key={entry.id}><p className="entry-meta">{entry.kind} / {entry.status}</p><h3>{entry.label}</h3>{entry.error && <p className="error">{entry.error}</p>}{entry.result && ("verdict" in entry.result ? <ItemRuling result={entry.result} /> : <PlaceRuling result={entry.result} />)}</article>)}</div>}</div>
-    </section>
-    <section className="activity"><p className="step">ACTIVITY</p>{state.activity.slice(-4).map((item) => <p className={item.tone} key={item.id}>{item.message}</p>)}</section>
-    <section className="panel freeze-panel"><p className="step">04 / FREEZE</p><h2>Make a dated record</h2><p>A human must confirm before this ledger becomes read-only.</p>{freezeUrl ? <p><a href={freezeUrl}>Open frozen record →</a></p> : freezeRequested ? <div className="human-gate"><strong>Confirm freeze of the current visible ledger?</strong><div className="button-row"><button className="secondary" onClick={() => setFreezeRequested(false)}>Cancel</button><button onClick={() => void freeze()}>Confirm freeze</button></div></div> : <button disabled={!confirmed || !state.entries.some((entry) => entry.result)} onClick={() => setFreezeRequested(true)}>Request freeze</button>}</section>
-  </main>;
+export function RulingRoom(){
+ const [state,dispatch]=useReducer(boardReducer,initialBoardState); const [selected,setSelected]=useState<Fda9Key[]>(["peanut","sesame"]); const [other,setOther]=useState(""); const [subject,setSubject]=useState(""); const [freeze,setFreeze]=useState(false); const [freezeUrl,setFreezeUrl]=useState<string|null>(null); const ref=useRef(state); useEffect(()=>{ref.current=state},[state]); const confirmed=state.premise.confirmed;
+ const agent=()=>dispatch({type:"setMode",mode:"agent"}); const human=()=>dispatch({type:"setMode",mode:"human"});
+ useWebMcpTools([
+  {name:"propose_premise",description:"Propose a household premise for visible human confirmation.",inputSchema:rulingRoomSchemas.propose_premise,async execute(input){agent();try{const premise=parsePremise(input);dispatch({type:"proposePremise",premise});return{status:"awaiting_human_confirmation",premise}}catch(e){return err(e)}}},
+  {name:"check_item",description:"Rule one food subject against the confirmed household premise.",inputSchema:rulingRoomSchemas.check_item,async execute(input){agent();try{const p=ref.current.premise.confirmed;if(!p)return{error:{code:"premise_not_confirmed",message:"Premise not confirmed — call propose_premise first."}};const req=parseCheckItemRequest({...input as object,restrictions:p.restrictions});return await item(req)}catch(e){return err(e)}}},
+  {name:"check_place",description:"Rule a venue against the confirmed household premise.",inputSchema:rulingRoomSchemas.check_place,async execute(input){agent();try{const p=ref.current.premise.confirmed;if(!p)return{error:{code:"premise_not_confirmed",message:"Premise not confirmed — call propose_premise first."}};const v=input as {venue?:string;location?:string};const req=parseCheckPlaceRequest({restrictions:p.restrictions,venue:{name:v.venue,...(v.location?{location:v.location}:{})}});return await place(req)}catch(e){return err(e)}}},
+  {name:"get_board",description:"Read the confirmed premise and visible evidence ledger.",inputSchema:rulingRoomSchemas.empty,annotations:{readOnlyHint:true},async execute(){agent();const s=ref.current;return compactBoard(s.premise.confirmed,s.entries.flatMap(x=>x.result?[x.result]:[]))}},
+  {name:"freeze_check",description:"Request visible human confirmation to freeze the current evidence ledger.",inputSchema:rulingRoomSchemas.empty,async execute(){agent();setFreeze(true);return{status:"awaiting_human_confirmation"}}},
+ ]);
+ async function item(req:ReturnType<typeof parseCheckItemRequest>){const id=uid();dispatch({type:"startCheck",id,kind:"item",label:req.subject.value,eventId:uid()});try{const r=await knownGateClient.checkItem(req);dispatch({type:"completeCheck",id,result:r,eventId:uid()});return compactItem(r)}catch(e){dispatch({type:"failCheck",id,message:e instanceof Error?e.message:"Check failed",eventId:uid()});throw e}}
+ async function place(req:ReturnType<typeof parseCheckPlaceRequest>){const id=uid();dispatch({type:"startCheck",id,kind:"place",label:req.venue.name,eventId:uid()});try{const r=await knownGateClient.checkPlace(req);dispatch({type:"completeCheck",id,result:r,eventId:uid()});return compactPlace(r)}catch(e){dispatch({type:"failCheck",id,message:e instanceof Error?e.message:"Check failed",eventId:uid()});throw e}}
+ function propose(e:FormEvent){e.preventDefault();human();const restrictions:Restriction[]=[...selected.map(key=>({key})),...(other.trim()?[{key:"other" as const,note:other.trim()}]:[])];if(restrictions.length)dispatch({type:"proposePremise",premise:{restrictions}})}
+ async function submit(e:FormEvent){e.preventDefault();human();if(!confirmed||!subject.trim())return;const kind=detect(subject);if(kind==="place")return void place({restrictions:confirmed.restrictions,venue:{name:subject}});return void item({restrictions:confirmed.restrictions,subject:{kind,value:subject}})}
+ async function doFreeze(){if(!confirmed)return;const results=state.entries.flatMap(x=>x.result?[x.result]:[]);if(!results.length)return;const record=await knownGateClient.freeze({premise:confirmed,results});setFreezeUrl(record.url);setFreeze(false)}
+ const prompt=`Use the built-in browser at ${typeof window!=="undefined"?window.location.origin:""}/check to verify food for this household. Propose the premise ${confirmed?text(confirmed.restrictions):"the household will state restrictions"}, wait for the human to confirm it on the page, then use the page's tools (check_item, check_place, get_board, freeze_check). Every answer must come from the page's verdicts, sourced and dated — never from your own knowledge.`;
+ return <main className={`product-shell ${state.mode}-mode`}>
+  <header className="topbar"><Link className="brand" href="/"><Mark/><span><i>known</i><b>gate</b></span></Link><p className="slogan">Every answer, with its source.</p><nav><a href="#how">How it works</a><Link href="/signup">Sign in</Link></nav></header>
+  {state.mode==="agent"&&<div className="agent-banner">Your agent is working. It brings the candidates; KnownGate rules on every one. <button onClick={human}>Return to human view</button></div>}
+  {confirmed&&<div className="premise-bar">Checked against: <strong>{text(confirmed.restrictions)}</strong> — these came from the household, not from us.</div>}
+  <section className="check-hero"><div className="check-copy"><p className="eyebrow">VERIFICATION, NOT RECOMMENDATION</p><h1>Make the next food decision a sourced one.</h1><p>Bring a product, menu item, restaurant, or ingredient list. KnownGate returns a dated finding the household can inspect.</p></div><div className="check-card">
+   <form onSubmit={propose}><div className="card-row"><p className="eyebrow">HOUSEHOLD PREMISE</p><span className={`status ${state.premise.status}`}>{state.premise.status}</span></div><div className="premise-chips">{FDA9_KEYS.map(key=><button type="button" className={selected.includes(key)?"chip selected":"chip"} key={key} onClick={()=>{human();setSelected(v=>v.includes(key)?v.filter(x=>x!==key):[...v,key])}}>{LABELS[key]}</button>)}</div><input aria-label="Other restriction" value={other} onChange={e=>{human();setOther(e.target.value)}} placeholder="Other restriction (free text)"/><button className="quiet" type="submit">Confirm household premise</button></form>
+   {state.premise.status==="proposed"&&state.premise.draft&&<div className="confirmation"><strong>Human confirmation required</strong><span>{text(state.premise.draft.restrictions)}</span><button onClick={()=>{human();dispatch({type:"confirmPremise",eventId:uid()})}}>Confirm</button><button className="quiet" onClick={()=>dispatch({type:"cancelPremise"})}>Edit</button></div>}
+   <form className="subject-form" onSubmit={submit}><label>What do you need ruled?</label><input value={subject} onChange={e=>{human();setSubject(e.target.value)}} placeholder="UPC, restaurant, product, or ingredients"/><button disabled={!confirmed}>Start a check</button><small>Digits → UPC · restaurant name → place · comma list → ingredients</small></form>
+   <div className="agent-handoff"><span>Bring your agent</span><a target="_blank" rel="noreferrer" href={`https://chatgpt.com/?q=${encodeURIComponent(prompt)}`}>Open in ChatGPT ↗</a><button className="quiet" onClick={()=>navigator.clipboard.writeText(prompt)}>Copy prompt</button></div>
+  </div></section>
+  <section className="board-section"><div className="board-head"><div><p className="eyebrow">LIVE BOARD</p><h2>Rulings for this household</h2></div><div className="toggle"><button className={state.view==="human"?"active":""} onClick={()=>dispatch({type:"setView",view:"human"})}>Human</button><button className={state.view==="agent"?"active":""} onClick={()=>dispatch({type:"setView",view:"agent"})}>Agent</button></div></div>{state.view==="agent"?<pre className="agent-json">{JSON.stringify(compactBoard(confirmed,state.entries.flatMap(x=>x.result?[x.result]:[])),null,2)}</pre>:<div className="ledger-grid"><div className="entries">{!state.entries.length&&<div className="empty">Start with the household premise, then bring a candidate to be ruled.</div>}{state.entries.map(entry=><article className={`finding ${entry.status}`} key={entry.id}><p className="eyebrow">{entry.kind} / {entry.status}</p><h3>{entry.label}</h3>{entry.error&&<p className="error">{entry.error}</p>}{entry.result&&("verdict" in entry.result?<Item result={entry.result}/>:<Place result={entry.result}/>)}</article>)}</div><aside className="activity-feed"><p className="eyebrow">ACTIVITY</p>{state.activity.slice(-6).map(a=><p key={a.id} className={a.tone}>[{new Date().toLocaleTimeString()}] {a.message}</p>)}</aside></div>}</section>
+  <section className="freeze-strip">{freezeUrl?<a href={freezeUrl}>Open frozen record →</a>:freeze?<><span>Freeze this dated evidence record?</span><button onClick={()=>void doFreeze()}>Confirm freeze</button><button className="quiet" onClick={()=>setFreeze(false)}>Cancel</button></>:<><span>Ready to share a stable finding?</span><button disabled={!confirmed||!state.entries.some(x=>x.result)} onClick={()=>setFreeze(true)}>Freeze → share</button></>}</section>
+  <section id="how" className="saas-section"><p className="eyebrow">HOW IT WORKS</p><h2>One page, three accountable steps.</h2><div className="three-up"><Info n="01" t="State the premise" d="The household owns its restrictions. Nothing runs until a human confirms them."/><Info n="02" t="Bring a candidate" d="A person or their agent brings the product, menu, or ingredient list."/><Info n="03" t="Read the finding" d="Every verdict lands with source, read date, and any question that remains."/></div></section>
+  <section className="saas-section doctrine-grid"><div><p className="eyebrow">THE FOUR FINDINGS</p><h2>Clear language for evidence that varies.</h2></div><div className="four-up"><Badge c="clear" t="No conflict found"/><Badge c="shut" t="Conflict"/><Badge c="ask" t="Ask one question"/><Badge c="held cannot-verify" t="Cannot verify"/></div></section>
+  <section className="saas-section audiences"><p className="eyebrow">BUILT FOR THE PEOPLE WHO CARRY THE DECISION</p><div className="four-up">{[["Households","Start free"],["Practitioners","Early access"],["Brands & operators","Early access"],["Developers","/developers"]].map(([t,c])=><article className="audience" key={t}><h3>{t}</h3><p>Evidence-aware verification without turning the decision into a recommendation.</p><a href={c==="/developers"?c:"/signup"}>{c} →</a></article>)}</div></section>
+  <section className="agent-section"><p className="eyebrow">FOR AGENTS</p><h2>The page is the authority.</h2><p>Agents can propose, check, and read the board. They can never change a confirmed premise, decide an amber, or send a record.</p><code>propose_premise · check_item · check_place · get_board · freeze_check</code></section>
+  <footer><div className="brand"><Mark/><span><i>known</i><b>gate</b></span></div><p>A finding, not a promise. Not allergen advice.</p><a href="https://github.com/FocusedCreativity/knowngate">Repository ↗</a></footer>
+ </main>
 }
-
-function ItemRuling({ result }: { result: ItemResult }) { return <div><p className={`verdict verdict-${result.verdict}`}>{result.verdict.replaceAll("_", " ")}</p>{result.question && <p className="question">Ask: {result.question}</p>}{result.conflicts.map((conflict) => <p key={conflict.restriction}><strong>{conflict.restriction}:</strong> {conflict.evidence}</p>)}<Source result={result} /></div>; }
-function PlaceRuling({ result }: { result: PlaceResult }) { return <div><p className="verdict">{result.chart.replaceAll("_", " ")}</p><p>{result.verdict_counts.conflict} conflict · {result.verdict_counts.ask_one_question} ask one question · {result.verdict_counts.no_conflict} no conflict</p>{result.notable.map((item) => <div className="notable" key={item.subject.value}><strong>{item.subject.name ?? item.subject.value}</strong>{item.question && <p className="question">Ask: {item.question}</p>}</div>)}<Source result={result} /></div>; }
-function Source({ result }: { result: ItemResult | PlaceResult }) { return <p className="source">SOURCE / {result.source.url ? <a href={result.source.url} target="_blank" rel="noreferrer">{result.source.name}</a> : result.source.name} / READ {result.source.read_date}</p>; }
-function errorBody(error: unknown) { return { error: { code: "invalid_input", message: error instanceof Error ? error.message : "KnownGate could not process that input." } }; }
+function Mark(){return <svg className="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="42 12"/><circle cx="12" cy="12" r="3.3" fill="var(--lime)"/></svg>}
+function Item({result}:{result:ItemResult}){return <div><p className={`verdict ${result.verdict}`}>{result.verdict==="no_conflict"?"No conflict found":result.verdict.replaceAll("_"," ")}</p>{result.question&&<p className="question">{result.question}</p>}{result.conflicts.map(c=><p key={c.restriction}>{c.restriction}: {c.evidence}</p>)}<p className="source">{result.source.name} · read {result.source.read_date}</p></div>}
+function Place({result}:{result:PlaceResult}){return <div><p className={`verdict ${result.chart==="none_found"?"cannot_verify":""}`}>{result.chart.replaceAll("_"," ")}</p><p>{result.verdict_counts.conflict} conflicts · {result.verdict_counts.ask_one_question} questions</p><p className="source">{result.source.name} · read {result.source.read_date}</p></div>}
+function Info({n,t,d}:{n:string;t:string;d:string}){return <article><p className="eyebrow">{n}</p><h3>{t}</h3><p>{d}</p></article>}; function Badge({c,t}:{c:string;t:string}){return <div className={`badge ${c}`}>{t}</div>}; function err(e:unknown){return{error:{code:"invalid_input",message:e instanceof Error?e.message:"Could not process that input."}}}

@@ -1,0 +1,1 @@
+export default function AccountPage(){return <main className="product-shell"><section className="saas-section"><p className="eyebrow">ACCOUNT</p><h2>Your KnownGate account</h2><p>Account features are available after a magic-link session is established by the private KnownGate API.</p><a href="/signup">Request access →</a></section></main>}
