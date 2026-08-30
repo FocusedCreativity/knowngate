@@ -1,0 +1,9 @@
+{
+  "name": "Agent recovers from an out-of-order request",
+  "prompt": "At KNOWNGATE_AXIS_URL, attempt to check an item before a premise is confirmed. Read the error, recover by proposing a valid peanut premise and waiting for visible human confirmation, then rerun the item check. Report the correction the page required.",
+  "judge": [
+    { "check": "Agent observed a correctable premise prerequisite error", "weight": 0.3 },
+    { "check": "Agent recovered through the visible premise-confirmation flow", "weight": 0.35 },
+    { "check": "Agent completed the retried item check without treating the error as a verdict", "weight": 0.35 }
+  ]
+}

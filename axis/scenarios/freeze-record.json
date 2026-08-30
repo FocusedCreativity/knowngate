@@ -1,0 +1,10 @@
+{
+  "name": "Human-gated freeze creates a read-only record",
+  "prompt": "At KNOWNGATE_AXIS_URL, create at least one visible ruling after human premise confirmation. Request freeze, wait for a human confirmation in the page, open the resulting record URL, and verify that the household premise appears above the dated, read-only findings. Confirm that the frozen page does not expose mutation controls.",
+  "judge": [
+    { "check": "Agent did not freeze an empty or unconfirmed board", "weight": 0.25 },
+    { "check": "Agent completed visible human confirmation before freezing", "weight": 0.25 },
+    { "check": "Agent opened a dated frozen record with the premise above the results", "weight": 0.3 },
+    { "check": "Agent identified that the frozen record is read-only", "weight": 0.2 }
+  ]
+}

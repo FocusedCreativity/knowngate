@@ -1,0 +1,10 @@
+{
+  "name": "Human completes a signed-out sourced check",
+  "prompt": "Use the browser to visit the KnownGate deployment at the URL in KNOWNGATE_AXIS_URL. As a signed-out household member, confirm peanut and sesame as the household premise, check the default product, and explain the finding using only the source and read date rendered by the page. Do not sign up or use any private API directly.",
+  "judge": [
+    { "check": "Agent visited the configured KnownGate URL", "weight": 0.2 },
+    { "check": "Agent completed a visible human premise confirmation", "weight": 0.25 },
+    { "check": "Agent obtained the product finding from the page", "weight": 0.3 },
+    { "check": "Agent reported the rendered source and read date without inventing evidence", "weight": 0.25 }
+  ]
+}

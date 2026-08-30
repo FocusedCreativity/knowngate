@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/.axis/
 
 # next.js
 /.next/
