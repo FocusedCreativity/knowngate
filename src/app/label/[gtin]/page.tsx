@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import { EvidenceCheckIsland } from "@/components/evidence/evidence-check-island";
-import { getLabel } from "@/lib/knowngate/api";
-
-export function generateStaticParams() { return [{ gtin: "0000822910553" }]; }
-export default async function LabelPage({ params }: { params: Promise<{ gtin: string }> }) {
-  const { gtin } = await params; const label = await getLabel(gtin); if (!label) notFound();
-  return <main className="ruling-room"><header className="masthead"><div><p className="eyebrow">KNOWNGATE / LABEL EVIDENCE</p><h1>{label.name}</h1></div><p className="doctrine">Source first.<br />Finding, not promise.</p></header><section className="panel premise-panel"><p className="step">LABEL / {label.gtin}</p><h2>{label.brand}</h2><p>{label.statement_read ? "A product statement was read." : "No readable product statement."}</p>{label.findings.map((finding) => <article className="notable" key={finding.allergen_token}><strong>{finding.allergen_token}</strong><p>{finding.status.replaceAll("_", " ")} — {finding.matched_text}</p></article>)}<p className="source">SOURCE / {label.source.name} / READ {label.source.read_date}</p></section><EvidenceCheckIsland subject={{ kind: "upc", value: label.gtin }} /></main>;
-}
+import { getLabel, KnownGateApiError } from "@/lib/knowngate/api";
+import type { LabelResult } from "@/lib/knowngate/contracts";
+export const dynamic = "force-dynamic";
+async function load(gtin:string):Promise<{label?:LabelResult;missing?:boolean}>{try{const label=await getLabel(gtin);return label?{label}:{missing:true}}catch(error){return{missing:error instanceof KnownGateApiError&&error.status===404}}}
+export default async function LabelPage({params}:{params:Promise<{gtin:string}>}){const {gtin}=await params;const result=await load(gtin);if(result.missing)notFound();if(!result.label)return <Unavailable title="Label evidence could not be reached"/>;const label=result.label;return <main className="ruling-room"><header className="masthead"><div><p className="eyebrow">KNOWNGATE / LABEL EVIDENCE</p><h1>{label.name}</h1></div><p className="doctrine">Source first.<br/>Finding, not promise.</p></header><section className="panel premise-panel"><p className="step">LABEL / {label.gtin}</p><h2>{label.brand}</h2><p>{label.statement_read?"A product statement was read.":"No readable product statement."}</p>{label.findings.map(f=><article className="notable" key={f.allergen_token}><strong>{f.allergen_token}</strong><p>{f.status.replaceAll("_"," ")} — {f.matched_text}</p></article>)}<p className="source">SOURCE / {label.source.name} / READ {label.source.read_date}</p></section><EvidenceCheckIsland subject={{kind:"upc",value:label.gtin}}/></main>}
+function Unavailable({title}:{title:string}){return <main className="ruling-room"><section className="panel premise-panel"><p className="eyebrow">CANNOT VERIFY</p><h1>{title}</h1><p>No verdict was produced. The evidence service could not be reached; try again later.</p></section></main>}
