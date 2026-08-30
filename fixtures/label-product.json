@@ -1,0 +1,8 @@
+{
+  "gtin": "0000822910553",
+  "name": "Bill Knapp's® Blueberry Toaster Tops",
+  "brand": "Bill Knapp's",
+  "statement_read": true,
+  "findings": [{ "allergen_token": "peanuts", "status": "present", "evidence_kind": "retailer_declaration", "matched_text": "Contains: Peanuts and their derivates" }],
+  "source": { "name": "retailer product data (Kroger API)", "url": null, "read_date": "2026-08-29" }
+}

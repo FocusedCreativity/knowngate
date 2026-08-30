@@ -1,0 +1,8 @@
+{
+  "venue": { "name": "Neighborhood Cafe", "chain": null, "city": "denver" },
+  "chart": "none_found",
+  "verdict_counts": { "no_conflict": 0, "conflict": 0, "ask_one_question": 0, "cannot_verify": 1 },
+  "notable": [],
+  "caveat": null,
+  "source": { "name": "no published allergen chart found", "url": null, "read_date": "2026-08-30" }
+}

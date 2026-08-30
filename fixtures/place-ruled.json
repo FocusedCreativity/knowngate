@@ -1,0 +1,16 @@
+{
+  "venue": { "name": "Panda Express", "chain": "Panda Express", "city": "los_angeles" },
+  "chart": "ruled",
+  "verdict_counts": { "no_conflict": 0, "conflict": 36, "ask_one_question": 143, "cannot_verify": 0 },
+  "notable": [{
+    "verdict": "ask_one_question",
+    "subject": { "kind": "menu_item", "value": "Chow Fun", "venue": "Panda Express", "name": "Chow Fun" },
+    "coverage": { "composition": "covered", "preparation": "silent" },
+    "conflicts": [], "unverified": [],
+    "question": "Is the chow fun prepared with, or on shared equipment with, anything containing peanut or sesame?",
+    "source": { "name": "Panda Express published allergen chart", "url": "https://www.pandaexpress.com/nutritioninformation", "read_date": "2026-08-26" },
+    "caveat": null, "label_url": "/venue/panda-express"
+  }],
+  "caveat": null,
+  "source": { "name": "Panda Express published allergen chart", "url": "https://www.pandaexpress.com/nutritioninformation", "read_date": "2026-08-26" }
+}

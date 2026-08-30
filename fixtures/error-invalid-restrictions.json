@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "invalid_restrictions",
+    "message": "restrictions must be a non-empty array of { key } objects (FDA-9 keys)",
+    "missing": "restrictions"
+  }
+}

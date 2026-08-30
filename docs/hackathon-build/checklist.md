@@ -13,7 +13,7 @@
 
 ## Checklist
 
-- [ ] **1. Establish contracts, fixtures, and test foundation**
+- [x] **1. Establish contracts, fixtures, and test foundation**
   Spec ref: `spec.md > API Contracts`; `spec.md > Architecture > 7. Fixture/mock implementation`; `spec.md > Verification Matrix`
   What to build: Define the complete TypeScript contract model, runtime discriminant guards, stable KnownGate error shape, restriction aliases, compact serializers, and the deterministic fixture corpus for all four item verdicts and all three place-chart states. Add a lightweight automated test command and contract tests before UI work begins.
   Acceptance: Captured item, place, label, freeze, and error fixtures satisfy the frozen shapes in `docs/build-brief.md`; malformed discriminants fail validation; compact item/place payloads remain measurable; fixture content covers conflict, clear, amber, cannot-verify, ruled chart, unreadable chart, and no-chart behavior.

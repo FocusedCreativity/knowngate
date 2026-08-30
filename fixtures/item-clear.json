@@ -1,0 +1,11 @@
+{
+  "verdict": "no_conflict",
+  "subject": { "kind": "upc", "value": "0001111085654", "name": "Simple corn tortillas" },
+  "coverage": { "composition": "covered", "preparation": "covered" },
+  "conflicts": [],
+  "unverified": [],
+  "question": null,
+  "source": { "name": "retailer product data", "url": null, "read_date": "2026-08-29" },
+  "caveat": null,
+  "label_url": "/label/0001111085654"
+}

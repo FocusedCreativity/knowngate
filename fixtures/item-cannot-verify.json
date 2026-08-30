@@ -1,0 +1,11 @@
+{
+  "verdict": "cannot_verify",
+  "subject": { "kind": "product_query", "value": "Unlisted bakery cookie", "name": "Unlisted bakery cookie" },
+  "coverage": { "composition": "unknown", "preparation": "unknown" },
+  "conflicts": [],
+  "unverified": [{ "restriction": "peanut", "reason": "No published composition or preparation evidence was found." }],
+  "question": null,
+  "source": { "name": "no published source found", "url": null, "read_date": "2026-08-30" },
+  "caveat": null,
+  "label_url": null
+}

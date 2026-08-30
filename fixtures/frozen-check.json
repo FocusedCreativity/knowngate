@@ -1,0 +1,16 @@
+{
+  "ck_id": "ck_demo29b6e359cae50ab4",
+  "payload": {
+    "premise": { "restrictions": [{ "key": "peanut" }, { "key": "sesame" }], "diners": "The household", "location": "Denver" },
+    "results": [{
+      "verdict": "conflict",
+      "subject": { "kind": "upc", "value": "0000822910553", "name": "Bill Knapp's® Blueberry Toaster Tops" },
+      "coverage": { "composition": "covered", "preparation": "covered" },
+      "conflicts": [{ "restriction": "peanut", "evidence": "Contains: Peanuts and their derivates" }],
+      "unverified": [], "question": null,
+      "source": { "name": "retailer product data (Kroger API)", "url": null, "read_date": "2026-08-29" },
+      "caveat": null, "label_url": "/label/0000822910553"
+    }]
+  },
+  "frozen_at": "2026-08-30T08:00:00Z"
+}

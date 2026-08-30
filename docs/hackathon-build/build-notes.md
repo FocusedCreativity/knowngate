@@ -43,3 +43,10 @@
 - Ten atomic milestones sequence risk early: contracts/API, plain-web vertical slice, design, ruling-room WebMCP, evidence tools, freeze, evals, deployed runtime hardening, and judged handoff.
 - Checkpoints occur after the manual ruling loop (item 3), designed page-specific WebMCP surfaces (item 6), and live judging flow (item 9).
 - Checklist deepening rounds: skipped on the handoff path; participant review is the final gut-check.
+
+## 2026-08-30 — Build Item 1: Contracts And Fixtures
+
+- Added strict TypeScript and runtime contracts for item, place, label, freeze, premise, and stable error payloads.
+- Added deterministic fixtures covering all four item verdicts and all three place-chart states, each with sourced and dated evidence.
+- Added compact serializers with UTF-8 payload measurement and Node contract tests.
+- Verified 9 contract tests, ESLint, `git diff --check`, and a Next.js 16 production build using webpack because the managed environment blocks Turbopack's local helper port.

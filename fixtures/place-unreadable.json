@@ -1,0 +1,8 @@
+{
+  "venue": { "name": "Chipotle", "chain": "Chipotle", "city": "denver" },
+  "chart": "published_not_machine_readable",
+  "verdict_counts": { "no_conflict": 0, "conflict": 0, "ask_one_question": 0, "cannot_verify": 1 },
+  "notable": [],
+  "caveat": { "text": "We cannot guarantee the complete absence of allergens in our restaurants.", "captured": "2026-08-29" },
+  "source": { "name": "Chipotle published allergen information", "url": "https://www.chipotle.com/allergens", "read_date": "2026-08-29" }
+}
