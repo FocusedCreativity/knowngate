@@ -6,8 +6,8 @@
   "settings": {
     "concurrency": 1,
     "limits": {
-      "run": { "time_minutes": 30, "tokens": 300000 },
-      "scenario": { "time_minutes": 8, "tokens": 70000 }
+      "run": { "time_minutes": 30, "tokens": 3000000 },
+      "scenario": { "time_minutes": 8, "tokens": 800000 }
     }
   },
   "artifacts": ["evals/results.json"]

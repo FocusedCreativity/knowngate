@@ -73,11 +73,14 @@ function text(value: unknown, label: string): string {
 }
 
 function nullableText(value: unknown, label: string): string | null {
-  if (value === null) return null;
+  if (value === null || value === undefined) return null;
   return text(value, label);
 }
 
-function source(value: unknown) {
+function source(value: unknown): ItemResult["source"] {
+  if (value === null || value === undefined) {
+    return null;
+  }
   const input = record(value, "source");
   return {
     name: text(input.name, "source.name"),
@@ -182,7 +185,7 @@ export function parseItemResult(value: unknown): ItemResult {
       kind: kind as ItemResult["subject"]["kind"],
       value: text(subjectInput.value, "subject.value"),
       ...(subjectInput.venue === undefined ? {} : { venue: text(subjectInput.venue, "subject.venue") }),
-      ...(subjectInput.name === undefined ? {} : { name: text(subjectInput.name, "subject.name") }),
+      ...(subjectInput.name === undefined || subjectInput.name === null ? {} : { name: text(subjectInput.name, "subject.name") }),
     },
     coverage: {
       composition: composition as ItemResult["coverage"]["composition"],
@@ -198,7 +201,7 @@ export function parseItemResult(value: unknown): ItemResult {
     }),
     question: nullableText(input.question, "question"),
     source: source(input.source),
-    caveat: input.caveat === null ? null : (() => {
+    caveat: input.caveat === null || input.caveat === undefined ? null : (() => {
       const caveat = record(input.caveat, "caveat");
       return { text: text(caveat.text, "caveat.text"), captured: text(caveat.captured, "caveat.captured") };
     })(),
@@ -232,7 +235,7 @@ export function parsePlaceResult(value: unknown): PlaceResult {
       cannot_verify: count("cannot_verify"),
     },
     notable: input.notable.map(parseItemResult),
-    caveat: input.caveat === null ? null : (() => {
+    caveat: input.caveat === null || input.caveat === undefined ? null : (() => {
       const caveat = record(input.caveat, "caveat");
       return { text: text(caveat.text, "caveat.text"), captured: text(caveat.captured, "caveat.captured") };
     })(),

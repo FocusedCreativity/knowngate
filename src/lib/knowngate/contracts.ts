@@ -86,7 +86,7 @@ export type ItemResult = {
   conflicts: Conflict[];
   unverified: Unverified[];
   question: string | null;
-  source: Source;
+  source: Source | null;
   caveat: Caveat | null;
   label_url: string | null;
 };
@@ -104,7 +104,7 @@ export type PlaceResult = {
   verdict_counts: VerdictCounts;
   notable: ItemResult[];
   caveat: Caveat | null;
-  source: Source;
+  source: Source | null;
 };
 
 export type LabelFinding = {
@@ -120,7 +120,7 @@ export type LabelResult = {
   brand: string;
   statement_read: boolean;
   findings: LabelFinding[];
-  source: Source;
+  source: Source | null;
 };
 
 export type BoardResult = ItemResult | PlaceResult;

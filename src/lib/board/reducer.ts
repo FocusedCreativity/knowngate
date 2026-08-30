@@ -18,6 +18,7 @@ export type BoardAction =
   | { type: "completeCheck"; id: string; result: BoardResult; eventId: string }
   | { type: "failCheck"; id: string; message: string; eventId: string }
   | { type: "setView"; view: "human" | "agent" }
+  | { type: "note"; message: string; eventId: string }
   | { type: "setMode"; mode: "human" | "agent" };
 
 export const initialBoardState: BoardState = { premise: { status: "empty", draft: null, confirmed: null }, entries: [], activity: [], view: "human", mode: "human" };
@@ -40,6 +41,7 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
       return { ...state, entries: state.entries.map((entry) => entry.id === action.id ? { ...entry, status: "complete", result: action.result, error: undefined } : entry), activity: [...state.activity, activity(action.eventId, "Evidence ruling added to the ledger.")] };
     case "failCheck": return { ...state, entries: state.entries.map((entry) => entry.id === action.id ? { ...entry, status: "error", error: action.message } : entry), activity: [...state.activity, activity(action.eventId, action.message, "error")] };
     case "setView": return { ...state, view: action.view };
+    case "note": return { ...state, activity: [...state.activity, activity(action.eventId, action.message)] };
     case "setMode": return { ...state, mode: action.mode };
   }
 }

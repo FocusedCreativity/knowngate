@@ -11,7 +11,7 @@ async function fixture(name: string): Promise<unknown> {
 for (const name of ["item-conflict.json", "item-clear.json", "item-amber.json", "item-cannot-verify.json"]) {
   test(`validates ${name}`, async () => {
     const parsed = parseItemResult(await fixture(name));
-    assert.ok(parsed.source.read_date);
+    assert.ok(parsed.source?.read_date);
     assert.ok(utf8Bytes(compactItem(parsed)) <= 1536);
   });
 }
@@ -19,7 +19,7 @@ for (const name of ["item-conflict.json", "item-clear.json", "item-amber.json", 
 for (const name of ["place-ruled.json", "place-unreadable.json", "place-none.json"]) {
   test(`validates ${name}`, async () => {
     const parsed = parsePlaceResult(await fixture(name));
-    assert.ok(parsed.source.read_date);
+    assert.ok(parsed.source?.read_date);
     assert.ok(utf8Bytes(compactPlace(parsed)) <= 1536);
   });
 }
