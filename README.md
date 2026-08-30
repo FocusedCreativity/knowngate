@@ -3,6 +3,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ## Project artifacts
 
 - [KnownGate challenge brief](docs/challenge-brief.md) — project context, challenge requirements, product direction, WebMCP contract, judging strategy, and open decisions captured on 30 August 2026.
+- [KnownGate build brief](docs/build-brief.md) — implementation requirements, product doctrine, screens, design system, WebMCP tools, API contracts, fixtures, evaluations, and delivery criteria.
 
 ## Getting Started
 
