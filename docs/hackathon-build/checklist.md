@@ -19,7 +19,7 @@
   Acceptance: Captured item, place, label, freeze, and error fixtures satisfy the frozen shapes in `docs/build-brief.md`; malformed discriminants fail validation; compact item/place payloads remain measurable; fixture content covers conflict, clear, amber, cannot-verify, ruled chart, unreadable chart, and no-chart behavior.
   Verify: Run the contract test command, TypeScript/production build, ESLint, and `git diff --check`; inspect that fixtures contain sources and read dates and no invented evaluation metrics.
 
-- [ ] **2. Build the live/mock API boundary and Route Handlers**
+- [x] **2. Build the live/mock API boundary and Route Handlers**
   Spec ref: `spec.md > Architecture > 6. API adapter and Route Handlers`; `spec.md > Environment Configuration`; `spec.md > Error Strategy`
   What to build: Implement the server-only API adapter, deterministic fixture selection, same-origin Route Handlers for item/place checks, label lookup, freeze create/read, and optional venue detail. Default local development to mock mode when no API base is present, preserve live status/error shapes, enforce input and payload limits, and prevent request-body logging.
   Acceptance: Manual HTTP calls receive the documented responses in mock mode; live mode targets `KNOWNGATE_API_BASE`; transport failures stay operational errors rather than verdicts; no backend base URL enters the browser bundle; freeze IDs and payload size are validated.

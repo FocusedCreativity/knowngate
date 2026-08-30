@@ -2,6 +2,8 @@ import {
   FDA9_KEYS,
   type CheckItemRequest,
   type CheckPlaceRequest,
+  type FreezeCreated,
+  type FreezeRequest,
   type FrozenCheck,
   type ItemResult,
   type KnownGateErrorBody,
@@ -267,7 +269,32 @@ export function parseFrozenCheck(value: unknown): FrozenCheck {
   if (!Array.isArray(payload.results)) throw new ContractError("payload.results must be an array");
   return {
     ck_id: text(input.ck_id, "ck_id"),
-    payload: { premise: parsePremise(payload.premise), results: payload.results as FrozenCheck["payload"]["results"] },
+    payload: parseFreezeRequest(payload),
     frozen_at: text(input.frozen_at, "frozen_at"),
   };
+}
+
+export function parseFreezeRequest(value: unknown): FreezeRequest {
+  const input = record(value, "freeze request");
+  if (!Array.isArray(input.results) || input.results.length === 0) {
+    throw new ContractError("results must be a non-empty array", "invalid_results", "results");
+  }
+  return {
+    premise: parsePremise(input.premise),
+    results: input.results.map((result) => {
+      const candidate = record(result, "result");
+      return "chart" in candidate ? parsePlaceResult(candidate) : parseItemResult(candidate);
+    }),
+  };
+}
+
+export function parseFreezeCreated(value: unknown): FreezeCreated {
+  const input = record(value, "freeze response");
+  const ck_id = text(input.ck_id, "ck_id");
+  if (!isFreezeId(ck_id)) throw new ContractError("ck_id is invalid", "invalid_freeze_id", "ck_id");
+  return { ck_id, url: text(input.url, "url"), frozen_at: text(input.frozen_at, "frozen_at") };
+}
+
+export function isFreezeId(value: string): boolean {
+  return /^ck_[a-z0-9]{16,32}$/.test(value);
 }

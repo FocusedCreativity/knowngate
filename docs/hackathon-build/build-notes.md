@@ -50,3 +50,10 @@
 - Added deterministic fixtures covering all four item verdicts and all three place-chart states, each with sourced and dated evidence.
 - Added compact serializers with UTF-8 payload measurement and Node contract tests.
 - Verified 9 contract tests, ESLint, `git diff --check`, and a Next.js 16 production build using webpack because the managed environment blocks Turbopack's local helper port.
+
+## 2026-08-30 — Build Item 2: API Boundary
+
+- Added a server-only live/mock adapter, deterministic fixture selection, stable transport failures, timeouts, and no request-body logging.
+- Added same-origin handlers for item/place checks, label lookup, and freeze create/read with runtime validation and a 16KB request limit.
+- Added a browser client that knows only same-origin routes; `KNOWNGATE_API_BASE` remains server-only and is documented in `.env.example`.
+- Exercised every handler over local HTTP with valid and invalid requests, including canonical freeze read and mock freeze creation; verified ESLint, production build, and whitespace checks.
