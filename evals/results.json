@@ -1,0 +1,158 @@
+{
+  "generated_at": "2026-08-30T10:28:16.423Z",
+  "runner": "deterministic local scenario runner",
+  "measured": {
+    "scenarios": 21,
+    "passed": 21
+  },
+  "browser_agent_metrics": "not yet measured",
+  "scenarios": [
+    {
+      "tool": "propose_premise",
+      "case": "valid",
+      "pass": true,
+      "completion": true,
+      "recovery": "not needed"
+    },
+    {
+      "tool": "propose_premise",
+      "case": "malformed",
+      "pass": true,
+      "completion": false,
+      "recovery": "correct input and retry"
+    },
+    {
+      "tool": "propose_premise",
+      "case": "out_of_order",
+      "pass": true,
+      "completion": false,
+      "recovery": "follow the visible prerequisite"
+    },
+    {
+      "tool": "check_item",
+      "case": "valid",
+      "pass": true,
+      "completion": true,
+      "recovery": "not needed"
+    },
+    {
+      "tool": "check_item",
+      "case": "malformed",
+      "pass": true,
+      "completion": false,
+      "recovery": "correct input and retry"
+    },
+    {
+      "tool": "check_item",
+      "case": "out_of_order",
+      "pass": true,
+      "completion": false,
+      "recovery": "follow the visible prerequisite"
+    },
+    {
+      "tool": "check_place",
+      "case": "valid",
+      "pass": true,
+      "completion": true,
+      "recovery": "not needed"
+    },
+    {
+      "tool": "check_place",
+      "case": "malformed",
+      "pass": true,
+      "completion": false,
+      "recovery": "correct input and retry"
+    },
+    {
+      "tool": "check_place",
+      "case": "out_of_order",
+      "pass": true,
+      "completion": false,
+      "recovery": "follow the visible prerequisite"
+    },
+    {
+      "tool": "get_board",
+      "case": "valid",
+      "pass": true,
+      "completion": true,
+      "recovery": "not needed"
+    },
+    {
+      "tool": "get_board",
+      "case": "malformed",
+      "pass": true,
+      "completion": false,
+      "recovery": "correct input and retry"
+    },
+    {
+      "tool": "get_board",
+      "case": "out_of_order",
+      "pass": true,
+      "completion": false,
+      "recovery": "follow the visible prerequisite"
+    },
+    {
+      "tool": "freeze_check",
+      "case": "valid",
+      "pass": true,
+      "completion": true,
+      "recovery": "not needed"
+    },
+    {
+      "tool": "freeze_check",
+      "case": "malformed",
+      "pass": true,
+      "completion": false,
+      "recovery": "correct input and retry"
+    },
+    {
+      "tool": "freeze_check",
+      "case": "out_of_order",
+      "pass": true,
+      "completion": false,
+      "recovery": "follow the visible prerequisite"
+    },
+    {
+      "tool": "get_label_facts",
+      "case": "valid",
+      "pass": true,
+      "completion": true,
+      "recovery": "not needed"
+    },
+    {
+      "tool": "get_label_facts",
+      "case": "malformed",
+      "pass": true,
+      "completion": false,
+      "recovery": "correct input and retry"
+    },
+    {
+      "tool": "get_label_facts",
+      "case": "out_of_order",
+      "pass": true,
+      "completion": false,
+      "recovery": "follow the visible prerequisite"
+    },
+    {
+      "tool": "check_here",
+      "case": "valid",
+      "pass": true,
+      "completion": true,
+      "recovery": "not needed"
+    },
+    {
+      "tool": "check_here",
+      "case": "malformed",
+      "pass": true,
+      "completion": false,
+      "recovery": "correct input and retry"
+    },
+    {
+      "tool": "check_here",
+      "case": "out_of_order",
+      "pass": true,
+      "completion": false,
+      "recovery": "follow the visible prerequisite"
+    }
+  ]
+}

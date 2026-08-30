@@ -31,31 +31,31 @@
   Acceptance: A human can confirm a premise, check a conflict product and Panda Express, see an amber question, switch to identical compact Agent JSON, recover from an out-of-order action, and reload to an empty premise. Previous successful results survive later operational errors.
   Verify: Run reducer/recovery tests, build/lint, and complete the full manual flow in an ordinary browser. **Checkpoint 1:** ask the participant to inspect premise ownership, ledger behavior, and Human/Agent parity before continuing.
 
-- [ ] **4. Apply the terminal-ledger design system and accessible verdict language**
+- [x] **4. Apply the terminal-ledger design system and accessible verdict language**
   Spec ref: `spec.md > Architecture > 1. Root application shell`; `spec.md > Architecture > 4. Ledger and shared Agent view`; `prd.md > Experience Requirements`
   What to build: Install the frozen visual register across the working vertical slice: three `next/font` families, CSS variables, light/dark themes, fluid layout, large verdict hierarchy, mono evidence rows, petrol chrome, accessible labels/icons, and diagonal-hatch `cannot_verify`. Add shared `VerdictCard`, `PlaceLedger`, `SourceLine`, and `Coverage` renderers plus the universal disclaimer.
   Acceptance: All verdicts are distinguishable without color; hatch is used for cannot-verify in both themes; every result visibly includes source/read date; amber questions and operator caveats remain prominent and verbatim; keyboard/focus behavior is usable at narrow and wide layouts.
   Verify: Run build/lint, inspect light/dark and narrow/medium/wide layouts, keyboard through premise confirmation, and verify no saturated colors outside the frozen palette.
 
-- [ ] **5. Register and verify the five ruling-room WebMCP tools**
+- [x] **5. Register and verify the five ruling-room WebMCP tools**
   Spec ref: `spec.md > Architectural Constraints > WebMCP constraints`; `spec.md > Architecture > 3. Human-interaction gate`; `spec.md > Architecture > 5. WebMCP registration layer`
   What to build: Add minimal native WebMCP types, JSON Schemas, hard-budget constants/tests, feature-detected registration hook, AbortController cleanup, fresh-state refs, and exactly `propose_premise`, `check_item`, `check_place`, `get_board`, and `freeze_check`. Route every executor through the same commands as manual UI and mutate visible state before returning.
   Acceptance: Unsupported browsers remain fully functional; `get_board` is read-only; invalid/out-of-order calls return correctable errors; proposal/freeze are human-gated with documented fallback; names/descriptions/parameters/outputs stay under limits; no tool can change a confirmed premise, override a verdict, decide an amber, or send a record.
   Verify: Run schema/output budget and recovery tests, build/lint, inspect exactly five tools in Chrome's WebMCP panel, invoke each tool, and confirm visible mutation plus cleanup on route navigation.
 
-- [ ] **6. Implement label and venue evidence routes with two-tool surfaces**
+- [x] **6. Implement label and venue evidence routes with two-tool surfaces**
   Spec ref: `spec.md > Architecture > 8. Label and venue evidence pages`; `spec.md > Data Flow > Evidence page check`
   What to build: Add server-rendered `/label/[gtin]` and `/venue/[slug]` pages using async Next.js 16 params, static fixture params, shared evidence renderers, source/date/coverage detail, and a narrow client check island. Register exactly `get_label_facts` and `check_here` on each evidence page with per-call restrictions only.
   Acceptance: Fixture routes prerender and live IDs resolve through the adapter; evidence remains readable without JavaScript/WebMCP; restrictions are not retained; `check_here` visibly renders its verdict; route changes remove ruling-room tools and expose exactly two evidence tools.
   Verify: Run production build/lint, open fixture label/venue routes, invoke both tools in the WebMCP panel, navigate across route families, and confirm tool sets change from five to two. **Checkpoint 2:** ask the participant to inspect the designed ruling room and page-specific WebMCP behavior.
 
-- [ ] **7. Complete human-gated freeze and immutable record pages**
+- [x] **7. Complete human-gated freeze and immutable record pages**
   Spec ref: `spec.md > Architecture > 9. Frozen record page`; `spec.md > Data Flow > Freeze`; `prd.md > Story 4.3 — Freeze a dated record`
   What to build: Finish `freeze_check` and manual freeze through the shared human gate, live create/read roundtrip, local in-process mock plus canonical frozen fixture, validated `/ck/[id]` pages, frozen timestamp/banner, household-origin premise copy, and shared read-only verdict renderers. Ensure frozen pages import no WebMCP registration or mutation controls.
   Acceptance: Freeze is blocked without confirmed premise/results; cancellation creates nothing; confirmation returns a valid `ck_` URL; live records survive a separate page request; canonical mock record is reproducible; invalid IDs render not-found; frozen pages show premise above results and expose zero tools.
   Verify: Run freeze tests/build/lint, test mock and live create/read roundtrips, inspect the frozen page in Chrome/ChatGPT, and confirm Site tools/WebMCP panel reports zero tools.
 
-- [ ] **8. Add evaluation runner, AX surface, and privacy/security checks**
+- [x] **8. Add evaluation runner, AX surface, and privacy/security checks**
   Spec ref: `spec.md > Architecture > 10. Evaluations and AX surface`; `spec.md > Security And Trust Boundaries`; `spec.md > Risks And Verification`
   What to build: Implement scenarios for all seven tool names with valid, invalid, and out-of-order inputs; record pass/fail, completion, recovery, and calls/task; generate `evals/results.json`; render `/ax`; add checks for UTF-8 output budgets, untrusted caveat handling, storage/logging leakage, input limits, and lifecycle cleanup. Display “not yet measured” for unrun browser-agent metrics.
   Acceptance: Results are reproducible and derived from real runs; all tool definitions and fixture outputs pass hard budgets; recovery cases identify the next action; no restriction storage/logging is found; AX never invents values.

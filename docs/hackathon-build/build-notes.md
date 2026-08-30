@@ -65,3 +65,11 @@
 - Added reducer recovery tests for out-of-order checks, premise-change invalidation, and preserving earlier successes after later operational errors.
 - Browser-verified the complete mock path: human confirmation, conflict product, ruled Panda Express place, amber menu question, identical Agent state, and reload returning to an empty premise.
 - Verified 12 automated tests, ESLint, Next.js production build, and whitespace checks.
+
+## 2026-08-30 — Build Items 4–8: Judged Surfaces
+
+- Applied the frozen terminal-ledger register: Anybody, Familjen Grotesk, Azeret Mono, approved light/dark tokens, source-first mono evidence, non-color verdict language, and hatched cannot-verify treatment.
+- Added feature-detected, abortable native WebMCP registration for the exact five ruling-room tools and two page-evidence tools; manual and tool paths use the same same-origin client/reducer state.
+- Added statically generated label and venue evidence routes, per-call evidence checks, a human-confirmed freeze flow, and read-only frozen record pages with no tool registration.
+- Added a deterministic seven-tool evaluation runner, generated `evals/results.json`, `/ax`, tool manifest/budget test, and no-persistence architecture checks.
+- Verified evaluation generation, 13 tests, ESLint, TypeScript, static-route generation, production build, and `git diff --check`.
