@@ -16,6 +16,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@netlify/axis": "^1.17.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
