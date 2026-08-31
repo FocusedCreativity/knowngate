@@ -16,6 +16,8 @@ import {
 } from "./validation.ts";
 
 const HOP_REQUEST = new Set([
+  // never let a caller supply the site header; the proxy sets it itself
+  "x-knowngate-site",
   "connection",
   "keep-alive",
   "proxy-authenticate",
@@ -58,6 +60,12 @@ function forwardRequestHeaders(request: Request): Headers {
     if (HOP_REQUEST.has(key.toLowerCase())) return;
     headers.set(key, value);
   });
+  // The API gates its checking routes behind a key or this header. It is what
+  // keeps knowngate.com itself keyless: the site is the caller, not the agent.
+  // A caller cannot set it themselves, because the inbound copy is dropped
+  // above before this is written.
+  const siteSecret = process.env.KNOWNGATE_SITE_SECRET;
+  if (siteSecret) headers.set("x-knowngate-site", siteSecret);
   return headers;
 }
 

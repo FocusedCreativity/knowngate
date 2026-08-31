@@ -5,6 +5,7 @@ import { DataTable } from "@/components/kg/data-table";
 import { MustNotOmit } from "@/components/kg/primitives";
 import { getQuestionLibrary } from "@/lib/kg/questions-data";
 import { getCorpusSnapshot } from "@/lib/kg/corpus-data";
+import { FREE_TIER_CHECKS } from "@/lib/kg/types";
 import { formatInt } from "@/lib/kg/fixtures";
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default async function DevelopersPage() {
         <div className="kg-chips">
           <span className="kg-chip">MCP + REST</span>
           <span className="kg-chip">
-            free key · <LiveToken label="N" /> checks/month
+            free key · {FREE_TIER_CHECKS} checks/month
           </span>
           <span className="kg-chip">evidence standard v1.0</span>
         </div>
@@ -41,7 +42,7 @@ export default async function DevelopersPage() {
             Sign in
           </Link>
           <span style={{ fontSize: 14, color: "var(--kg-ink2)" }}>
-            Email only, there is no password to choose. <LiveToken label="N" /> checks a month included.
+            Email only, there is no password to choose. {FREE_TIER_CHECKS} checks a month included.
           </span>
         </div>
       </header>
@@ -115,7 +116,7 @@ curl https://www.knowngate.com/api/knowngate/v0/check_item \\
   "thresholds":[{"nutrient":"sodium","max":600,
   "unit":"mg","basis":"per_serving"}]}'
 
-// no key yet? knowngate.com/signup, free, {N} checks/month`}</pre>
+// no key yet? knowngate.com/signup, free, ${FREE_TIER_CHECKS} checks/month`}</pre>
       </section>
 
       <section className="kg-section">
@@ -309,7 +310,7 @@ curl https://www.knowngate.com/api/knowngate/v0/check_item \\
             {
               cells: [
                 "Open \u00b7 free",
-                { node: <><LiveToken label="N" /> / month · unrestricted until 21 Sep</> },
+                `${FREE_TIER_CHECKS} / month · unrestricted until 21 Sep`,
                 { status: "live now", tone: "live" },
                 "All four verdicts with sources and dates. Free key required for direct access. Attribution required.",
               ],

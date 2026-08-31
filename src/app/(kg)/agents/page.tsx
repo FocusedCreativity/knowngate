@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { FREE_TIER_CHECKS } from "@/lib/kg/types";
+
 import { LiveToken } from "@/components/kg/live-token";
 import { MustNotOmit } from "@/components/kg/primitives";
 
@@ -260,7 +262,7 @@ Authorization: Bearer kg_live_••••
 {
   "key": "kg_live_••••",
   "tier": "open",
-  "included_per_month": "{N}",
+  "included_per_month": ${FREE_TIER_CHECKS},
   "created_by": "agent"
 }`}</pre>
               </div>

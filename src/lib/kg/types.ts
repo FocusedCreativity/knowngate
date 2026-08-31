@@ -1,3 +1,6 @@
+/** Free tier, decided 1 Sep 2026. The API's own copy and the frames agree. */
+export const FREE_TIER_CHECKS = 100;
+
 export type DesignVerdict =
   | "no_conflict_found"
   | "conflict_found"
