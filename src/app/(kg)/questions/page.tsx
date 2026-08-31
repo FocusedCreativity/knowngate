@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 import { LiveToken } from "@/components/kg/live-token";
 import { QuestionsTable } from "@/components/kg/primitives";
 import { DataTable, Orient } from "@/components/kg/data-table";
-import { getCorpus, getQuestionCount, getQuestions } from "@/lib/kg/fixtures";
+import { getCorpus } from "@/lib/kg/fixtures";
+import { getQuestionLibrary } from "@/lib/kg/questions-data";
 
 export const metadata: Metadata = {
   title: "Question library — KnownGate",
   description: "Every question, published. The preparation and serving questions the gate can ask.",
 };
 
-export default function QuestionsPage() {
-  const all = getQuestions();
+export default async function QuestionsPage() {
+  const { questions: all, count: qCount } = await getQuestionLibrary();
   const prep = all.filter((q) => q.family === "preparation");
   const serv = all.filter((q) => q.family === "serving");
-  const qCount = getQuestionCount();
   const corpus = getCorpus();
 
   return (
@@ -67,21 +67,21 @@ export default function QuestionsPage() {
         </div>
         <div className="kg-grid-3" style={{ marginTop: 16 }}>
           <article className="kg-tile">
-            <div style={{ fontWeight: 600 }}>Q-PREP-01</div>
-            <p className="lbl" style={{ marginTop: 8 }}>
-              closes all 12 ask_one_question results on a milk premise at Krystal (84 dishes)
-            </p>
-          </article>
-          <article className="kg-tile">
             <div style={{ fontWeight: 600 }}>Q-PREP-07</div>
             <p className="lbl" style={{ marginTop: 8 }}>
-              shared-equipment gaps across the machine-readable eat-out set
+              covers <LiveToken label="CORPUS" /> dishes at <LiveToken label="CORPUS_VENUE" />
             </p>
           </article>
           <article className="kg-tile">
             <div style={{ fontWeight: 600 }}>Q-PREP-14</div>
             <p className="lbl" style={{ marginTop: 8 }}>
-              finishing / topping gaps when composition is covered
+              covers <LiveToken label="CORPUS" />
+            </p>
+          </article>
+          <article className="kg-tile">
+            <div style={{ fontWeight: 600 }}>Q-PREP-11</div>
+            <p className="lbl" style={{ marginTop: 8 }}>
+              covers <LiveToken label="CORPUS" />
             </p>
           </article>
         </div>
@@ -93,7 +93,8 @@ export default function QuestionsPage() {
           <LiveToken label="LIVE" />
         </div>
         <p className="sub">
-          Rendered from the question library ({qCount} codes). The rows are data, never typed into this page.
+          Rendered from the question-library endpoint at build time. The rows are data, never typed into
+          this page.
         </p>
         <QuestionsTable questions={prep} />
         <p style={{ marginTop: 16, fontSize: 13, color: "var(--kg-ink2)" }}>
@@ -129,8 +130,8 @@ export default function QuestionsPage() {
           rows={[
             {
               cells: [
-                "“Is this fine for my son?”",
-                "Nobody can answer that, and that kind of word is not used anywhere in this system.",
+                "“Is this safe for my son?”",
+                "Nobody can answer that, and the word is not used anywhere in this system.",
               ],
             },
             {

@@ -226,6 +226,31 @@
 .kg-status.waitlist { color: var(--kg-ask); }
 .kg-status.waitlist .dot { background: var(--kg-ask); }
 
+/* Agent key split, 147:6 — a fixed request/response card beside a narrow human one */
+.kg-signup-split { display: grid; grid-template-columns: 760px 1fr; gap: 16px; margin-bottom: 20px; }
+.kg-key-card {
+  background: #fff; border: 1px solid var(--kg-line); border-radius: 14px;
+  padding: 24px 26px; display: flex; flex-direction: column; gap: 12px; min-width: 0;
+}
+.kg-key-card h3 { margin: 0; font-size: 21px; font-weight: 600; line-height: 1.5; }
+.kg-key-card .lbl { margin: 0; font-size: 13.5px; color: var(--kg-ink2); line-height: 1.6; }
+.kg-key-card .kg-eyebrow { margin: 0; }
+.kg-key-card .kg-code { font-size: 12.5px; }
+.kg-lede-lime { margin: 0; font-size: 13.5px; font-weight: 500; color: var(--kg-lime-deep); }
+
+/* Link tiles, 147:49 */
+.kg-tile strong { display: block; font-size: 16px; font-weight: 600; }
+.kg-tile .kg-tile-stat { display: flex; align-items: center; gap: 9px; margin-bottom: 2px; }
+/* 147:53 draws this as plain 28px type, not the soft-lime chip used inline */
+.kg-tile-stat .kg-live-token.lg { background: none; padding: 0; font-size: 28px; font-weight: 700; }
+.kg-tile .kg-tile-stat .lbl { font-size: 13px; }
+.kg-tile p.lbl { margin: 8px 0 0; line-height: 1.6; }
+.kg-root a.kg-tile-link {
+  display: inline-block; margin-top: 9px;
+  font-size: 13px; font-weight: 500; color: var(--kg-lime-deep); text-decoration: none;
+}
+.kg-tile-link:hover { text-decoration: underline; }
+
 /* Closing band */
 .kg-close {
   background: var(--kg-ink); color: #fff;
@@ -446,6 +471,7 @@
   font-size: 12px; color: var(--kg-ink2);
 }
 .kg-footer-bottom nav { display: flex; gap: 16px; }
+.kg-footer-law { display: flex; flex-direction: column; gap: 7px; max-width: 875px; }
 
 /* —— Workspace —— */
 .kg-premise-banner {
@@ -975,6 +1001,7 @@
   .kg-landing-dev { padding: 36px 20px; }
   .kg-landing-actions { justify-content: flex-start; }
   .kg-close { padding: 44px var(--kg-pad); text-align: left; align-items: flex-start; }
+  .kg-signup-split { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {

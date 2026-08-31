@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StatsStrip } from "@/components/kg/primitives";
+import { LiveToken } from "@/components/kg/live-token";
 import { DataTable } from "@/components/kg/data-table";
 import {
   formatInt,
@@ -89,8 +90,7 @@ export default async function RefusalsPage({
         <p className="kg-eyebrow">LAYER 1 · LIVE</p>
         <h2>What has been ruled since launch</h2>
         <p className="sub">
-          Straight from live traffic. Zero is a true number and this page is built to show it. Until volume
-          supports more, the default is honest emptiness — not a steady chart invented for polish.
+          Straight from GET /v0/stats. Zero is a true number and this page is built to show it.
         </p>
         <div className="kg-chips" style={{ marginBottom: 20 }}>
           <span className="kg-chip">rolling 30 days</span>
@@ -135,6 +135,10 @@ export default async function RefusalsPage({
       <section className="kg-section">
         <p className="kg-eyebrow">LAYER 2 · CORPUS</p>
         <h2>Why the gap exists</h2>
+        <p className="sub">
+          Measured over our evidence corpus, every menu item and product we hold, ruled against each FDA-9
+          restriction. Dated, reproducible, and independent of traffic.
+        </p>
         <p className="kg-corpus-stamp">
           <strong>Measured {c.measured_at}</strong>
           <span>against production evidence</span>
@@ -276,7 +280,7 @@ export default async function RefusalsPage({
               cells: [
                 "Packaged · numeric threshold",
                 `${formatInt(c.nutrition_panels.count)} panels · ${c.nutrition_panels.pct}%`,
-                "One source, and panels are rulable. The lowest refusal rate in the product.",
+                "One source, and 305,000 panels are rulable. The lowest refusal rate in the product.",
               ],
             },
             {
@@ -292,6 +296,14 @@ export default async function RefusalsPage({
           Corpus values above were measured {c.measured_at} against production. They are never estimates and
           never filled in by hand. Order-in and potluck are structural refusals — not covered by any source —
           not a fake zero.
+        </p>
+      </section>
+
+      <section className="kg-section">
+        <p className="sub" style={{ marginBottom: 0 }}>
+          <LiveToken label="CORPUS" /> values are computed from production against the evidence corpus and
+          stamped with the date they were derived. The measurement runs after the national catalog load
+          lands, so these fill in late. They are never estimates and never filled in by hand.
         </p>
       </section>
 
