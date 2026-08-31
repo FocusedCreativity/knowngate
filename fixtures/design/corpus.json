@@ -1,0 +1,28 @@
+{
+  "measured_at": "31 Aug 2026",
+  "products": 711900,
+  "metros": 30,
+  "allergen_findings": {
+    "count": 363832,
+    "pct": 51,
+    "shop_refusal_pct": 49
+  },
+  "nutrition_panels": {
+    "count": 446371,
+    "pct": 63,
+    "serving_basis_pct": 87,
+    "trans_fat_pct": 1.8,
+    "added_sugar_pct": 43
+  },
+  "eat_out": {
+    "chains_publish": 50,
+    "machine_readable": 11,
+    "dishes_ruled": 6858,
+    "published_not_machine_readable": 39,
+    "sit_down_venues": 24,
+    "sit_down_items": 701,
+    "sit_down_findings": 227,
+    "sit_down_presence_only_pct": 100
+  },
+  "questions_strip": "At Krystal, one milk premise returns 12 ask_one_question across 84 dishes — all closed by Q-PREP-01."
+}

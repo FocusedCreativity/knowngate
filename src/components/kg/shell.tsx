@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { NAV_LINKS } from "@/lib/kg/types";
+import { TOOL_MANIFEST } from "@/lib/webmcp/manifest";
 import { LiveToken } from "./live-token";
+
+const TOOL_COUNT = TOOL_MANIFEST.length;
 
 type Mode = "human" | "agent";
 
@@ -89,9 +92,7 @@ export function KgHeader({
             <div className="kg-tools-pill">
               <span className="kg-live-dot" aria-hidden />
               <span>WebMCP</span>
-              <span className="kg-token-inline">
-                <LiveToken label="LIVE tool-count" /> tools
-              </span>
+              <span className="kg-token-inline">{TOOL_COUNT} tools</span>
             </div>
             <ModeSwitch mode={mode} onChange={setMode} />
             <span className="kg-header-divider" aria-hidden />
@@ -163,9 +164,7 @@ export function KgHeader({
         <div className="kg-menu-foot">
           <div className="kg-tools-pill">
             <span className="kg-live-dot" aria-hidden />
-            <span>
-              WebMCP · <LiveToken label="LIVE tool-count" /> tools
-            </span>
+            <span>WebMCP · {TOOL_COUNT} tools</span>
             <LiveToken label="LIVE" />
           </div>
           <Link className="kg-btn" href="/login" onClick={() => setOpen(false)}>

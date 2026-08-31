@@ -3,6 +3,7 @@ import Link from "next/link";
 import { LiveToken } from "@/components/kg/live-token";
 import { DataTable } from "@/components/kg/data-table";
 import { MustNotOmit } from "@/components/kg/primitives";
+import { getQuestionCount } from "@/lib/kg/fixtures";
 
 export const metadata: Metadata = {
   title: "Developers — KnownGate",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default function DevelopersPage() {
+  const qCount = getQuestionCount();
   return (
     <>
       <header className="kg-hero">
@@ -187,7 +189,7 @@ curl https://api.knowngate.com/v1/check_item \\
           <strong>These names are canon. Do not vary them.</strong>
           <p>
             Axis values are covered and not_covered. The save call is save_record and the field it populates is
-            certificate_url. Question codes are the <LiveToken label="Q_COUNT" /> defined in the question
+            certificate_url. Question codes are the {getQuestionCount()} defined in the question
             library. A threshold is ruled on the panel alone, the preparation axis does not apply to a numeric
             premise.
           </p>

@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { LiveToken } from "@/components/kg/live-token";
 import { StatsStrip } from "@/components/kg/primitives";
 import { DataTable } from "@/components/kg/data-table";
-import { getRefusalsReviewDefault, type RefusalsLayer1 } from "@/lib/kg/fixtures";
+import {
+  formatInt,
+  getCorpus,
+  getQuestionCount,
+  getRefusalsReviewDefault,
+  type RefusalsLayer1,
+} from "@/lib/kg/fixtures";
 
 export const metadata: Metadata = {
   title: "Refusal rate — KnownGate",
   description: "How often we decline. Counted across both kinds of premise.",
 };
 
-/**
- * Review default is steady so the designed [LIVE] state is visible.
- * When this tree becomes canonical, default to whatever live traffic honestly
- * supports (zero / low_n first) — do not ship steady against an empty corpus.
- */
 export default async function RefusalsPage({
   searchParams,
 }: {
@@ -25,6 +25,8 @@ export default async function RefusalsPage({
     requested === "zero" || requested === "low_n" || requested === "steady"
       ? requested
       : getRefusalsReviewDefault();
+  const c = getCorpus();
+  const qCount = getQuestionCount();
 
   return (
     <>
@@ -86,7 +88,10 @@ export default async function RefusalsPage({
       <section className="kg-section">
         <p className="kg-eyebrow">LAYER 1 · LIVE</p>
         <h2>What has been ruled since launch</h2>
-        <p className="sub">Straight from GET /v1/stats. Zero is a true number and this page is built to show it.</p>
+        <p className="sub">
+          Straight from live traffic. Zero is a true number and this page is built to show it. Until volume
+          supports more, the default is honest emptiness — not a steady chart invented for polish.
+        </p>
         <div className="kg-chips" style={{ marginBottom: 20 }}>
           <span className="kg-chip">rolling 30 days</span>
           <span className="kg-chip">updated daily</span>
@@ -130,9 +135,28 @@ export default async function RefusalsPage({
       <section className="kg-section">
         <p className="kg-eyebrow">LAYER 2 · CORPUS</p>
         <h2>Why the gap exists</h2>
+        <p className="kg-corpus-stamp">
+          <strong>Measured {c.measured_at}</strong>
+          <span>against production evidence</span>
+          <span>
+            · {formatInt(c.products)} products · {c.metros} metros
+          </span>
+        </p>
         <p className="sub">
-          Measured over our evidence corpus, every menu item and product we hold, ruled against each FDA-9
-          restriction. Dated, reproducible, and independent of traffic.
+          {formatInt(c.allergen_findings.count)} ({c.allergen_findings.pct}%) carry ≥1 allergen finding — the
+          other {c.allergen_findings.shop_refusal_pct}% is the shop arm&apos;s refusal rate.{" "}
+          {formatInt(c.nutrition_panels.count)} ({c.nutrition_panels.pct}%) have a typed nutrition panel ·{" "}
+          {c.nutrition_panels.serving_basis_pct}% of panels state a serving basis · trans fat quantified on
+          only {c.nutrition_panels.trans_fat_pct}% of panels · added sugar on {c.nutrition_panels.added_sugar_pct}
+          %.
+        </p>
+        <p className="sub" style={{ marginTop: 12 }}>
+          Eat-out: {c.eat_out.chains_publish} chains publish; {c.eat_out.machine_readable} are
+          machine-readable — {formatInt(c.eat_out.dishes_ruled)} dishes ruled;{" "}
+          {c.eat_out.published_not_machine_readable} are &quot;published, not machine-readable&quot; · sit-down
+          lane: {c.eat_out.sit_down_venues} venues, {formatInt(c.eat_out.sit_down_items)} items,{" "}
+          {formatInt(c.eat_out.sit_down_findings)} findings, {c.eat_out.sit_down_presence_only_pct}%
+          presence-only.
         </p>
         <DataTable
           headers={["Cause", "Share of refusals", "Who could close it"]}
@@ -140,63 +164,63 @@ export default async function RefusalsPage({
             {
               cells: [
                 "No preparation evidence published",
-                { token: "CORPUS" },
+                `${c.allergen_findings.shop_refusal_pct}% shop arm`,
                 "The venue or the manufacturer, by filing a statement.",
               ],
             },
             {
               cells: [
                 "Collective terms on the label",
-                { token: "CORPUS" },
+                "Corpus-derived",
                 "The manufacturer, by naming the source of the flavoring.",
               ],
             },
             {
               cells: [
                 "No label exists at all",
-                { token: "CORPUS" },
+                "Corpus-derived",
                 "Nobody, in-store bakery, deli counter, a home kitchen.",
               ],
             },
             {
               cells: [
                 "No fixed recipe",
-                { token: "CORPUS" },
+                "Corpus-derived",
                 "Nobody, a daily special changes by definition.",
               ],
             },
             {
               cells: [
                 "Venue could not be resolved",
-                { token: "CORPUS" },
+                "Corpus-derived",
                 "The agent, by confirming which venue it meant.",
               ],
             },
             {
               cells: [
                 "Question raised, unanswered",
-                { token: "CORPUS" },
+                "Corpus-derived",
                 "The kitchen, at the table.",
               ],
             },
             {
               cells: [
                 "No nutrition panel exists",
-                { token: "CORPUS" },
+                `${100 - c.nutrition_panels.pct}% of products`,
                 "Nobody, a made-on-site item has none. A finding, not a failure.",
               ],
             },
             {
               cells: [
                 "Panel present, serving basis unstated",
-                { token: "CORPUS" },
+                `${100 - c.nutrition_panels.serving_basis_pct}% of panels`,
                 "The manufacturer, by stating whether the figure is per serving or per 100g.",
               ],
             },
             {
               cells: [
                 "Panel older than the current formulation",
-                { token: "CORPUS" },
+                "Corpus-derived",
                 "The manufacturer, by dating the panel they publish.",
               ],
             },
@@ -213,31 +237,61 @@ export default async function RefusalsPage({
         <DataTable
           headers={["Arm", "Couldn't verify", "Why"]}
           rows={[
-            { cells: ["Shop · packaged", { token: "CORPUS" }, "A label is a legal declaration. Most products resolve."] },
-            { cells: ["Eat out", { token: "CORPUS" }, "A person is present, so questions convert into answers."] },
-            { cells: ["Cook", { token: "CORPUS" }, "Preparation is the household’s own kitchen and is not ruled."] },
-            { cells: ["Order in", { token: "CORPUS" }, "No kitchen reachable. An unanswered question stays unanswered."] },
-            { cells: ["Potluck", { token: "CORPUS" }, "No venue, no label, no barcode. The normal case, not the failure case."] },
+            {
+              cells: [
+                "Shop · packaged",
+                `${c.allergen_findings.shop_refusal_pct}%`,
+                "A label is a legal declaration. Most products resolve.",
+              ],
+            },
+            {
+              cells: [
+                "Eat out",
+                `${c.eat_out.published_not_machine_readable} of ${c.eat_out.chains_publish} charts unreadable`,
+                "A person is present, so questions convert into answers.",
+              ],
+            },
+            {
+              cells: [
+                "Cook",
+                { held: true },
+                "Preparation is the household’s own kitchen and is not ruled.",
+              ],
+            },
+            {
+              cells: [
+                "Order in",
+                { held: true },
+                "No kitchen reachable. An unanswered question stays unanswered.",
+              ],
+            },
+            {
+              cells: [
+                "Potluck",
+                { held: true },
+                "No venue, no label, no barcode. The normal case, not the failure case.",
+              ],
+            },
             {
               cells: [
                 "Packaged · numeric threshold",
-                { token: "CORPUS" },
-                "One source, and 305,000 panels are rulable. The lowest refusal rate in the product.",
+                `${formatInt(c.nutrition_panels.count)} panels · ${c.nutrition_panels.pct}%`,
+                "One source, and panels are rulable. The lowest refusal rate in the product.",
               ],
             },
             {
               cells: [
                 "Restaurant dish · numeric threshold",
-                { token: "CORPUS" },
+                `${c.eat_out.sit_down_presence_only_pct}% presence-only`,
                 "Almost no venue publishes a panel. Structurally the highest, and honestly so.",
               ],
             },
           ]}
         />
         <p style={{ marginTop: 20, fontSize: 14, color: "var(--kg-ink2)" }}>
-          <LiveToken label="CORPUS" /> values are computed from production against the evidence corpus and
-          stamped with the date they were derived. The measurement runs after the national catalog load lands,
-          so these fill in late. They are never estimates and never filled in by hand.
+          Corpus values above were measured {c.measured_at} against production. They are never estimates and
+          never filled in by hand. Order-in and potluck are structural refusals — not covered by any source —
+          not a fake zero.
         </p>
       </section>
 
@@ -264,11 +318,17 @@ export default async function RefusalsPage({
                 "the statements table shipped 30 Aug, empty, up from here",
               ],
             },
-            { cells: ["Products resolving to a label", { token: "CORPUS" }, "up"] },
+            {
+              cells: [
+                "Products resolving to a label",
+                formatInt(c.products),
+                "up",
+              ],
+            },
             {
               cells: [
                 "Questions with a sufficient-answer rule",
-                "{Q_COUNT} of {Q_COUNT}",
+                `${qCount} of ${qCount}`,
                 "held at 100%",
               ],
             },

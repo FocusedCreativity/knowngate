@@ -8,67 +8,70 @@
       "basis": "per serving"
     },
     "line": "peanut · sesame · sodium under 600 mg per serving",
-    "human_meta": "Set by you, 30 Aug 2026",
-    "agent_meta": "Your agent supplied this. Check it before you trust anything below."
+    "human_meta": "Set by you, 31 Aug 2026",
+    "agent_meta": "Your agent supplied this. Check it before you trust anything below.",
+    "agent_restrictions": ["milk"],
+    "agent_line": "milk"
   },
   "human": {
     "subject": {
-      "name": "Harvest Lane Panko, Garlic & Herb",
-      "short": "Harvest Lane Panko",
+      "name": "Jif Creamy Peanut Butter",
+      "short": "Jif Creamy Peanut Butter",
       "kind": "upc",
-      "upc": "0 78742 11934 6",
-      "scanned_line": "scanned · UPC 0 78742 11934 6"
+      "upc": "0005150024177",
+      "upc_display": "00051 50024 177",
+      "scanned_line": "scanned · UPC 00051 50024 177"
     },
     "verdict": "conflict_found",
-    "summary": "One of the two things you asked about conflicts. Sesame is present. The sodium limit is met.",
-    "chips": ["sesame", "ingredient list", "label", "read 30 Aug 2026"],
+    "summary": "One of the two things you asked about conflicts. Peanut is present. The sodium limit is met.",
+    "chips": ["peanut", "ingredient list", "label", "read 30 Aug 2026"],
     "axes": {
       "composition": {
         "state": "covered",
-        "detail": "SESAME FLOUR declared in the ingredient list."
+        "detail": "Peanuts declared on the label."
       },
       "preparation": {
         "state": "covered",
-        "detail": "A sealed pack carries a mandatory allergen declaration. No may-contain line."
+        "detail": "A sealed pack carries a mandatory allergen declaration."
       }
     },
     "threshold": {
       "nutrient": "sodium",
-      "found": 190,
+      "found": 140,
       "unit": "mg",
       "basis": "per serving",
       "max": 600,
       "verdict": "no_conflict_found",
-      "detail": "190 mg per serving, under the 600 mg limit."
+      "detail": "140 mg per serving, under the 600 mg limit."
     },
     "source": {
       "kind": "label",
-      "name": "ingredient list",
+      "name": "retailer product data (Kroger API)",
       "read_at": "30 Aug 2026"
     },
     "rail_summary": "1 item checked · tap to change the premise"
   },
   "agent": {
     "venue": {
-      "name": "Alba Trattoria",
-      "address": "1518 Larimer St, Denver CO",
-      "item_count": 41,
-      "line": "41 menu items · 1518 Larimer St, Denver CO"
+      "name": "Krystal",
+      "address": "chain · published allergen chart",
+      "item_count": 84,
+      "line": "84 menu items · Krystal"
     },
     "activity": [
       {
         "name": "set_restrictions",
-        "detail": "peanut, sesame, plus a sodium threshold",
+        "detail": "milk",
         "status": "done"
       },
       {
         "name": "load_subject",
-        "detail": "Alba Trattoria, resolved from one candidate",
+        "detail": "Krystal, resolved from one candidate",
         "status": "done"
       },
       {
         "name": "check_venue",
-        "detail": "41 items ruled, both premise types · 341 ms",
+        "detail": "84 items ruled · milk premise",
         "status": "done"
       },
       {
@@ -78,45 +81,14 @@
       }
     ],
     "counts": {
-      "no_conflict_found": 4,
-      "ask_one_question": 9,
-      "conflict_found": 14,
-      "couldnt_verify": 14
+      "no_conflict_found": 0,
+      "ask_one_question": 12,
+      "conflict_found": 72,
+      "couldnt_verify": 0
     },
-    "notable": [
-      {
-        "name": "Grilled branzino",
-        "verdict": "no_conflict_found",
-        "line": "No conflict found. 310 mg sodium, under the limit.",
-        "source": "Kitchen, 12 Aug 2026"
-      },
-      {
-        "name": "Focaccia",
-        "verdict": "ask_one_question",
-        "line": "Composition clear. Ask: is the dough finished with sesame on a shared tray?",
-        "source": "Composition only"
-      },
-      {
-        "name": "Romesco chicken",
-        "verdict": "conflict_found",
-        "line": "Conflict found. Almond and sesame in the romesco.",
-        "source": "Supplier spec, 3 Jul 2026"
-      },
-      {
-        "name": "Puttanesca",
-        "verdict": "conflict_found",
-        "line": "Conflict found. 980 mg sodium per serving, over by 380.",
-        "source": "Chain chart, 14 Aug 2026"
-      },
-      {
-        "name": "Tiramisu",
-        "verdict": "couldnt_verify",
-        "line": "Couldn't verify. No preparation evidence and no panel.",
-        "source": "No source"
-      }
-    ],
-    "more_line": "36 more items ruled. 3 no conflict found, 8 ask one question, 12 conflict found, 13 couldn't verify.",
-    "rail_summary": "Alba Trattoria, 41 items · tap to see what the agent did"
+    "notable": [],
+    "more_line": "Live check_place fills notable dishes from the chart.",
+    "rail_summary": "Krystal, 84 items · tap to see what the agent did"
   },
   "console_keys": {
     "shown_once": "kg_live_7c41f9930b2e4a1d88f2a6e0",

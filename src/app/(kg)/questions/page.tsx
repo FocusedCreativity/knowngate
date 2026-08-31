@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LiveToken } from "@/components/kg/live-token";
 import { QuestionsTable } from "@/components/kg/primitives";
 import { DataTable, Orient } from "@/components/kg/data-table";
-import { getQuestions } from "@/lib/kg/fixtures";
+import { getCorpus, getQuestionCount, getQuestions } from "@/lib/kg/fixtures";
 
 export const metadata: Metadata = {
   title: "Question library — KnownGate",
@@ -13,6 +13,8 @@ export default function QuestionsPage() {
   const all = getQuestions();
   const prep = all.filter((q) => q.family === "preparation");
   const serv = all.filter((q) => q.family === "serving");
+  const qCount = getQuestionCount();
+  const corpus = getCorpus();
 
   return (
     <>
@@ -25,9 +27,7 @@ export default function QuestionsPage() {
           numeric one.
         </p>
         <div className="kg-chips">
-          <span className="kg-chip">
-            <LiveToken label="Q_COUNT" /> questions
-          </span>
+          <span className="kg-chip">{qCount} questions</span>
           <span className="kg-chip">v1.0</span>
           <span className="kg-chip">last change 30 Aug 2026</span>
         </div>
@@ -61,23 +61,27 @@ export default function QuestionsPage() {
           This is why seventeen askable items collapse to three questions. Two dishes missing the same
           evidence get the same question, and one answer resolves both.
         </p>
-        <div className="kg-grid-3">
+        <div className="kg-callout">
+          <strong>{corpus.questions_strip}</strong>
+          <p>Measured {corpus.measured_at} against the live chart.</p>
+        </div>
+        <div className="kg-grid-3" style={{ marginTop: 16 }}>
+          <article className="kg-tile">
+            <div style={{ fontWeight: 600 }}>Q-PREP-01</div>
+            <p className="lbl" style={{ marginTop: 8 }}>
+              closes all 12 ask_one_question results on a milk premise at Krystal (84 dishes)
+            </p>
+          </article>
           <article className="kg-tile">
             <div style={{ fontWeight: 600 }}>Q-PREP-07</div>
             <p className="lbl" style={{ marginTop: 8 }}>
-              covers <LiveToken label="CORPUS" /> dishes at <LiveToken label="CORPUS_VENUE" />
+              shared-equipment gaps across the machine-readable eat-out set
             </p>
           </article>
           <article className="kg-tile">
             <div style={{ fontWeight: 600 }}>Q-PREP-14</div>
             <p className="lbl" style={{ marginTop: 8 }}>
-              covers <LiveToken label="CORPUS" />
-            </p>
-          </article>
-          <article className="kg-tile">
-            <div style={{ fontWeight: 600 }}>Q-PREP-11</div>
-            <p className="lbl" style={{ marginTop: 8 }}>
-              covers <LiveToken label="CORPUS" />
+              finishing / topping gaps when composition is covered
             </p>
           </article>
         </div>
@@ -89,8 +93,7 @@ export default function QuestionsPage() {
           <LiveToken label="LIVE" />
         </div>
         <p className="sub">
-          Rendered from the question-library endpoint at build time. The rows are data, never typed into this
-          page.
+          Rendered from the question library ({qCount} codes). The rows are data, never typed into this page.
         </p>
         <QuestionsTable questions={prep} />
         <p style={{ marginTop: 16, fontSize: 13, color: "var(--kg-ink2)" }}>

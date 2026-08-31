@@ -1,4 +1,9 @@
-type Row = { cells: (string | { token: string })[]; ceiling?: string };
+type Cell =
+  | string
+  | { token: string }
+  | { held: true; label?: string };
+
+type Row = { cells: Cell[]; ceiling?: string };
 
 export function DataTable({
   headers,
@@ -22,13 +27,7 @@ export function DataTable({
             <tr key={i}>
               {r.cells.map((c, j) => (
                 <td key={j}>
-                  {typeof c === "string" ? (
-                    c
-                  ) : (
-                    <span className={`kg-live-token${c.token.includes("CORPUS") ? " corpus" : ""}`}>
-                      [{c.token}]
-                    </span>
-                  )}
+                  {renderCell(c)}
                   {j === r.cells.length - 1 && r.ceiling ? (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                       <span
@@ -72,13 +71,17 @@ export function DataTable({
                 }}
                 aria-hidden
               />
-              {typeof r.cells[0] === "string" ? r.cells[0] : `[${r.cells[0].token}]`}
+              {typeof r.cells[0] === "string"
+                ? r.cells[0]
+                : "token" in r.cells[0]
+                  ? `[${r.cells[0].token}]`
+                  : r.cells[0].label ?? "not covered by any source"}
             </div>
             {r.cells.slice(1).map((c, j) => (
               <div key={j} className="field">
                 <span className="field-label">{headers[j + 1]}</span>
                 <div className="field-value">
-                  {typeof c === "string" ? c : <span className="kg-live-token">[{c.token}]</span>}
+                  {renderCell(c)}
                   {j === r.cells.length - 2 && r.ceiling ? ` · ${r.ceiling}` : null}
                 </div>
               </div>
@@ -87,6 +90,20 @@ export function DataTable({
         ))}
       </div>
     </div>
+  );
+}
+
+function renderCell(c: Cell) {
+  if (typeof c === "string") return c;
+  if ("held" in c) {
+    return (
+      <span className="kg-held-state" title="Structural refusal">
+        {c.label ?? "not covered by any source"}
+      </span>
+    );
+  }
+  return (
+    <span className={`kg-live-token${c.token.includes("CORPUS") ? " corpus" : ""}`}>[{c.token}]</span>
   );
 }
 
