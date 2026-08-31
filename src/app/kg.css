@@ -41,7 +41,12 @@
 .kg-root button { font: inherit; cursor: pointer; }
 .kg-root img { display: block; max-width: 100%; }
 
-.kg-main { flex: 1; width: 100%; overflow-x: hidden; }
+/*
+ * clip, not hidden. overflow-x: hidden computes overflow-y to auto, which
+ * makes this a scroll container and stops position: sticky working for
+ * anything inside it, which is how the pinned premise came unpinned.
+ */
+.kg-main { flex: 1; width: 100%; overflow-x: clip; }
 
 /* —— Header —— */
 .kg-header {
