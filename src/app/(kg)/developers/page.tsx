@@ -204,7 +204,7 @@ curl https://api.knowngate.com/v1/check_item \\
           faster than you would like.
         </p>
         <div className="kg-grid-3">
-          <article className="kg-tile">
+          <article className="kg-tile paper">
             <span className="dot ask" aria-hidden />
             <strong>ask one question</strong>
             <p className="lbl" style={{ marginTop: 8 }}>
@@ -213,7 +213,7 @@ curl https://api.knowngate.com/v1/check_item \\
               detectable in your own code.
             </p>
           </article>
-          <article className="kg-tile">
+          <article className="kg-tile paper">
             <span className="dot held" aria-hidden />
             <strong>couldn&apos;t verify</strong>
             <p className="lbl" style={{ marginTop: 8 }}>
@@ -221,8 +221,8 @@ curl https://api.knowngate.com/v1/check_item \\
               This is a finding, not an error state, and it needs somewhere to go in your interface.
             </p>
           </article>
-          <article className="kg-tile">
-            <span className="dot held" aria-hidden />
+          <article className="kg-tile paper">
+            <span className="dot shut" aria-hidden />
             <strong>fail closed, by construction</strong>
             <p className="lbl" style={{ marginTop: 8 }}>
               Unknown counts as no. It is not a setting, a confidence threshold or a strictness slider, because
@@ -230,16 +230,220 @@ curl https://api.knowngate.com/v1/check_item \\
             </p>
           </article>
         </div>
-        <div className="kg-callout" style={{ marginTop: 24 }}>
-          <strong>Never drop must_not_omit items</strong>
+        <div className="kg-callout" style={{ marginTop: 20 }}>
+          <strong>We publish the share we decline, and we do not work to bring it down.</strong>
           <p>
-            We publish the share we decline, and we do not work to bring it down. The easy way to improve that
-            number is to clear things on thinner evidence, which would make the figure look better and every
-            verdict worth less.
+            The easy way to improve that number is to clear things on thinner evidence, which would make the
+            figure look better and every verdict worth less. If it ever drops sharply without coverage rising,
+            something is wrong and you should tell us.
           </p>
         </div>
-        <p style={{ marginTop: 20, color: "var(--kg-ink2)" }}>
-          Free tier: <LiveToken label="N" /> / month · unrestricted until 21 Sep
+      </section>
+
+      <section className="kg-section">
+        <h2>How to render this correctly</h2>
+        <p className="sub">
+          Not style guidance. A summary is where a verdict is most likely to be lost, and these are the ways it
+          gets lost.
+        </p>
+        <DataTable
+          headers={["Rule", "Why"]}
+          colWidths={[280, null]}
+          rows={[
+            {
+              cells: [
+                "Pass verdicts through unchanged",
+                "A model summarising four verdicts tends to collapse them into two. The casualty is always \u201ccouldn\u2019t verify\u201d.",
+              ],
+            },
+            {
+              cells: [
+                "Never render any verdict as \u201csafe\u201d",
+                "The word is not used anywhere in this system and is not a valid rendering of any of the four.",
+              ],
+            },
+            {
+              cells: [
+                "Never drop must_not_omit items",
+                "If your summary does not mention them, it is wrong. These are the items a person needs to act on.",
+              ],
+            },
+            {
+              cells: [
+                "Always show the date",
+                "A verdict is a statement about a date. Undated, it is worth nothing.",
+              ],
+            },
+            {
+              cells: [
+                "Render summary_line verbatim where you can",
+                "It is canonical, and it is counts rather than judgement.",
+              ],
+            },
+          ]}
+        />
+        <div className="kg-callout dark" style={{ marginTop: 18 }}>
+          <strong>Prefer the rendered card to the string.</strong>
+          <p>
+            Where your surface supports it, render the returned component rather than handing the model text to
+            reword. That removes paraphrase drift entirely, summary_line is the fallback for surfaces that
+            cannot.
+          </p>
+        </div>
+      </section>
+
+      <section className="kg-section">
+        <h2>Limits and tiers</h2>
+        <p className="sub">
+          Free and unrestricted through 21 Sep 2026 while the WebMCP Challenge runs. A free key is required for
+          direct API and MCP access. Paid tiers open 22 Sep.
+        </p>
+        <DataTable
+          headers={["Tier", "Limit", "Availability", "What you get"]}
+          colWidths={[170, 190, 150, null]}
+          rows={[
+            {
+              cells: [
+                "Open \u00b7 free",
+                { node: <><LiveToken label="N" /> / month · unrestricted until 21 Sep</> },
+                { status: "live now", tone: "live" },
+                "All four verdicts with sources and dates. Free key required for direct access. Attribution required.",
+              ],
+            },
+            {
+              cells: [
+                "Indie \u00b7 $29",
+                "10,000 / month",
+                { status: "opens 22 Sep", tone: "soon" },
+                "Commercial use.",
+              ],
+            },
+            {
+              cells: [
+                "Build \u00b7 $99",
+                "50,000 / month",
+                { status: "opens 22 Sep", tone: "soon" },
+                "Uptime SLA, 30-day audit log.",
+              ],
+            },
+            {
+              cells: [
+                "Team \u00b7 $399",
+                "250,000 / month",
+                { status: "opens 22 Sep", tone: "soon" },
+                "Full SLA, 12-month audit log, the Checked by KnownGate mark.",
+              ],
+            },
+            {
+              cells: [
+                "Verified \u00b7 $1,500",
+                "high volume",
+                { status: "waitlist", tone: "waitlist" },
+                "Evidence-gap reporting, priority, multiple products.",
+              ],
+            },
+            {
+              cells: [
+                "Assured \u00b7 $6,000",
+                "high volume",
+                { status: "waitlist", tone: "waitlist" },
+                "Evidence-gap escalation with commitments, named incident response, jurisdiction scoping.",
+              ],
+            },
+          ]}
+        />
+      </section>
+
+      <section className="kg-section paper">
+        <h2>Audit us before you rely on us.</h2>
+        <p className="sub">
+          Everything that governs a verdict is published, including the parts that do not flatter us. You should
+          read them before you put this in front of a user.
+        </p>
+        <div className="kg-grid-3">
+          <article className="kg-tile">
+            <strong>Evidence standard v1.0</strong>
+            <p className="lbl" style={{ marginTop: 8 }}>
+              What counts as proof for each kind of premise, which source kinds can produce a clear, and what
+              never counts. Versioned and dated.
+            </p>
+          </article>
+          <article className="kg-tile">
+            <strong>The question library</strong>
+            <p className="lbl" style={{ marginTop: 8 }}>
+              Every Q-PREP and Q-SERV code, its template, and the rule for what counts as a sufficient answer.
+            </p>
+          </article>
+          <article className="kg-tile">
+            <strong>Live refusal telemetry</strong>
+            <p className="lbl" style={{ marginTop: 8 }}>
+              The share we decline, updated daily, with the named cause of every refusal. Zero is a true number
+              and the page is built to show it.
+            </p>
+          </article>
+        </div>
+        <div className="kg-callout dark" style={{ marginTop: 20 }}>
+          <strong>
+            In August we found 63,601 rows in our own corpus reading “may contain” as
+            “contains”.
+          </strong>
+          <p>
+            We fixed the reading, re-derived every affected row, and published the correction on the refusals
+            page. We would rather you heard it from us, and it is a reasonable thing to hold us to.
+          </p>
+        </div>
+
+        <h2 style={{ marginTop: 40 }}>What we do not offer yet</h2>
+        <DataTable
+          headers={["Not yet", "What that means"]}
+          colWidths={[280, null]}
+          rows={[
+            {
+              cells: [
+                "No guarantee, on any tier",
+                "You get verdicts with their sources and dates. You do not get an undertaking from us, and nothing here should be presented to your users as one.",
+              ],
+            },
+            {
+              cells: [
+                "No SDKs",
+                "MCP and REST only. Client libraries when there is enough surface to warrant them.",
+              ],
+            },
+            {
+              cells: [
+                "No uptime history",
+                "We launched on 30 August 2026. There is nothing to show yet, so we show nothing.",
+              ],
+            },
+            {
+              cells: [
+                "No numeric premise outside beta",
+                "Thresholds are live in beta against 305,000 rulable panels. Treat the coverage as growing rather than complete.",
+              ],
+            },
+          ]}
+        />
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 24 }}>
+          <Link className="kg-btn" href="/signup">
+            Get a free key
+          </Link>
+          <Link className="kg-btn quiet" href="/standard">
+            Evidence standard v1.0
+          </Link>
+          <Link className="kg-btn quiet" href="/refusals">
+            Report an error
+          </Link>
+        </div>
+      </section>
+
+      <section className="kg-close">
+        <h2>Route the answer. Don’t generate it.</h2>
+        <p>
+          One call returns a determination with its source and its date, for what must be absent and for what
+          must stay under a number. When nothing can be verified it says so, and that refusal is the reason the
+          clears are worth anything. The rules are published, the refusal rate is published, and our own
+          mistakes are published. Nothing here is promised that does not already exist.
         </p>
       </section>
     </>

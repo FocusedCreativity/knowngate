@@ -23,6 +23,7 @@
   --kg-held: #5f5f58;
   --kg-held-bg: #efefec;
   --kg-held-line: #dbdbd5;
+  --kg-on-dark: #8e9a8c;
   --kg-r: 14px;
   --kg-r-sm: 10px;
   --kg-max: 1200px;
@@ -202,6 +203,42 @@
 }
 .kg-callout strong { display: block; margin-bottom: 8px; font-size: 15px; }
 .kg-callout p { margin: 0; font-size: 14px; color: var(--kg-ink2); }
+.kg-callout.dark {
+  background: var(--kg-ink); border-color: var(--kg-ink); color: #fff;
+  padding: 20px 24px;
+}
+.kg-callout.dark strong { font-size: 16.5px; line-height: 1.4; }
+.kg-callout.dark p { color: var(--kg-on-dark); line-height: 1.6; }
+
+/* Section on the paper ground, per the frames */
+.kg-section.paper { background: var(--kg-paper); }
+.kg-section.paper .kg-tile,
+.kg-section.paper .kg-callout { background: #fff; }
+.kg-section.paper .kg-callout.dark { background: var(--kg-ink); }
+
+/* Availability marker inside a data table */
+.kg-status { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; font-size: 12.5px; }
+.kg-status .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.kg-status.live { color: var(--kg-lime-deep); }
+.kg-status.live .dot { background: var(--kg-lime-deep); }
+.kg-status.soon { color: var(--kg-ask); }
+.kg-status.soon .dot { background: var(--kg-ask); }
+.kg-status.waitlist { color: var(--kg-ask); }
+.kg-status.waitlist .dot { background: var(--kg-ask); }
+
+/* Closing band */
+.kg-close {
+  background: var(--kg-ink); color: #fff;
+  padding: 56px var(--kg-pad); text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.kg-close h2 {
+  margin: 0; font-size: clamp(1.6rem, 3vw, 32px); font-weight: 700;
+  line-height: 1.5; letter-spacing: -0.02em; color: #fff;
+}
+.kg-close p {
+  margin: 0; max-width: 820px; font-size: 15px; line-height: 1.65; color: var(--kg-on-dark);
+}
 
 /* Tables → cards on mobile */
 .kg-table-wrap { width: 100%; }
@@ -275,6 +312,7 @@
 .kg-tile {
   border: 1px solid var(--kg-line); border-radius: var(--kg-r); padding: 18px 20px; background: #fff;
 }
+.kg-tile.paper { background: var(--kg-paper); border-color: transparent; }
 .kg-tile .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-bottom: 8px; }
 .kg-tile .dot.clear { background: var(--kg-clear); }
 .kg-tile .dot.shut { background: var(--kg-shut); }
@@ -936,6 +974,7 @@
   .kg-landing-menu-head { flex-direction: column; }
   .kg-landing-dev { padding: 36px 20px; }
   .kg-landing-actions { justify-content: flex-start; }
+  .kg-close { padding: 44px var(--kg-pad); text-align: left; align-items: flex-start; }
 }
 
 @media (max-width: 480px) {
