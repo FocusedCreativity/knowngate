@@ -1,0 +1,43 @@
+# KnownGate
+
+> A verification layer for food. It rules on what it is handed, shows its sources and their dates, and says so plainly when nobody knows.
+
+KnownGate answers one question: does this food conflict with this premise?
+
+A premise has two parts — send either, or both, in the same call:
+- `restrictions` — what must not be present (FDA-9 keys plus any other name)
+- `thresholds` — what must stay under, or over, a number (per serving, unit and basis explicit)
+
+## Public pages
+
+- [Evidence standard](https://knowngate.vercel.app/standard): what counts as proof
+- [Question library](https://knowngate.vercel.app/questions): every question the gate can ask
+- [Refusal rate](https://knowngate.vercel.app/refusals): how often we decline, with corpus measurements
+- [Agents](https://knowngate.vercel.app/agents): WebMCP, MCP, and REST — same engine
+- [Developers](https://knowngate.vercel.app/developers): tools, docs, and keys
+
+## Check
+
+- Human and agent workspace: https://knowngate.vercel.app/check
+- WebMCP tools register on the page when a model context is present
+
+## API (same-origin)
+
+- `POST /api/knowngate/v0/check/item` — rule one subject against a premise
+- `POST /api/knowngate/v0/check/place` — rule a venue chart against a premise
+- `GET /api/knowngate/v0/label/{gtin}` — label findings for a GTIN
+- `POST /api/knowngate/v0/freeze` — freeze a dated record to share
+
+## Verdicts
+
+- `no_conflict` / prose: no conflict found
+- `conflict` / prose: conflict found
+- `ask_one_question`
+- `cannot_verify` / prose: couldn't verify
+
+The word "safe" is never used in product copy.
+
+## Optional
+
+- Free-tier call budget `{N}` is undecided and must not be hardcoded
+- Site root homepage: https://knowngate.vercel.app/

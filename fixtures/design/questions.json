@@ -1,0 +1,100 @@
+[
+  {
+    "code": "Q-PREP-02",
+    "family": "preparation",
+    "question": "Is the bread brushed with egg wash before baking?",
+    "what_counts": "A yes or no per bread on the menu.",
+    "context": "kitchen"
+  },
+  {
+    "code": "Q-PREP-04",
+    "family": "preparation",
+    "question": "Does the packet carry a “may contain {allergen}” line?",
+    "what_counts": "The words on your packet, not ours. Brands change lines between batches.",
+    "context": "packaged"
+  },
+  {
+    "code": "Q-PREP-07",
+    "family": "preparation",
+    "question": "Are the dressings or sauces finished with {allergen} oil?",
+    "what_counts": "A yes or no per dressing, not a general reassurance.",
+    "context": "kitchen"
+  },
+  {
+    "code": "Q-PREP-09",
+    "family": "preparation",
+    "question": "Is the {item} prepared on a surface or tray also used for {allergen}?",
+    "what_counts": "A yes or no about the surface, today.",
+    "context": "kitchen"
+  },
+  {
+    "code": "Q-PREP-11",
+    "family": "preparation",
+    "question": "Is the fryer shared with anything breaded in {allergen}?",
+    "what_counts": "An explicit yes or no about the wash step between services.",
+    "context": "kitchen"
+  },
+  {
+    "code": "Q-PREP-14",
+    "family": "preparation",
+    "question": "Is anything garnished with chopped {allergen} before it leaves the pass?",
+    "what_counts": "A yes or no about garnish, not about the recipe.",
+    "context": "kitchen"
+  },
+  {
+    "code": "Q-PREP-16",
+    "family": "preparation",
+    "question": "Is the {item} cooked in a wok used for {allergen} dishes without a wash between?",
+    "what_counts": "A yes or no about the wash. “It should be fine” does not clear.",
+    "context": "kitchen"
+  },
+  {
+    "code": "Q-PREP-21",
+    "family": "preparation",
+    "question": "Were any parts store-bought? Could you photograph those labels?",
+    "what_counts": "A photo of each label. A spoken brand name is a claim, not evidence.",
+    "context": "home"
+  },
+  {
+    "code": "Q-PREP-22",
+    "family": "preparation",
+    "question": "Did anything go in that was made with {allergen} oil, flour or butter?",
+    "what_counts": "A yes or no per component.",
+    "context": "home"
+  },
+  {
+    "code": "Q-PREP-24",
+    "family": "preparation",
+    "question": "Did any of it touch a board or spoon that handled {allergen} today?",
+    "what_counts": "A yes or no about today, not about usual practice.",
+    "context": "home"
+  },
+  {
+    "code": "Q-SERV-01",
+    "family": "serving",
+    "question": "What is the serving size on the pack you have?",
+    "what_counts": "The number printed on your pack. Manufacturers restate servings between formats.",
+    "context": "packaged"
+  },
+  {
+    "code": "Q-SERV-02",
+    "family": "serving",
+    "question": "Is the panel on this pack the current one?",
+    "what_counts": "A date or a lot code. A reformulation makes an old reading wrong without changing the name.",
+    "context": "packaged"
+  },
+  {
+    "code": "Q-SERV-03",
+    "family": "serving",
+    "question": "Is there a nutrition panel for this dish at all?",
+    "what_counts": "A yes or no. A made-on-site item usually has none, and that is a finding, not a failure.",
+    "context": "kitchen"
+  },
+  {
+    "code": "Q-SERV-04",
+    "family": "serving",
+    "question": "Is the figure per serving or per 100g?",
+    "what_counts": "Which basis the number is stated on. The two are not interchangeable.",
+    "context": "packaged"
+  }
+]

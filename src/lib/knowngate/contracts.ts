@@ -40,6 +40,26 @@ export type Subject = {
 export type CheckItemRequest = {
   restrictions: Restriction[];
   subject: Subject;
+  thresholds?: Threshold[];
+};
+
+export type Threshold = {
+  nutrient: string;
+  max?: number;
+  min?: number;
+  unit: string;
+  basis?: string;
+};
+
+export type ThresholdHit = {
+  nutrient: string;
+  found: number | null;
+  unit: string;
+  basis?: string;
+  max?: number;
+  min?: number;
+  verdict: Verdict;
+  reason?: string;
 };
 
 export type CheckPlaceRequest = {
@@ -89,6 +109,7 @@ export type ItemResult = {
   source: Source | null;
   caveat: Caveat | null;
   label_url: string | null;
+  threshold_hits?: ThresholdHit[];
 };
 
 export type PlaceChartState =

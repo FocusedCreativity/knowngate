@@ -1,0 +1,71 @@
+{
+  "venue": { "name": "Krystal", "chain": "Krystal", "city": "memphis" },
+  "chart": "ruled",
+  "verdict_counts": {
+    "no_conflict": 0,
+    "conflict": 72,
+    "ask_one_question": 12,
+    "cannot_verify": 0
+  },
+  "notable": [
+    {
+      "verdict": "ask_one_question",
+      "subject": { "kind": "menu_item", "value": "Krystal", "venue": "Krystal", "name": "Krystal" },
+      "coverage": { "composition": "covered", "preparation": "silent" },
+      "conflicts": [],
+      "unverified": [],
+      "question": "Is the Krystal prepared with, or on shared equipment with, anything containing milk?",
+      "source": {
+        "name": "Krystal published allergen chart",
+        "url": "https://www.krystal.com/nutrition/",
+        "read_date": "2026-08-29"
+      },
+      "caveat": {
+        "text": "Be aware that there may still be a chance for cross-contact on shared surfaces, including fryers.",
+        "captured": "2026-08-29"
+      },
+      "label_url": null
+    },
+    {
+      "verdict": "ask_one_question",
+      "subject": { "kind": "menu_item", "value": "20 Wings", "venue": "Krystal", "name": "20 Wings" },
+      "coverage": { "composition": "covered", "preparation": "silent" },
+      "conflicts": [],
+      "unverified": [],
+      "question": "Is the 20 Wings prepared with, or on shared equipment with, anything containing milk?",
+      "source": {
+        "name": "Krystal published allergen chart",
+        "url": "https://www.krystal.com/nutrition/",
+        "read_date": "2026-08-29"
+      },
+      "caveat": null,
+      "label_url": null
+    },
+    {
+      "verdict": "conflict",
+      "subject": {
+        "kind": "menu_item",
+        "value": "Toast, Bacon & Grits",
+        "venue": "Krystal",
+        "name": "Toast, Bacon & Grits"
+      },
+      "coverage": { "composition": "covered", "preparation": "covered" },
+      "conflicts": [{ "restriction": "milk", "evidence": "Contains milk" }],
+      "unverified": [],
+      "question": null,
+      "source": {
+        "name": "Krystal published allergen chart",
+        "url": "https://www.krystal.com/nutrition/",
+        "read_date": "2026-08-29"
+      },
+      "caveat": null,
+      "label_url": null
+    }
+  ],
+  "caveat": null,
+  "source": {
+    "name": "Krystal published allergen chart",
+    "url": "https://www.krystal.com/nutrition/",
+    "read_date": "2026-08-29"
+  }
+}

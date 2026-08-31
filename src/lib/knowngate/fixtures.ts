@@ -12,7 +12,9 @@ async function readFixture(name: string): Promise<unknown> {
 }
 
 export function selectItemFixture(request: CheckItemRequest): string {
-  const value = `${request.subject.value} ${request.subject.venue ?? ""}`.toLowerCase();
+  const value = `${request.subject.value} ${request.subject.venue ?? ""} ${request.subject.name ?? ""}`.toLowerCase();
+  const digits = request.subject.value.replace(/\D/g, "");
+  if (digits === "0005150024177" || value.includes("jif")) return "item-jif.json";
   if (value.includes("amber") || value.includes("orange chicken")) return "item-amber.json";
   if (value.includes("unknown") || value.includes("cannot verify")) return "item-cannot-verify.json";
   if (value.includes("clear") || value.includes("rice")) return "item-clear.json";
@@ -21,6 +23,7 @@ export function selectItemFixture(request: CheckItemRequest): string {
 
 export function selectPlaceFixture(request: CheckPlaceRequest): string {
   const value = `${request.venue.name} ${request.venue.location ?? ""}`.toLowerCase();
+  if (value.includes("krystal")) return "place-krystal.json";
   if (value.includes("unreadable")) return "place-unreadable.json";
   if (value.includes("no chart") || value.includes("unknown")) return "place-none.json";
   return "place-ruled.json";
