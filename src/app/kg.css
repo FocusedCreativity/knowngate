@@ -207,8 +207,8 @@
   font-size: 11px; letter-spacing: 0.1em; color: var(--kg-ink3); font-weight: 600;
 }
 .kg-callout {
-  border: 1px solid var(--kg-line); border-radius: var(--kg-r);
-  padding: 17px 20px; background: var(--kg-paper);
+  border: 1px solid var(--kg-line); border-radius: 12px;
+  padding: 20px 24px; background: var(--kg-paper);
 }
 .kg-callout strong { display: block; margin-bottom: 8px; font-size: 15px; }
 .kg-callout p { margin: 0; font-size: 14px; color: var(--kg-ink2); }
@@ -344,7 +344,7 @@
 }
 .kg-corpus-stamp strong { color: var(--kg-ink); font-weight: 600; }
 .kg-tile {
-  border: 1px solid var(--kg-line); border-radius: var(--kg-r); padding: 18px 20px; background: #fff;
+  border: 1px solid var(--kg-line); border-radius: 13px; padding: 22px; background: #fff;
 }
 .kg-tile.paper { background: var(--kg-paper); border-color: transparent; }
 .kg-tile .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; margin-bottom: 8px; }
@@ -353,13 +353,13 @@
 .kg-tile .dot.ask { background: var(--kg-ask); }
 .kg-tile .dot.held { background: var(--kg-held); }
 .kg-tile .num { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
-.kg-tile .lbl { font-size: 13px; color: var(--kg-ink2); }
+.kg-tile .lbl { font-size: 13.5px; line-height: 1.6; color: var(--kg-ink2); }
 
 .kg-code {
   background: var(--kg-ink); color: #f2f2ef;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12.5px; line-height: 1.5;
-  padding: 18px; border-radius: var(--kg-r);
+  padding: 17px 20px; border-radius: 11px;
   white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;
   margin: 0;
 }
