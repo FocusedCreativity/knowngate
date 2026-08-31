@@ -78,11 +78,11 @@ export function KgFooter() {
           <span>
             Not a guarantee of safety. The word &ldquo;safe&rdquo; is not used anywhere in this system.
           </span>
-          <span>Nothing stored, unless you save a record to share. No account to check.</span>
+          <span>No account needed. We keep nothing unless you save a record to share.</span>
         </div>
         <nav>
-          <Link href="/standard">Terms</Link>
-          <Link href="/standard">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/privacy">Privacy</Link>
           <Link href="/refusals">Report an error</Link>
           <span>© 2026 fuda</span>
         </nav>
