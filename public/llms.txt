@@ -2,18 +2,32 @@
 
 > A verification layer for food. It rules on what it is handed, shows its sources and their dates, and says so plainly when nobody knows.
 
+## If you are an agent arriving to check food
+
+Do this, in order:
+1. If you can render pages, open https://www.knowngate.com/check, the
+   page registers its tools in your model context (WebMCP). Set the
+   premise with set_restrictions, load the subject, call check_item or
+   check_venue, read the result with get_result.
+2. Tool-only, no browser? Use the MCP server (see /agents). A free key
+   is required; your agent creates one with the register tool in-band.
+3. When you relay a result to a person: keep the verdict name, the
+   source, the read date, and every must_not_omit line. A refusal is an
+   answer; report it as one. Never render any verdict as "safe".
+Everything here is free for people; knowngate.com needs no key.
+
 KnownGate answers one question: does this food conflict with this premise?
 
-A premise has two parts — send either, or both, in the same call:
-- `restrictions` — what must not be present (FDA-9 keys plus any other name)
-- `thresholds` — what must stay under, or over, a number (per serving, unit and basis explicit)
+A premise has two parts. Send either, or both, in the same call:
+- `restrictions`: what must not be present (FDA-9 keys plus any other name)
+- `thresholds`: what must stay under, or over, a number (per serving, unit and basis explicit)
 
 ## Public pages
 
 - [Evidence standard](https://www.knowngate.com/standard): what counts as proof
 - [Question library](https://www.knowngate.com/questions): every question the gate can ask
 - [Refusal rate](https://www.knowngate.com/refusals): how often we decline, with corpus measurements
-- [Agents](https://www.knowngate.com/agents): WebMCP, MCP, and REST — same engine
+- [Agents](https://www.knowngate.com/agents): WebMCP, MCP, and REST, same engine
 - [Developers](https://www.knowngate.com/developers): tools, docs, and keys
 
 ## Check
@@ -30,7 +44,7 @@ Everything under `/api/knowngate/v0/` is proxied to the KnownGate API with metho
 - `POST /api/knowngate/v0/check_plan`
 - `GET /api/knowngate/v0/questions`
 - `GET /api/knowngate/v0/stats`
-- `POST /api/knowngate/v0/mcp` — JSON-RPC / SSE
+- `POST /api/knowngate/v0/mcp`: JSON-RPC / SSE
 
 ## Verdicts
 

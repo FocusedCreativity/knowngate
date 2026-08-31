@@ -694,9 +694,12 @@
   background: var(--kg-paper-2); border-radius: 7px;
   font-size: 8px; font-weight: 600; letter-spacing: 0.32px; color: var(--kg-on-dark);
 }
+/* 99:132 draws this in ink; the lime button beside it is the ChatGPT hand-off */
 .kg-root .kg-landing-composer .kg-btn {
-  border-radius: 8px; padding: 10px 20px; font-size: 14px;
+  border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600;
+  background: var(--kg-ink); border-color: var(--kg-ink); color: #fff;
 }
+.kg-root .kg-landing-composer .kg-btn:disabled { background: var(--kg-ink); opacity: 0.45; }
 .kg-landing-form-note {
   display: flex;
   flex-direction: column;
@@ -1136,3 +1139,30 @@
 }
 .kg-ruling-progress strong { display: block; font-size: 17px; font-weight: 600; }
 .kg-ruling-progress .kg-axis p { margin: 4px 0 0; font-size: 15px; font-weight: 600; color: var(--kg-ink); }
+
+/* CTA · Use ChatGPT instead, 220:6 */
+.kg-chatgpt-cta { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.kg-chatgpt-cta p { margin: 0; flex: 1; min-width: 0; font-size: 13px; color: var(--kg-ink2); }
+.kg-root a.kg-chatgpt-btn {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+  background: var(--kg-lime); color: var(--kg-ink);
+  font-size: 15px; font-weight: 700; padding: 13px 20px; border-radius: 10px;
+  white-space: nowrap; text-decoration: none;
+}
+.kg-root a.kg-chatgpt-btn:hover { filter: brightness(0.96); }
+@media (max-width: 640px) {
+  .kg-chatgpt-cta { flex-direction: column; align-items: stretch; }
+  .kg-root a.kg-chatgpt-btn { justify-content: center; }
+}
+
+/* Directions for an agent that reads /check as text rather than using its tools */
+.kg-agent-note {
+  border-top: 1px solid var(--kg-line);
+  padding: 22px var(--kg-pad) 28px;
+  max-width: var(--kg-max);
+  margin: 0 auto;
+}
+.kg-agent-note .kg-eyebrow { margin-bottom: 8px; }
+.kg-agent-note p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.6; color: var(--kg-ink3); max-width: 880px; }
+.kg-agent-note p:last-child { margin-bottom: 0; }
+.kg-root .kg-agent-note a { color: var(--kg-lime-deep); }

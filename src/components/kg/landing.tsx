@@ -64,6 +64,22 @@ function noDash(text: string): string {
 
 type Stage = "compose" | "confirm";
 
+/**
+ * Canon copy. The relay rules are part of the product law, not phrasing, so
+ * this is built here rather than typed by anyone: the URL cannot go missing
+ * and the render rules survive into whatever the agent reports back.
+ */
+function chatGptPrompt(typed: string): string {
+  const rules = typed.trim() || "ask me what my family can't eat";
+  return (
+    "Open https://www.knowngate.com in your browser and use it to check food for me. " +
+    "The page gives your model context the tools; use them. " +
+    `My rules: ${rules}. ` +
+    "Report back exactly what the site returns: the verdict, its source, its date, and every line marked must not omit. " +
+    'If it couldn\'t verify something, say that plainly; never the word "safe".'
+  );
+}
+
 export function LandingPage({ examples }: { examples: LandingExamples }) {
   const router = useRouter();
 
@@ -197,6 +213,17 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
         <div className="kg-landing-form">
           {stage === "compose" ? (
             <form onSubmit={onRead}>
+              <div className="kg-chatgpt-cta">
+                <a
+                  className="kg-chatgpt-btn"
+                  href={`https://chatgpt.com/?q=${encodeURIComponent(chatGptPrompt(text))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Use ChatGPT instead
+                </a>
+                <p>Opens ChatGPT with the task ready. Its agent comes back here and does the checking.</p>
+              </div>
               <div className="kg-landing-composer">
                 <input
                   value={text}
