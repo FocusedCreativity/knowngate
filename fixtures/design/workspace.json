@@ -1,6 +1,9 @@
 {
   "premise": {
-    "restrictions": ["peanut", "sesame"],
+    "restrictions": [
+      "peanut",
+      "sesame"
+    ],
     "threshold": {
       "nutrient": "sodium",
       "max": 600,
@@ -10,44 +13,51 @@
     "line": "peanut · sesame · sodium under 600 mg per serving",
     "human_meta": "Set by you, 31 Aug 2026",
     "agent_meta": "Your agent supplied this. Check it before you trust anything below.",
-    "agent_restrictions": ["milk"],
+    "agent_restrictions": [
+      "milk"
+    ],
     "agent_line": "milk"
   },
   "human": {
     "subject": {
-      "name": "Jif Creamy Peanut Butter",
-      "short": "Jif Creamy Peanut Butter",
+      "name": "Montini Plain Bread Crumbs",
+      "short": "Montini Plain Bread Crumbs",
       "kind": "upc",
-      "upc": "0005150024177",
-      "upc_display": "00051 50024 177",
-      "scanned_line": "scanned · UPC 00051 50024 177"
+      "upc": "0082883530010",
+      "upc_display": "0082883530010",
+      "scanned_line": "scanned · UPC 0082883530010"
     },
     "verdict": "conflict_found",
-    "summary": "One of the two things you asked about conflicts. Peanut is present. The sodium limit is met.",
-    "chips": ["peanut", "ingredient list", "label", "read 30 Aug 2026"],
+    "summary": "One of the two things you asked about conflicts. Sesame is present. The sodium limit is met.",
+    "chips": [
+      "sesame",
+      "ingredient list",
+      "label",
+      "read 29 Aug 2026"
+    ],
     "axes": {
       "composition": {
         "state": "covered",
-        "detail": "Peanuts declared on the label."
+        "detail": "“Contains: Sesame Seeds and their derivates” declared on the label."
       },
       "preparation": {
         "state": "covered",
-        "detail": "A sealed pack carries a mandatory allergen declaration."
+        "detail": "A sealed pack carries a mandatory allergen declaration. No may-contain line."
       }
     },
     "threshold": {
       "nutrient": "sodium",
-      "found": 140,
+      "found": 190,
       "unit": "mg",
       "basis": "per serving",
       "max": 600,
       "verdict": "no_conflict_found",
-      "detail": "140 mg per serving, under the 600 mg limit."
+      "detail": "190 mg per serving, under the 600 mg limit."
     },
     "source": {
       "kind": "label",
       "name": "retailer product data (Kroger API)",
-      "read_at": "30 Aug 2026"
+      "read_at": "29 Aug 2026"
     },
     "rail_summary": "1 item checked · tap to change the premise"
   },
@@ -56,12 +66,12 @@
       "name": "Krystal",
       "address": "chain · published allergen chart",
       "item_count": 84,
-      "line": "84 menu items · Krystal"
+      "line": "84 menu items · published allergen chart"
     },
     "activity": [
       {
         "name": "set_restrictions",
-        "detail": "milk",
+        "detail": "milk, as you told it",
         "status": "done"
       },
       {
@@ -71,12 +81,12 @@
       },
       {
         "name": "check_venue",
-        "detail": "84 items ruled · milk premise",
+        "detail": "84 items ruled",
         "status": "done"
       },
       {
         "name": "save_record",
-        "detail": "Only a person presses save.",
+        "detail": "Only a person presses save. The agent cannot write this down for you.",
         "status": "not called"
       }
     ],
@@ -86,7 +96,44 @@
       "conflict_found": 72,
       "couldnt_verify": 0
     },
-    "notable": [],
+    "notable": [
+      {
+        "name": "Cheese Krystal",
+        "verdict": "conflict_found",
+        "line": "Conflict found: milk on the published chart",
+        "source": "Chart · 29 Aug 2026"
+      },
+      {
+        "name": "Chocolate Shake",
+        "verdict": "conflict_found",
+        "line": "Conflict found: milk on the published chart",
+        "source": "Chart · 29 Aug 2026"
+      },
+      {
+        "name": "Oreo Shake",
+        "verdict": "conflict_found",
+        "line": "Conflict found: milk on the published chart",
+        "source": "Chart · 29 Aug 2026"
+      },
+      {
+        "name": "20 Wings",
+        "verdict": "ask_one_question",
+        "line": "Ask: is it made with, or on shared equipment with, anything containing milk?",
+        "source": "One question closes it"
+      },
+      {
+        "name": "Toast, Bacon & Grits",
+        "verdict": "ask_one_question",
+        "line": "Ask: is it made with, or on shared equipment with, anything containing milk?",
+        "source": "One question closes it"
+      },
+      {
+        "name": "Toast, Sausage & Grits",
+        "verdict": "ask_one_question",
+        "line": "Ask: is it made with, or on shared equipment with, anything containing milk?",
+        "source": "One question closes it"
+      }
+    ],
     "more_line": "Live check_place fills notable dishes from the chart.",
     "rail_summary": "Krystal, 84 items · tap to see what the agent did"
   },

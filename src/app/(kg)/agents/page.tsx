@@ -87,7 +87,10 @@ check_item
 check_venue
 check_plan
 register`}</pre>
-            <p className="lbl" style={{ marginTop: 14 }}>
+            <p className="kg-lede-lime" style={{ marginTop: 14 }}>
+              A free key is required; your agent creates one with the register tool, without leaving MCP.
+            </p>
+            <p className="lbl" style={{ marginTop: 10 }}>
               Use when: your agent runs tool-only, in Claude Desktop, Cursor or any MCP client.
             </p>
           </article>

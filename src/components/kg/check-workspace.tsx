@@ -80,6 +80,9 @@ export function CheckWorkspace() {
   const settledKey = useRef<string | null>(null);
 
   const rulingInProgress = mode === "agent" && step === 3;
+  const humanRuling = mode === "human" && step === 3;
+  /** Each restriction is one thing to rule, and the threshold is one more. */
+  const thingsRuled = humanRestrictions.length + 1;
   const showHumanResult = mode === "human" && step >= 4;
   const showAgentResult = mode === "agent" && step === 4;
 
@@ -286,6 +289,26 @@ export function CheckWorkspace() {
     placeCounts.conflict_found +
     placeCounts.couldnt_verify;
 
+  /**
+   * What is left after the items already listed. Reporting the full counts
+   * here would count the six shown twice, which is how it read as "84 more
+   * items ruled" on a menu of 84.
+   */
+  const shown = notable.reduce(
+    (acc, n) => {
+      const key = toDesignVerdict(n.verdict) as keyof typeof acc;
+      if (key in acc) acc[key] += 1;
+      return acc;
+    },
+    { no_conflict_found: 0, ask_one_question: 0, conflict_found: 0, couldnt_verify: 0 },
+  );
+  const remainder = {
+    no_conflict_found: Math.max(0, placeCounts.no_conflict_found - shown.no_conflict_found),
+    ask_one_question: Math.max(0, placeCounts.ask_one_question - shown.ask_one_question),
+    conflict_found: Math.max(0, placeCounts.conflict_found - shown.conflict_found),
+    couldnt_verify: Math.max(0, placeCounts.couldnt_verify - shown.couldnt_verify),
+  };
+
   const sodiumHit = item?.threshold_hits?.find((h) => h.nutrient === "sodium");
   const thresholdDetail =
     sodiumHit && sodiumHit.found !== null
@@ -404,7 +427,9 @@ export function CheckWorkspace() {
                 <div>
                   <div style={{ fontWeight: 600 }}>{agent.venue.name}</div>
                   <div style={{ fontSize: 12, color: "var(--kg-ink2)" }}>
-                    {place ? `${itemTotal} menu items · ${place.venue.city ?? "chart"}` : agent.venue.line}
+                    {place
+                      ? `${itemTotal} menu items · ${place.source?.name ?? "published allergen chart"}`
+                      : agent.venue.line}
                   </div>
                 </div>
               </div>
@@ -414,7 +439,7 @@ export function CheckWorkspace() {
                   <div key={a.name} className="kg-activity-item">
                     <div className="name">
                       <span className="dot" aria-hidden />
-                      {a.name === "check_venue" ? "check_place" : a.name}
+                      {a.name}
                       {a.status === "not called" ? (
                         <span style={{ marginLeft: "auto", fontWeight: 400, color: "var(--kg-ink3)" }}>
                           not called
@@ -477,7 +502,7 @@ export function CheckWorkspace() {
                       <div key={a.name} className="kg-activity-item">
                         <div className="name">
                           <span className="dot" aria-hidden />
-                          {a.name === "check_venue" ? "check_place" : a.name}
+                          {a.name}
                           {a.status === "not called" ? (
                             <span style={{ marginLeft: "auto", fontWeight: 400, color: "var(--kg-ink3)" }}>
                               not called
@@ -529,6 +554,34 @@ export function CheckWorkspace() {
             <div className="kg-callout" style={{ marginBottom: 20 }}>
               <strong>Check failed.</strong>
               <p>{error}</p>
+            </div>
+          ) : null}
+
+          {humanRuling ? (
+            <div className="kg-ruling-progress">
+              <strong>
+                Ruling 1 product against {thingsRuled} thing{thingsRuled === 1 ? "" : "s"}
+              </strong>
+              <div className="kg-axes" style={{ marginTop: 14 }}>
+                <div className="kg-axis covered">
+                  <span className="axis-label">
+                    <span className="dot" aria-hidden />
+                    composition
+                  </span>
+                  <p>
+                    {thingsRuled} of {thingsRuled}
+                  </p>
+                </div>
+                <div className="kg-axis covered">
+                  <span className="axis-label">
+                    <span className="dot" aria-hidden />
+                    preparation
+                  </span>
+                  <p>
+                    {humanRestrictions.length} of {thingsRuled}
+                  </p>
+                </div>
+              </div>
             </div>
           ) : null}
 
@@ -694,7 +747,7 @@ export function CheckWorkspace() {
               </div>
               <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 12 }}>
                 {itemTotal > notable.length
-                  ? `${itemTotal - notable.length} more items ruled. ${placeCounts.no_conflict_found} no conflict found, ${placeCounts.ask_one_question} ask one question, ${placeCounts.conflict_found} conflict found, ${placeCounts.couldnt_verify} couldn't verify.`
+                  ? `${itemTotal - notable.length} more items ruled. ${remainder.conflict_found} conflict found, ${remainder.ask_one_question} ask one question.`
                   : agent.more_line}
               </p>
               <div style={{ display: "grid", gap: 12, marginTop: 24 }}>
@@ -708,7 +761,9 @@ export function CheckWorkspace() {
               <div className="kg-callout" style={{ marginTop: 16 }}>
                 <strong>The agent ruled nothing. It asked, and it is showing you what came back.</strong>
                 <p>
-                  It cannot raise a verdict, answer a question on your behalf, or save this without you.
+                  It cannot raise a verdict, answer a question on your behalf, or save this without you.{" "}
+                  {placeCounts.conflict_found} items conflict, and it is not allowed to round any of that
+                  into &ldquo;mostly fine&rdquo;.
                 </p>
               </div>
             </div>

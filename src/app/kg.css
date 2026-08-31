@@ -1129,3 +1129,10 @@
   .kg-legal { padding-top: 40px; }
   .kg-legal h1 { font-size: 30px; }
 }
+
+/* Human ruling in progress, 137:1621 */
+.kg-ruling-progress {
+  border: 1px solid var(--kg-line); border-radius: 13px; padding: 22px; background: #fff;
+}
+.kg-ruling-progress strong { display: block; font-size: 17px; font-weight: 600; }
+.kg-ruling-progress .kg-axis p { margin: 4px 0 0; font-size: 15px; font-weight: 600; color: var(--kg-ink); }
