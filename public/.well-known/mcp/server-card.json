@@ -1,0 +1,55 @@
+{
+  "name": "knowngate",
+  "version": "0.1.0",
+  "description": "Checks food claims against evidence. Returns one of four verdicts with its source and the date that source was read, for what must not be present and for what must stay under a number.",
+  "vendor": { "name": "fuda", "url": "https://www.knowngate.com" },
+  "documentation": "https://www.knowngate.com/agents",
+  "llms_txt": "https://www.knowngate.com/llms.txt",
+  "endpoints": {
+    "mcp": "https://www.knowngate.com/api/knowngate/v0/mcp",
+    "rest": "https://www.knowngate.com/api/knowngate/v0"
+  },
+  "transport": ["streamable-http", "sse"],
+  "authentication": {
+    "type": "bearer",
+    "required_for": ["check_item", "check_venue", "check_plan"],
+    "open": ["register"],
+    "how_to_obtain": "Call the register tool with { agent_name, contact_email }, or POST /api/knowngate/v0/keys. The key is returned in the response body; no browser and no confirmation click.",
+    "note": "Checking on knowngate.com itself never requires a key."
+  },
+  "tools": [
+    {
+      "name": "check_item",
+      "description": "Rule one product or dish against restrictions, thresholds, or both.",
+      "returns": "One verdict with typed hits, source kind and read date."
+    },
+    {
+      "name": "check_venue",
+      "description": "Rule a whole menu against a premise.",
+      "returns": "A verdict per item, plus venue coverage."
+    },
+    {
+      "name": "check_plan",
+      "description": "Rule up to 25 subjects in one call: a recipe, a basket, a week.",
+      "returns": "One verdict per item."
+    },
+    {
+      "name": "register",
+      "description": "Create a free-tier key without leaving MCP.",
+      "returns": "A key in the response body."
+    }
+  ],
+  "verdicts": ["no_conflict_found", "conflict_found", "ask_one_question", "couldnt_verify"],
+  "rendering_rules": [
+    "Pass verdicts through unchanged; the four names are canon.",
+    "Never render any verdict as \"safe\". The word is not used in this system.",
+    "Never drop must_not_omit lines.",
+    "Always show the source and the read date. A verdict is a statement about a date.",
+    "A refusal is an answer. Report ask_one_question and couldnt_verify as findings, not errors."
+  ],
+  "published": {
+    "evidence_standard": "https://www.knowngate.com/standard",
+    "question_library": "https://www.knowngate.com/questions",
+    "refusal_rate": "https://www.knowngate.com/refusals"
+  }
+}

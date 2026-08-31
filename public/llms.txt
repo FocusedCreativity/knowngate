@@ -22,6 +22,13 @@ A premise has two parts. Send either, or both, in the same call:
 - `restrictions`: what must not be present (FDA-9 keys plus any other name)
 - `thresholds`: what must stay under, or over, a number (per serving, unit and basis explicit)
 
+## Machine-readable mirrors
+
+- [Evidence standard](https://www.knowngate.com/standard.md)
+- [Agents](https://www.knowngate.com/agents.md)
+- [Developers](https://www.knowngate.com/developers.md)
+- [MCP server card](https://www.knowngate.com/.well-known/mcp/server-card.json)
+
 ## Public pages
 
 - [Evidence standard](https://www.knowngate.com/standard): what counts as proof
