@@ -1016,3 +1016,58 @@
 @media (max-width: 480px) {
   .kg-grid-4 { grid-template-columns: 1fr; }
 }
+
+/* —— WebMCP tools dialog, opened from the header pill —— */
+/* globals.css fills every bare button with lime; the pill is a control, not a CTA */
+.kg-root button.kg-tools-pill {
+  background: transparent; color: var(--kg-ink2); font: inherit; font-size: 12px; font-weight: 400;
+  border: 1px solid var(--kg-line-strong); border-radius: 999px; padding: 6px 13px; cursor: pointer;
+}
+.kg-root button.kg-tools-pill:hover { background: var(--kg-paper); }
+.kg-scrim {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(24, 32, 24, 0.42);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 80px 20px 40px; overflow-y: auto;
+}
+.kg-tools-dialog {
+  background: #fff; border: 1px solid var(--kg-line); border-radius: 16px;
+  width: min(620px, 100%); padding: 26px 28px 22px;
+  box-shadow: 0 24px 60px rgba(24, 32, 24, 0.24);
+}
+.kg-tools-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.kg-tools-head h2 { margin: 6px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.kg-root button.kg-tools-close {
+  appearance: none; border: 1px solid var(--kg-line); background: #fff; cursor: pointer;
+  font-weight: 400; padding: 0;
+  width: 32px; height: 32px; border-radius: 8px; font-size: 20px; line-height: 1;
+  color: var(--kg-ink2); flex-shrink: 0;
+}
+.kg-root button.kg-tools-close:hover { background: var(--kg-paper); }
+.kg-tools-lede { margin: 12px 0 18px; font-size: 13.5px; line-height: 1.6; color: var(--kg-ink2); }
+.kg-tools-group { margin-bottom: 16px; }
+.kg-tools-group .kg-eyebrow { margin-bottom: 8px; }
+.kg-tools-group ul { list-style: none; margin: 0; padding: 0; }
+.kg-tools-group li {
+  display: grid; grid-template-columns: 150px 1fr auto; gap: 12px; align-items: baseline;
+  padding: 9px 0; border-bottom: 1px solid var(--kg-line); font-size: 13px;
+}
+.kg-tools-group li:last-child { border-bottom: 0; }
+.kg-tools-group code { font-weight: 600; color: var(--kg-ink); }
+.kg-tools-group .takes { color: var(--kg-ink2); line-height: 1.5; }
+.kg-tools-rw {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.63px; text-transform: uppercase;
+  color: var(--kg-ask); background: var(--kg-ask-bg); padding: 3px 7px; border-radius: 5px;
+}
+.kg-tools-rw.ro { color: var(--kg-lime-deep); background: var(--kg-lime-soft); }
+.kg-tools-foot {
+  margin: 4px 0 0; padding-top: 14px; border-top: 1px solid var(--kg-line);
+  font-size: 12.5px; color: var(--kg-ink2);
+}
+.kg-root .kg-tools-foot a { color: var(--kg-lime-deep); font-weight: 500; }
+@media (max-width: 640px) {
+  .kg-scrim { padding: 20px 14px; align-items: stretch; }
+  .kg-tools-dialog { padding: 20px; }
+  .kg-tools-group li { grid-template-columns: 1fr auto; }
+  .kg-tools-group .takes { grid-column: 1 / -1; }
+}

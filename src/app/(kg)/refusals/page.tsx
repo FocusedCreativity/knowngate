@@ -4,11 +4,11 @@ import { LiveToken } from "@/components/kg/live-token";
 import { DataTable } from "@/components/kg/data-table";
 import {
   formatInt,
-  getCorpus,
   getQuestionCount,
   getRefusalsReviewDefault,
   type RefusalsLayer1,
 } from "@/lib/kg/fixtures";
+import { getCorpusSnapshot } from "@/lib/kg/corpus-data";
 
 export const metadata: Metadata = {
   title: "Refusal rate — KnownGate",
@@ -26,7 +26,7 @@ export default async function RefusalsPage({
     requested === "zero" || requested === "low_n" || requested === "steady"
       ? requested
       : getRefusalsReviewDefault();
-  const c = getCorpus();
+  const c = await getCorpusSnapshot();
   const qCount = getQuestionCount();
 
   return (
@@ -139,36 +139,43 @@ export default async function RefusalsPage({
           Measured over our evidence corpus, every menu item and product we hold, ruled against each FDA-9
           restriction. Dated, reproducible, and independent of traffic.
         </p>
-        <p className="kg-corpus-stamp">
-          <strong>Measured {c.measured_at}</strong>
-          <span>against production evidence</span>
-          <span>
-            · {formatInt(c.products)} products · {c.metros} metros
-          </span>
-        </p>
-        <p className="sub">
-          {formatInt(c.allergen_findings.count)} ({c.allergen_findings.pct}%) carry ≥1 allergen finding — the
-          other {c.allergen_findings.shop_refusal_pct}% is the shop arm&apos;s refusal rate.{" "}
-          {formatInt(c.nutrition_panels.count)} ({c.nutrition_panels.pct}%) have a typed nutrition panel ·{" "}
-          {c.nutrition_panels.serving_basis_pct}% of panels state a serving basis · trans fat quantified on
-          only {c.nutrition_panels.trans_fat_pct}% of panels · added sugar on {c.nutrition_panels.added_sugar_pct}
-          %.
-        </p>
-        <p className="sub" style={{ marginTop: 12 }}>
-          Eat-out: {c.eat_out.chains_publish} chains publish; {c.eat_out.machine_readable} are
-          machine-readable — {formatInt(c.eat_out.dishes_ruled)} dishes ruled;{" "}
-          {c.eat_out.published_not_machine_readable} are &quot;published, not machine-readable&quot; · sit-down
-          lane: {c.eat_out.sit_down_venues} venues, {formatInt(c.eat_out.sit_down_items)} items,{" "}
-          {formatInt(c.eat_out.sit_down_findings)} findings, {c.eat_out.sit_down_presence_only_pct}%
-          presence-only.
-        </p>
+        {c ? (
+          <>
+            <p className="kg-corpus-stamp">
+              <strong>Measured {c.measured_at}</strong>
+              <span>against production evidence</span>
+              <span>
+                · {formatInt(c.unique_products)} products · {formatInt(c.shelf_records)} store shelves ·{" "}
+                {c.metros} metros
+              </span>
+            </p>
+            <p className="sub">
+              {formatInt(c.products_with_findings)} ({c.findings_pct}%) carry ≥1 allergen finding — the other{" "}
+              {c.shop_refusal_pct}% is the shop arm&apos;s refusal rate.{" "}
+              {formatInt(c.nutrition_panels)} ({c.panels_pct}%) have a typed nutrition panel ·{" "}
+              {c.serving_basis_pct}% of panels state a serving basis · trans fat quantified on only{" "}
+              {c.trans_fat_pct}% of panels · added sugar on {c.added_sugar_pct}%.
+            </p>
+            <p className="sub" style={{ marginTop: 12 }}>
+              Eat-out: {c.chains_ruled} chains are machine-readable —{" "}
+              {formatInt(c.chart_dishes)} dishes ruled · sit-down lane: {c.sitdown_venues} venues,{" "}
+              {formatInt(c.menu_items)} items, {formatInt(c.menu_findings_presence_only)} presence-only
+              findings.
+            </p>
+          </>
+        ) : (
+          <p className="kg-corpus-stamp">
+            <span className="kg-held-state">corpus snapshot unavailable</span>
+            <span>No figure is shown rather than a stale one.</span>
+          </p>
+        )}
         <DataTable
           headers={["Cause", "Share of refusals", "Who could close it"]}
           rows={[
             {
               cells: [
                 "No preparation evidence published",
-                `${c.allergen_findings.shop_refusal_pct}% shop arm`,
+                c ? `${c.shop_refusal_pct}% shop arm` : { held: true as const, label: "corpus snapshot unavailable" },
                 "The venue or the manufacturer, by filing a statement.",
               ],
             },
@@ -210,14 +217,14 @@ export default async function RefusalsPage({
             {
               cells: [
                 "No nutrition panel exists",
-                `${100 - c.nutrition_panels.pct}% of products`,
+                c ? `${100 - c.panels_pct}% of shelf records` : { held: true as const, label: "corpus snapshot unavailable" },
                 "Nobody, a made-on-site item has none. A finding, not a failure.",
               ],
             },
             {
               cells: [
                 "Panel present, serving basis unstated",
-                `${100 - c.nutrition_panels.serving_basis_pct}% of panels`,
+                c ? `${100 - c.serving_basis_pct}% of panels` : { held: true as const, label: "corpus snapshot unavailable" },
                 "The manufacturer, by stating whether the figure is per serving or per 100g.",
               ],
             },
@@ -244,14 +251,14 @@ export default async function RefusalsPage({
             {
               cells: [
                 "Shop · packaged",
-                `${c.allergen_findings.shop_refusal_pct}%`,
+                c ? `${c.shop_refusal_pct}%` : { held: true as const, label: "corpus snapshot unavailable" },
                 "A label is a legal declaration. Most products resolve.",
               ],
             },
             {
               cells: [
                 "Eat out",
-                `${c.eat_out.published_not_machine_readable} of ${c.eat_out.chains_publish} charts unreadable`,
+                c ? `${c.chains_ruled} chains machine-readable` : { held: true as const, label: "corpus snapshot unavailable" },
                 "A person is present, so questions convert into answers.",
               ],
             },
@@ -279,23 +286,25 @@ export default async function RefusalsPage({
             {
               cells: [
                 "Packaged · numeric threshold",
-                `${formatInt(c.nutrition_panels.count)} panels · ${c.nutrition_panels.pct}%`,
-                "One source, and 305,000 panels are rulable. The lowest refusal rate in the product.",
+                c ? `${formatInt(c.nutrition_panels)} panels · ${c.panels_pct}%` : { held: true as const, label: "corpus snapshot unavailable" },
+                c
+                  ? `One source, and ${formatInt(c.panels_with_serving)} panels are rulable. The lowest refusal rate in the product.`
+                  : "One source. The lowest refusal rate in the product.",
               ],
             },
             {
               cells: [
                 "Restaurant dish · numeric threshold",
-                `${c.eat_out.sit_down_presence_only_pct}% presence-only`,
+                c ? `${formatInt(c.menu_findings_presence_only)} presence-only findings` : { held: true as const, label: "corpus snapshot unavailable" },
                 "Almost no venue publishes a panel. Structurally the highest, and honestly so.",
               ],
             },
           ]}
         />
         <p style={{ marginTop: 20, fontSize: 14, color: "var(--kg-ink2)" }}>
-          Corpus values above were measured {c.measured_at} against production. They are never estimates and
-          never filled in by hand. Order-in and potluck are structural refusals — not covered by any source —
-          not a fake zero.
+          Corpus values above were measured {c ? c.measured_at : "—"} against production. They are never
+          estimates and never filled in by hand. Order-in and potluck are structural refusals — not covered by
+          any source — not a fake zero.
         </p>
       </section>
 
@@ -333,7 +342,7 @@ export default async function RefusalsPage({
             {
               cells: [
                 "Products resolving to a label",
-                formatInt(c.products),
+                c ? formatInt(c.unique_products) : { held: true as const, label: "corpus snapshot unavailable" },
                 "up",
               ],
             },

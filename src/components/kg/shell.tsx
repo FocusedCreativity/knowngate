@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NAV_LINKS } from "@/lib/kg/types";
 import { TOOL_MANIFEST } from "@/lib/webmcp/manifest";
 import { LiveToken } from "./live-token";
@@ -46,6 +46,70 @@ function ModeSwitch({
   );
 }
 
+function ToolsDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const pages = [...new Set(TOOL_MANIFEST.map((t) => t.page))];
+  return (
+    <div className="kg-scrim" onClick={onClose} role="presentation">
+      <div
+        className="kg-tools-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="kg-tools-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="kg-tools-head">
+          <div>
+            <p className="kg-eyebrow">WEBMCP ON THIS PAGE</p>
+            <h2 id="kg-tools-title">
+              {TOOL_COUNT} tools an agent can call here
+            </h2>
+          </div>
+          <button type="button" className="kg-tools-close" aria-label="Close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <p className="kg-tools-lede">
+          An agent in this browser can drive these directly, with no key and no server round trip. They set
+          and read the premise and call the gate; the ruling is the same engine either way.
+        </p>
+        {pages.map((page) => (
+          <div key={page} className="kg-tools-group">
+            <p className="kg-eyebrow">{page.replace("-", " ").toUpperCase()}</p>
+            <ul>
+              {TOOL_MANIFEST.filter((t) => t.page === page).map((t) => (
+                <li key={t.name}>
+                  <code>{t.name}</code>
+                  <span className="takes">{t.takes}</span>
+                  <span className={`kg-tools-rw${t.readOnly ? " ro" : ""}`}>
+                    {t.readOnly ? "reads" : "writes"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        <p className="kg-tools-foot">
+          Nothing stored, unless you save a record to share.{" "}
+          <Link href="/developers" onClick={onClose}>
+            MCP and REST for agents without a browser
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function KgHeader({
   modeHref,
 }: {
@@ -56,6 +120,7 @@ export function KgHeader({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
+  const [tools, setTools] = useState(false);
   const mode = (searchParams.get("mode") === "agent" ? "agent" : "human") as Mode;
   const resolvedModeHref =
     modeHref ??
@@ -94,11 +159,17 @@ export function KgHeader({
             ))}
           </nav>
           <div className="kg-header-actions">
-            <div className="kg-tools-pill">
+            <button
+              type="button"
+              className="kg-tools-pill"
+              aria-haspopup="dialog"
+              aria-expanded={tools}
+              onClick={() => setTools(true)}
+            >
               <span className="kg-live-dot" aria-hidden />
               <span>WebMCP</span>
               <span className="kg-token-inline">{TOOL_COUNT} tools</span>
-            </div>
+            </button>
             <ModeSwitch mode={mode} onChange={setMode} />
             <span className="kg-header-divider" aria-hidden />
             <Link className="kg-signin" href="/login">
@@ -118,6 +189,8 @@ export function KgHeader({
           </button>
         </div>
       </header>
+
+      <ToolsDialog open={tools} onClose={() => setTools(false)} />
 
       <div className={`kg-menu-panel${open ? " open" : ""}`} role="dialog" aria-modal="true" aria-label="Menu">
         <div className="kg-header-inner">
@@ -167,11 +240,19 @@ export function KgHeader({
           ))}
         </div>
         <div className="kg-menu-foot">
-          <div className="kg-tools-pill">
+          <button
+            type="button"
+            className="kg-tools-pill"
+            aria-haspopup="dialog"
+            onClick={() => {
+              setOpen(false);
+              setTools(true);
+            }}
+          >
             <span className="kg-live-dot" aria-hidden />
             <span>WebMCP · {TOOL_COUNT} tools</span>
             <LiveToken label="LIVE" />
-          </div>
+          </button>
           <Link className="kg-btn" href="/login" onClick={() => setOpen(false)}>
             Sign in
           </Link>
@@ -182,95 +263,7 @@ export function KgHeader({
   );
 }
 
-export function KgFooter() {
-  return (
-    <footer className="kg-footer">
-      <div className="kg-footer-grid">
-        <div className="kg-footer-brand">
-          <Brand />
-          <p>
-            A verification layer for food. It rules on what it is handed, shows its sources and their dates,
-            and says so plainly when nobody knows.
-          </p>
-          <span className="kg-footer-std">
-            <span className="dot" aria-hidden />
-            Evidence standard v1.0
-          </span>
-        </div>
-        <div />
-        <div>
-          <h4>CHECK</h4>
-          <ul>
-            <li>
-              <Link href="/check">Check something</Link>
-            </li>
-            <li>
-              <Link href="/questions">Question library</Link>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h4>PUBLISHED</h4>
-          <ul>
-            <li>
-              <Link href="/standard">Evidence standard</Link>
-            </li>
-            <li>
-              <Link href="/refusals">Refusal rate</Link>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h4>BUILD</h4>
-          <ul>
-            <li>
-              <Link href="/agents">Agents</Link>
-            </li>
-            <li>
-              <Link href="/developers">Developers</Link>
-            </li>
-            <li>
-              <Link href="/developers">WebMCP on this page</Link>
-            </li>
-            <li>
-              <Link href="/signup">Get a key</Link>
-            </li>
-            <li>
-              <Link href="/login">Sign in</Link>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="kg-footer-bottom">
-        <div className="kg-footer-law">
-          <span>
-            Not a guarantee of safety. The word &ldquo;safe&rdquo; is not used anywhere in this system.
-          </span>
-          <span>Nothing stored, unless you save a record to share. No account to check.</span>
-        </div>
-        <nav>
-          <Link href="/standard">Terms</Link>
-          <Link href="/standard">Privacy</Link>
-          <Link href="/refusals">Report an error</Link>
-          <span>© 2026 fuda</span>
-        </nav>
-      </div>
-    </footer>
-  );
-}
-
-export function KgShell({
-  children,
-  modeHref,
-}: {
-  children: React.ReactNode;
-  modeHref?: string;
-}) {
-  return (
-    <div className="kg-root">
-      <KgHeader modeHref={modeHref} />
-      <main className="kg-main">{children}</main>
-      <KgFooter />
-    </div>
-  );
+/** Header only; the footer is a server component rendered by the layout. */
+export function KgShell({ modeHref }: { modeHref?: string }) {
+  return <KgHeader modeHref={modeHref} />;
 }

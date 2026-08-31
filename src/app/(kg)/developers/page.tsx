@@ -4,6 +4,8 @@ import { LiveToken } from "@/components/kg/live-token";
 import { DataTable } from "@/components/kg/data-table";
 import { MustNotOmit } from "@/components/kg/primitives";
 import { getQuestionLibrary } from "@/lib/kg/questions-data";
+import { getCorpusSnapshot } from "@/lib/kg/corpus-data";
+import { formatInt } from "@/lib/kg/fixtures";
 
 export const metadata: Metadata = {
   title: "Developers — KnownGate",
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
 
 export default async function DevelopersPage() {
   const { count: qCount } = await getQuestionLibrary();
+  const corpus = await getCorpusSnapshot();
   return (
     <>
       <header className="kg-hero">
@@ -419,7 +422,9 @@ curl https://api.knowngate.com/v1/check_item \\
             {
               cells: [
                 "No numeric premise outside beta",
-                "Thresholds are live in beta against 305,000 rulable panels. Treat the coverage as growing rather than complete.",
+                corpus
+                  ? `Thresholds are live in beta against ${formatInt(corpus.panels_with_serving)} rulable panels. Treat the coverage as growing rather than complete.`
+                  : "Thresholds are live in beta. Treat the coverage as growing rather than complete.",
               ],
             },
           ]}
