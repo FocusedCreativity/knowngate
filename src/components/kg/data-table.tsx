@@ -1,20 +1,34 @@
+import type { ReactNode } from "react";
+
 type Cell =
   | string
   | { token: string }
-  | { held: true; label?: string };
+  | { held: true; label?: string }
+  | { node: ReactNode }
+  | { status: string; tone: "live" | "soon" | "waitlist" };
 
 type Row = { cells: Cell[]; ceiling?: string };
 
 export function DataTable({
   headers,
   rows,
+  colWidths,
 }: {
   headers: string[];
   rows: Row[];
+  /** Fixed content widths in px, per the frame; a null entry lets the column flex. */
+  colWidths?: (number | null)[];
 }) {
   return (
     <div className="kg-table-wrap">
       <table className="kg-table">
+        {colWidths ? (
+          <colgroup>
+            {headers.map((h, i) => (
+              <col key={h} style={colWidths[i] ? { width: colWidths[i]! + 14 } : undefined} />
+            ))}
+          </colgroup>
+        ) : null}
         <thead>
           <tr>
             {headers.map((h) => (
@@ -71,11 +85,7 @@ export function DataTable({
                 }}
                 aria-hidden
               />
-              {typeof r.cells[0] === "string"
-                ? r.cells[0]
-                : "token" in r.cells[0]
-                  ? `[${r.cells[0].token}]`
-                  : r.cells[0].label ?? "not covered by any source"}
+              {renderCell(r.cells[0])}
             </div>
             {r.cells.slice(1).map((c, j) => (
               <div key={j} className="field">
@@ -95,6 +105,15 @@ export function DataTable({
 
 function renderCell(c: Cell) {
   if (typeof c === "string") return c;
+  if ("node" in c) return c.node;
+  if ("status" in c) {
+    return (
+      <span className={`kg-status ${c.tone}`}>
+        <span className="dot" aria-hidden />
+        {c.status}
+      </span>
+    );
+  }
   if ("held" in c) {
     return (
       <span className="kg-held-state" title="Structural refusal">
