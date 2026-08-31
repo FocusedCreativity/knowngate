@@ -61,8 +61,8 @@ export function KgHeader({
     modeHref ??
     (pathname.startsWith("/walkthrough/check")
       ? "/walkthrough/check"
-      : pathname === "/" || pathname === "/check"
-        ? pathname
+      : pathname === "/check" || pathname === "/"
+        ? "/check"
         : undefined);
 
   function setMode(next: Mode) {
@@ -205,7 +205,7 @@ export function KgFooter() {
               <Link href="/check">Check something</Link>
             </li>
             <li>
-              <Link href="/ck/ck_demo29b6e359cae50ab4">A saved record</Link>
+              <Link href="/questions">Question library</Link>
             </li>
           </ul>
         </div>
@@ -216,7 +216,7 @@ export function KgFooter() {
               <Link href="/standard">Evidence standard</Link>
             </li>
             <li>
-              <Link href="/questions">Question library</Link>
+              <Link href="/refusals">Refusal rate</Link>
             </li>
           </ul>
         </div>

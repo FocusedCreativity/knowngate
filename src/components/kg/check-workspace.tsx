@@ -18,6 +18,7 @@ import {
 } from "@/lib/kg/live-map";
 import { SourceLine, SummaryLine, VerdictCard } from "@/components/kg/primitives";
 import type { DesignVerdict } from "@/lib/kg/types";
+import { LANDING_RESULT_KEY } from "@/lib/kg/landing-handoff";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -163,6 +164,20 @@ export function CheckWorkspace() {
 
     async function run() {
       try {
+        if (mode === "human" && sp.get("from") === "landing") {
+          const raw = sessionStorage.getItem(LANDING_RESULT_KEY);
+          if (raw) {
+            sessionStorage.removeItem(LANDING_RESULT_KEY);
+            const result = JSON.parse(raw) as ItemResult;
+            if (!cancelled) {
+              setItem(result);
+              setPlace(null);
+              setLoad("ready");
+            }
+            return;
+          }
+        }
+
         if (mode === "human") {
           const restrictions: Restriction[] = humanRestrictions.map((key) => ({
             key: key as Restriction["key"],
@@ -215,7 +230,7 @@ export function CheckWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [mode, step, showHumanResult, showAgentResult, rulingInProgress]);
+  }, [mode, step, showHumanResult, showAgentResult, rulingInProgress, sp]);
 
   const designVerdict: DesignVerdict | null = item ? toDesignVerdict(item.verdict) : null;
   const placeCounts = place ? mapPlaceCounts(place) : agent.counts;

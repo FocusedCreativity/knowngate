@@ -93,7 +93,7 @@ function LoginCard({ state }: { state: LoginState }) {
           <p className="lead">
             Saved records and keys live in the developer console. Checks still need no account.
           </p>
-          <Link className="kg-btn block" href="/console?keys=active">
+          <Link className="kg-btn block" href="/console">
             Open console
           </Link>
           <button type="button" className="kg-btn quiet block" style={{ marginTop: 10 }}>

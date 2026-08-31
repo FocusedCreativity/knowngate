@@ -120,18 +120,23 @@ export default function WalkthroughPage() {
             </Link>
           </li>
           <li>
-            <Link href="/console?keys=none">
-              /console · no keys <span>›</span>
+            <Link href="/console">
+              /console · canonical empty state <span>›</span>
             </Link>
           </li>
           <li>
-            <Link href="/console?keys=shown_once">
-              /console · key shown once <span>›</span>
+            <Link href="/walkthrough/console?keys=none">
+              /walkthrough/console · no keys <span>›</span>
             </Link>
           </li>
           <li>
-            <Link href="/console?keys=active">
-              /console · active + revoked <span>›</span>
+            <Link href="/walkthrough/console?keys=shown_once">
+              /walkthrough/console · key shown once <span>›</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/walkthrough/console?keys=active">
+              /walkthrough/console · active + revoked <span>›</span>
             </Link>
           </li>
           <li>
@@ -143,16 +148,21 @@ export default function WalkthroughPage() {
       </section>
 
       <section>
-        <h2>UNTOUCHED LIVE → NOW DESIGN</h2>
+        <h2>CANONICAL</h2>
         <ul>
           <li>
             <Link href="/">
-              / · design workspace (human default) <span>›</span>
+              / · landing <span>›</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/check?mode=human&step=4">
+              /check · workspace (Jif) <span>›</span>
             </Link>
           </li>
           <li>
             <Link href="/check?mode=agent&step=4">
-              /check · design workspace (agent) <span>›</span>
+              /check · workspace (Krystal) <span>›</span>
             </Link>
           </li>
         </ul>
