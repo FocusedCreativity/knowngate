@@ -7,7 +7,14 @@ import { knownGateClient } from "@/lib/knowngate/client";
 import type { Restriction } from "@/lib/knowngate/contracts";
 import type { LandingExamples } from "@/lib/kg/landing-data";
 import { LANDING_RESULT_KEY } from "@/lib/kg/landing-handoff";
+import {
+  PARSE_MAX_CHARS,
+  parsePremise,
+  type ParsedPremise,
+  type ParsedThreshold,
+} from "@/lib/kg/premise-parse";
 
+/** Fallback picker, shown only when the parser cannot be reached. */
 const RESTRICTIONS = [
   "milk",
   "egg",
@@ -18,21 +25,20 @@ const RESTRICTIONS = [
   "wheat",
   "soy",
   "sesame",
-  "+ other",
 ] as const;
 
 const DONT = [
-  "No ads",
-  "No tracking",
-  "No silos",
-  "No personalization",
-  "No quality scores",
-  "No recommendations",
+  "No advice",
+  "No meal plans",
+  "No diets",
+  "No groceries or prices",
+  "No pantry",
+  "No “is this healthy”",
 ] as const;
 
 function chipToKey(chip: string): Restriction["key"] {
   if (chip === "tree nuts") return "tree_nut";
-  return chip as Restriction["key"];
+  return chip.replace(/\s+/g, "_") as Restriction["key"];
 }
 
 function subjectFromInput(raw: string): { kind: "upc" | "product_query"; value: string } {
@@ -51,58 +57,128 @@ function verdictClass(verdict: string): string {
   return "held";
 }
 
+/** Nothing on this site prints an em dash, including copy that arrives from the API. */
+function noDash(text: string): string {
+  return text.replace(/\s*—\s*/g, ", ");
+}
+
+type Stage = "compose" | "confirm";
+
 export function LandingPage({ examples }: { examples: LandingExamples }) {
   const router = useRouter();
-  const [selected, setSelected] = useState<string[]>(["peanut", "sesame"]);
+
+  const [stage, setStage] = useState<Stage>("compose");
+  const [text, setText] = useState("");
+  const [parsed, setParsed] = useState<ParsedPremise | null>(null);
+  /** Numbers the person still owes us, keyed by nutrient. */
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [subject, setSubject] = useState("");
-  const [sodium, setSodium] = useState("600");
+  const [manual, setManual] = useState<string[]>([]);
+  const [parserDown, setParserDown] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function toggle(chip: string) {
-    if (chip === "+ other") return;
-    setSelected((prev) =>
-      prev.includes(chip) ? prev.filter((c) => c !== chip) : [...prev, chip],
+  function toggleManual(chip: string) {
+    setManual((prev) => (prev.includes(chip) ? prev.filter((c) => c !== chip) : [...prev, chip]));
+  }
+
+  function dropRestriction(key: string) {
+    setParsed((p) => (p ? { ...p, restrictions: p.restrictions.filter((r) => r !== key) } : p));
+  }
+
+  function dropThreshold(nutrient: string) {
+    setParsed((p) =>
+      p ? { ...p, thresholds: p.thresholds.filter((t) => t.nutrient !== nutrient) } : p,
     );
   }
 
-  async function onCheck(e: FormEvent) {
+  async function onRead(e: FormEvent) {
     e.preventDefault();
-    const value = subject.trim();
+    const value = text.trim();
     if (!value) {
-      setError("Add a product name, URL, or UPC.");
+      setError("Tell us what your family cannot eat, or what to keep under a number.");
       return;
     }
     setBusy(true);
     setError(null);
+    const outcome = await parsePremise(value);
+    setBusy(false);
+
+    if (outcome.status === "invalid") {
+      setError(outcome.message);
+      return;
+    }
+    if (outcome.status === "unavailable") {
+      // The parser is only a convenience. The check itself never depended on it.
+      setParserDown(true);
+      setStage("confirm");
+      setSubject(value);
+      return;
+    }
+    setParsed(outcome.premise);
+    setSubject(outcome.premise.subject?.value ?? "");
+    setStage("confirm");
+  }
+
+  async function onCheck(e: FormEvent) {
+    e.preventDefault();
+    const subjectValue = subject.trim();
+    if (!subjectValue) {
+      setError("Add what you want checked: a product name, a barcode, or a dish.");
+      return;
+    }
+
+    const restrictionKeys = parserDown ? manual : (parsed?.restrictions ?? []);
+    const thresholds: ParsedThreshold[] = [...(parsed?.thresholds ?? [])];
+    // A number the person typed in the confirm step becomes a rule. One they
+    // never gave stays off the check entirely.
+    for (const need of parsed?.needs_number ?? []) {
+      const raw = amounts[need.nutrient];
+      const max = Number(raw);
+      if (raw && Number.isFinite(max) && max > 0) {
+        thresholds.push({ nutrient: need.nutrient, max, unit: need.nutrient === "sodium" ? "mg" : "g" });
+      }
+    }
+    if (!restrictionKeys.length && !thresholds.length) {
+      setError("Add at least one rule: something that cannot be in it, or a number to stay under.");
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
     try {
-      const restrictions: Restriction[] = selected.map((chip) => ({ key: chipToKey(chip) }));
-      const max = Number(sodium) || 600;
       const result = await knownGateClient.checkItem({
-        restrictions,
-        subject: subjectFromInput(value),
-        thresholds: [
-          {
-            nutrient: "sodium",
-            max,
-            unit: "mg",
-            basis: "per_serving",
-          },
-        ],
+        restrictions: restrictionKeys.map((key) => ({ key: chipToKey(key) })),
+        subject: subjectFromInput(subjectValue),
+        thresholds: thresholds.map((t) => ({
+          nutrient: t.nutrient,
+          max: t.max,
+          unit: t.unit,
+          basis: "per_serving",
+        })),
       });
       sessionStorage.setItem(LANDING_RESULT_KEY, JSON.stringify(result));
       const q = new URLSearchParams();
       q.set("mode", "human");
       q.set("step", "4");
       q.set("from", "landing");
-      if (selected.length) q.set("restrictions", selected.join(","));
-      q.set("subject", value);
-      q.set("sodium", String(max));
+      if (restrictionKeys.length) q.set("restrictions", restrictionKeys.join(","));
+      q.set("subject", subjectValue);
+      const sodium = thresholds.find((t) => t.nutrient === "sodium");
+      if (sodium) q.set("sodium", String(sodium.max));
       router.push(`/check?${q.toString()}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Check failed");
+      setError(err instanceof Error ? err.message : "The check could not be completed.");
       setBusy(false);
     }
+  }
+
+  function startOver() {
+    setStage("compose");
+    setParsed(null);
+    setParserDown(false);
+    setAmounts({});
+    setError(null);
   }
 
   const menu = examples.menu;
@@ -110,115 +186,198 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
   return (
     <div className="kg-landing">
       <header className="kg-landing-hero">
-        <div className="kg-landing-pill">
-          <span className="kg-live-dot" aria-hidden />
-          Free · no account to check · nothing stored unless you save a record
-        </div>
-        <h1>“It&apos;s fine.” Says who?</h1>
+        <h1>&ldquo;It&rsquo;s fine.&rdquo; Says who?</h1>
         <p className="lead">
-          Tell us what can&apos;t be in it, or how much is too much. We check the label, the menu and the kitchen,
-          and we say so when nobody knows.
+          Tell us what your family can&rsquo;t eat, or how much is too much. We check the label, the menu and
+          the kitchen, and show you what we found. When nobody knows, we tell you that too.
         </p>
       </header>
 
       <section className="kg-landing-form-wrap">
-        <form className="kg-landing-form" onSubmit={onCheck}>
-          <div className="kg-landing-form-row">
-            <span className="lbl">Can&apos;t be in it</span>
-            <div className="kg-chip-row" style={{ margin: 0, flex: 1 }}>
-              {RESTRICTIONS.map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  className={`chip${selected.includes(chip) ? " on lime" : ""}`}
-                  onClick={() => toggle(chip)}
-                >
-                  {chip}
+        <div className="kg-landing-form">
+          {stage === "compose" ? (
+            <form onSubmit={onRead}>
+              <div className="kg-landing-composer">
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  maxLength={PARSE_MAX_CHARS}
+                  aria-label="Tell us what your family cannot eat, in your own words"
+                  placeholder="Tell us in your own words: “no peanuts, and keep sugar under 10g”"
+                />
+                <span className="kg-composer-icon" aria-hidden title="Scan a barcode">
+                  BAR
+                </span>
+                <span className="kg-composer-icon" aria-hidden title="Upload a photo">
+                  CAM
+                </span>
+                <button type="submit" className="kg-btn" disabled={busy}>
+                  {busy ? "Reading…" : "Check it"}
                 </button>
-              ))}
-            </div>
-          </div>
+              </div>
+              {error ? <p className="kg-landing-error">{error}</p> : null}
+              <div className="kg-landing-form-note">
+                <span>We turn your words into exact rules you can see and edit before we check anything.</span>
+                <span>We keep nothing unless you choose to save a record you can share.</span>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={onCheck} className="kg-confirm">
+              <div className="kg-confirm-head">
+                <p className="kg-eyebrow">CHECK THIS, AND ONLY THIS</p>
+                <button type="button" className="kg-confirm-back" onClick={startOver}>
+                  Start again
+                </button>
+              </div>
 
-          <div className="kg-landing-threshold">
-            <span className="lbl">How much is too much</span>
-            <span className="plain">Keep</span>
-            <span className="chip on lime">sodium ▾</span>
-            <span className="plain">under</span>
-            <label className="kg-landing-amount">
-              <input
-                value={sodium}
-                onChange={(e) => setSodium(e.target.value.replace(/[^\d]/g, ""))}
-                inputMode="numeric"
-                aria-label="Sodium limit in mg"
-              />
-              <span>mg</span>
-            </label>
-            <span className="plain">per serving</span>
-          </div>
+              {parserDown ? (
+                <>
+                  <p className="kg-confirm-note">
+                    We could not read your words just now, so pick the rules by hand. Nothing has been checked
+                    yet.
+                  </p>
+                  <div className="kg-chip-row">
+                    {RESTRICTIONS.map((c) => (
+                      <button
+                        type="button"
+                        key={c}
+                        className={`chip${manual.includes(c) ? " on" : ""}`}
+                        aria-pressed={manual.includes(c)}
+                        onClick={() => toggleManual(c)}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {parsed?.note ? <p className="kg-confirm-note">{noDash(parsed.note)}</p> : null}
 
-          <hr />
+                  {parsed?.restrictions.length ? (
+                    <div className="kg-confirm-row">
+                      <span className="kg-eyebrow">CANNOT BE IN IT</span>
+                      <div className="kg-chip-row">
+                        {parsed.restrictions.map((r) => (
+                          <span key={r} className="chip on">
+                            {r.replace(/_/g, " ")}
+                            <button type="button" aria-label={`Remove ${r}`} onClick={() => dropRestriction(r)}>
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
-          <div className="kg-landing-composer">
-            <span className="kind">
-              Product <span aria-hidden>▾</span>
-            </span>
-            <input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Type a name, or paste a UPC"
-              aria-label="Product to check"
-              disabled={busy}
-            />
-            <button type="submit" className="kg-btn" disabled={busy}>
-              {busy ? "Checking…" : "Check it"}
-            </button>
-          </div>
+                  {parsed?.thresholds.length ? (
+                    <div className="kg-confirm-row">
+                      <span className="kg-eyebrow">MUST STAY UNDER</span>
+                      <div className="kg-chip-row">
+                        {parsed.thresholds.map((t) => (
+                          <span key={t.nutrient} className="chip on">
+                            {t.nutrient} under {t.max}
+                            {t.unit} per serving
+                            <button
+                              type="button"
+                              aria-label={`Remove the ${t.nutrient} rule`}
+                              onClick={() => dropThreshold(t.nutrient)}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
-          {error ? <p className="kg-landing-error">{error}</p> : null}
+                  {parsed?.needs_number.map((need) => (
+                    <div className="kg-confirm-row" key={need.nutrient}>
+                      <span className="kg-eyebrow">{need.nutrient.toUpperCase()} NEEDS A NUMBER</span>
+                      <p className="kg-confirm-said">
+                        You said &ldquo;{need.said}&rdquo;. We will not guess a number for you, so give us one
+                        or leave it out.
+                      </p>
+                      <label className="kg-confirm-amount">
+                        <span>Under</span>
+                        <input
+                          inputMode="numeric"
+                          value={amounts[need.nutrient] ?? ""}
+                          onChange={(e) =>
+                            setAmounts((a) => ({ ...a, [need.nutrient]: e.target.value }))
+                          }
+                          aria-label={`Maximum ${need.nutrient} per serving`}
+                        />
+                        <span>{need.nutrient === "sodium" ? "mg" : "g"} per serving</span>
+                      </label>
+                    </div>
+                  ))}
 
-          <div className="kg-landing-form-note">
-            <p>Two kinds of promise: what can&apos;t be in it, and what it must stay under.</p>
-            <p>Nothing stored unless you save a record.</p>
-          </div>
-        </form>
+                  {parsed?.unparsed.length ? (
+                    <p className="kg-confirm-unparsed">
+                      We did not use: {parsed.unparsed.join("; ")}. Only the rules above will be checked.
+                    </p>
+                  ) : null}
+                </>
+              )}
+
+              <div className="kg-confirm-row">
+                <span className="kg-eyebrow">WHAT TO CHECK</span>
+                <input
+                  className="kg-input"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="A product name, a barcode, or a dish"
+                  aria-label="What to check"
+                />
+              </div>
+
+              {error ? <p className="kg-landing-error">{error}</p> : null}
+              <button type="submit" className="kg-btn" disabled={busy}>
+                {busy ? "Checking…" : "Check it"}
+              </button>
+              <div className="kg-landing-form-note">
+                <span>We keep nothing unless you choose to save a record you can share.</span>
+              </div>
+            </form>
+          )}
+        </div>
       </section>
 
       <section className="kg-landing-section">
         <h2>Whose job is it to check?</h2>
         <p className="sub center">
-          Nobody&apos;s. Everyone who could check gains something by not checking, and you are the only person who
-          loses when it turns out wrong.
+          Nobody&rsquo;s. Everyone else does fine if no one checks. You are the one who pays if it goes wrong.
         </p>
-        <div className="kg-grid-4 kg-landing-claim-grid">
+        <div className="kg-grid-4">
           <article className="kg-landing-claim">
-            <p className="eyebrow">THE LABEL</p>
-            <h3>“Low sodium.”</h3>
-            <p>A regulated claim on the front of the pack. Almost nobody reads it back against the panel on the side.</p>
-          </article>
-          <article className="kg-landing-claim">
-            <p className="eyebrow">THE MENU</p>
-            <h3>“No nuts in this one.”</h3>
-            <p>Written to sell a dish. It was never written as an allergen declaration and it does not work as one.</p>
-          </article>
-          <article className="kg-landing-claim">
-            <p className="eyebrow">THE HOST</p>
-            <h3>“It&apos;s fine, I made it myself.”</h3>
-            <p>Meant sincerely. Made from memory an hour ago, not from four labels.</p>
-          </article>
-          <article className="kg-landing-claim">
-            <p className="eyebrow">THE AGENT</p>
-            <h3>“That looks fine for you.”</h3>
+            <p className="kg-eyebrow">THE LABEL</p>
+            <strong>&ldquo;Low sodium.&rdquo;</strong>
             <p>
-              Fluent, instant, and answering from nothing. It sounds exactly the same when it knows and when it
-              does not.
+              The claim on the front of the pack. Almost nobody checks it against the numbers on the back.
             </p>
+          </article>
+          <article className="kg-landing-claim">
+            <p className="kg-eyebrow">THE MENU</p>
+            <strong>&ldquo;No nuts in this one.&rdquo;</strong>
+            <p>Written to make you order it, not to tell you what is really in it.</p>
+          </article>
+          <article className="kg-landing-claim">
+            <p className="kg-eyebrow">THE HOST</p>
+            <strong>&ldquo;It&rsquo;s fine, I made it myself.&rdquo;</strong>
+            <p>Said with love. But it&rsquo;s from memory, not from the four labels in the bin.</p>
+          </article>
+          <article className="kg-landing-claim">
+            <p className="kg-eyebrow">THE AGENT</p>
+            <strong>&ldquo;That looks safe for you.&rdquo;</strong>
+            <p>Sounds just as confident whether it actually knows or not.</p>
           </article>
         </div>
         <div className="kg-landing-dark-band">
-          <strong>“Verified” has been sold to you before.</strong>
+          <strong>&ldquo;Verified&rdquo; has been sold to you before.</strong>
           <p>
-            A verified account saying “no cashews” tells you who is speaking. It does not tell you whether the
-            sentence is true. Food is the same problem with a worse consequence.
+            A blue check tells you who is talking. It doesn&rsquo;t tell you whether what they said is true.
+            With food, being wrong costs more.
           </p>
         </div>
       </section>
@@ -226,48 +385,57 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
       <section className="kg-landing-section paper">
         <h2>What can I ask it?</h2>
         <p className="sub center">
-          Two kinds of promise, one gate. Say what can&apos;t be in it, or how much is too much, and the gate
-          rules against that and nothing else.
+          Ask two kinds of question: &ldquo;this can&rsquo;t be in my food&rdquo; or &ldquo;keep this under a
+          number.&rdquo; We check exactly what you asked. Nothing more, nothing less.
         </p>
         <div className="kg-grid-2">
           <article className="kg-landing-ask-card">
-            <h3>
-              <span className="dot clear" aria-hidden />
-              What can&apos;t be in it
-            </h3>
-            <p className="intro">“No sesame.” “No cashews.” An allergen, or anything else you name.</p>
-            <div className="axis-line">
-              <strong>Composition</strong>
-              <span>What the ingredient list declares</span>
+            <h3>What can&rsquo;t be in it</h3>
+            <p>&ldquo;No sesame.&rdquo; &ldquo;No cashews.&rdquo; Anything your family can&rsquo;t have.</p>
+            <div className="kg-axes">
+              <div className="kg-axis covered">
+                <span className="axis-label">
+                  <span className="dot" aria-hidden />
+                  Composition
+                </span>
+                <p>What&rsquo;s in it, according to the label</p>
+              </div>
+              <div className="kg-axis covered">
+                <span className="axis-label">
+                  <span className="dot" aria-hidden />
+                  Preparation
+                </span>
+                <p>Shared fryers, shared boards, how it is actually made</p>
+              </div>
             </div>
-            <div className="axis-line">
-              <strong>Preparation</strong>
-              <span>Shared fryers, shared boards, the tray the bread was proved on</span>
-            </div>
-            <p className="foot">Both have to be covered. An ingredient list on its own never clears it.</p>
+            <p className="note">We need both. An ingredient list on its own never gets a yes.</p>
           </article>
           <article className="kg-landing-ask-card">
-            <h3>
-              <span className="dot clear" aria-hidden />
-              What it must stay under
-            </h3>
-            <p className="intro">“Under 600mg of sodium.” “Under 10g of added sugar.” A number, per serving.</p>
-            <div className="axis-line">
-              <strong>The panel</strong>
-              <span>What the nutrition panel declares, per serving, with the date it was read</span>
+            <h3>What it must stay under</h3>
+            <p>
+              &ldquo;Under 600mg of salt.&rdquo; &ldquo;Under 10g of sugar.&rdquo; Any number, per serving.
+            </p>
+            <div className="kg-axes">
+              <div className="kg-axis covered">
+                <span className="axis-label">
+                  <span className="dot" aria-hidden />
+                  The panel
+                </span>
+                <p>What the nutrition panel says, per serving, with the date we read it</p>
+              </div>
             </div>
-            <p className="foot">One source. It either clears the number or it does not.</p>
+            <p className="note">One source: the panel. It&rsquo;s under your number or it isn&rsquo;t.</p>
           </article>
         </div>
         <p className="kg-landing-center-line">
-          Either way you get the same thing back: what we found, where it came from, and the date we read it.
+          Either way you get the same thing back: what we found, where it came from, and when we read it.
         </p>
       </section>
 
       <section className="kg-landing-section">
         <h2>One item, one menu, or a whole week.</h2>
         <p className="sub center">
-          Same gate, same four answers, whatever you point it at. The evidence changes. The discipline doesn&apos;t.
+          Same check, same four answers, for one product, a whole menu, or a week of meals.
         </p>
 
         <p className="kg-eyebrow" style={{ textAlign: "left", width: "100%", maxWidth: 1100 }}>
@@ -278,7 +446,7 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
             const cls = verdictClass(p.verdict);
             return (
               <article key={p.upc} className={`kg-landing-example ${cls}`}>
-                <div className="ph">NUTRITION PANEL</div>
+                <div className="ph">{cls === "held" ? "NO PANEL" : "NUTRITION PANEL"}</div>
                 <div className="name">
                   <span className={`dot ${cls}`} aria-hidden />
                   {p.name}
@@ -303,14 +471,15 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
               className="kg-eyebrow"
               style={{ textAlign: "left", width: "100%", maxWidth: 1100, marginTop: 36 }}
             >
-              A MENU · AGAINST AN ALLERGEN · {menu.venueName.toUpperCase()} · {menu.premiseLine.toUpperCase()}
+              A MENU · AGAINST AN ALLERGEN · {menu.venueName.toUpperCase()} ·{" "}
+              {menu.premiseLine.toUpperCase()}
             </p>
             <div className="kg-landing-menu-card">
               <div className="kg-landing-menu-head">
                 <div>
                   <strong>{menu.venueName}</strong>
                   <p>
-                    {menu.itemCount} dishes ruled · {menu.counts.conflict_found} conflict found ·{" "}
+                    {menu.itemCount} items ruled · {menu.counts.conflict_found} conflict found ·{" "}
                     {menu.counts.ask_one_question} ask one question
                     {menu.readDate ? ` · read ${menu.readDate}` : ""}
                   </p>
@@ -339,156 +508,155 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
         <div className="kg-landing-week">
           <strong>A whole week, in one call.</strong>
           <p>
-            Up to 25 things at once, a recipe&apos;s ingredients, a shopping basket, seven days of meals. One
-            ruling per item, all of them dated.
+            Up to 25 things at once: a recipe, a shopping basket, seven days of meals. One answer per item,
+            each with its date.
           </p>
           <Link className="kg-btn quiet" href="/developers">
-            View the API
+            check_plan
           </Link>
         </div>
       </section>
 
       <section className="kg-landing-section paper">
-        <h2>What if it doesn&apos;t know?</h2>
+        <h2>What if it doesn&rsquo;t know?</h2>
         <p className="sub center">
-          It tells you. Four answers come back, and two of them are not answers at all. That is the part every
-          other product leaves out.
+          It tells you. Four answers can come back, and two of them are honest ways of saying &ldquo;we
+          don&rsquo;t know.&rdquo; That&rsquo;s the part everyone else leaves out.
         </p>
         <div className="kg-grid-4">
-          <article className="kg-landing-verdict">
+          <article className="kg-landing-verdict clear">
             <span className="dot clear" aria-hidden />
             <strong>No conflict found</strong>
-            <p>Both kinds of evidence were covered. You get the source and the date it was read.</p>
+            <p>Everything checked out, and we show you the source and the date we read it.</p>
           </article>
-          <article className="kg-landing-verdict">
+          <article className="kg-landing-verdict shut">
             <span className="dot shut" aria-hidden />
             <strong>Conflict found</strong>
-            <p>It is present, or it is over the number. Named, sourced, and dated.</p>
+            <p>It&rsquo;s in there, or it&rsquo;s over your number. Named, with its source and date.</p>
           </article>
-          <article className="kg-landing-verdict">
+          <article className="kg-landing-verdict ask">
             <span className="dot ask" aria-hidden />
             <strong>Ask one question</strong>
-            <p>One thing is missing. You get the exact question and what a real answer sounds like.</p>
+            <p>One thing is missing. We give you the exact question that closes it.</p>
           </article>
-          <article className="kg-landing-verdict">
+          <article className="kg-landing-verdict held">
             <span className="dot held" aria-hidden />
-            <strong>Couldn&apos;t verify</strong>
-            <p>Nobody can answer this. We say so rather than guess, and it stays open.</p>
+            <strong>Couldn&rsquo;t verify</strong>
+            <p>Nobody can answer this one. We say so instead of guessing.</p>
           </article>
         </div>
         <div className="kg-grid-3" style={{ marginTop: 20 }}>
           <article className="kg-landing-claim">
-            <h3>What counts as proof</h3>
+            <strong>The rules are published</strong>
             <p>
-              In full, at <Link href="/standard">/standard</Link>. You can check our reasoning, not only our
-              answer.
+              What counts as proof, in full, at knowngate.com/standard. You can check our reasoning, not only
+              our answer.
             </p>
           </article>
           <article className="kg-landing-claim">
-            <h3>A high refusal rate is the product working</h3>
+            <strong>So is how often we refuse</strong>
             <p>
-              A verifier that clears everything is worth nothing. We publish the share we decline on{" "}
-              <Link href="/refusals">/refusals</Link>.
+              A checker that always says yes is worth nothing. We publish how often we say &ldquo;we
+              don&rsquo;t know&rdquo;, and we do not try to shrink it.
             </p>
           </article>
           <article className="kg-landing-claim">
-            <h3>We published our own mistake</h3>
+            <strong>We published our own mistake</strong>
             <p>
-              In August we found 63,601 rows in our own records reading “may contain” as “contains”. We fixed it
-              and said so.
+              In August we found 63,601 of our own records reading &ldquo;may contain&rdquo; as &ldquo;contains
+              &rdquo;. We fixed it and said so publicly.
             </p>
           </article>
+        </div>
+        <div className="kg-landing-dark-band">
+          <strong>Unknown counts as no.</strong>
+          <p>
+            You can&rsquo;t turn that off. The word &ldquo;safe&rdquo; never appears here. We show you what we
+            found; you decide.
+          </p>
         </div>
       </section>
 
       <section className="kg-landing-section">
         <h2>Then what do I do?</h2>
         <p className="sub center">
-          When one thing is missing, the gate hands you the question rather than a shrug, and tells you what a
-          real answer sounds like.
+          When something is missing, we hand you the exact question to ask, and tell you what a real answer
+          sounds like.
         </p>
         <div className="kg-grid-2">
           <article className="kg-landing-q">
-            <p className="code">Q-PREP-01</p>
-            <p className="q">
-              “Is {"{item}"} prepared with, or on shared equipment with, anything containing {"{allergen}"}?”
-            </p>
-            <p className="what">
-              What counts: An explicit yes or no about the surface or fryer, today. “It should be fine” does not
-              count.
+            <p className="kg-eyebrow">TO A KITCHEN</p>
+            <span className="code">Q-PREP-11</span>
+            <strong>&ldquo;Is the fryer shared with anything breaded in sesame?&rdquo;</strong>
+            <p>
+              What counts: a clear yes or no about today. &ldquo;It should be fine&rdquo; doesn&rsquo;t count.
             </p>
           </article>
           <article className="kg-landing-q">
-            <p className="code">Q-SERV-02</p>
-            <p className="q">“What is the serving size on the pack you have?”</p>
-            <p className="what">
-              What counts: The number printed on your pack. Brands restate servings between formats, so ours may
-              not match yours.
+            <p className="kg-eyebrow">TO A PACK</p>
+            <span className="code">Q-SERV-01</span>
+            <strong>&ldquo;What is the serving size on the pack you have?&rdquo;</strong>
+            <p>
+              What counts: the number printed on your pack. Brands change serving sizes between formats.
             </p>
           </article>
         </div>
-        <div className="kg-landing-actions">
-          <Link className="kg-btn" href="/questions">
-            View the question library
-          </Link>
-          <Link className="kg-btn quiet" href="/developers">
-            Read the API
-          </Link>
-        </div>
-        <div className="kg-callout" style={{ maxWidth: 740, margin: "28px auto 0" }}>
+        <div className="kg-landing-dark-band">
           <strong>The answer gets written down, with a name and a time on it.</strong>
           <p>
-            Save the check and you get a dated record anyone can open. Show it to the kitchen, send it to the
-            school, keep it for the next time somebody asks. It is the only thing that writes anything down.
+            Save a check and you get a dated record anyone can open. Show the kitchen, send it to school, keep
+            it for next time. It is the only thing we ever keep, and only because you asked.
           </p>
+        </div>
+        <div className="kg-landing-actions">
+          <Link className="kg-btn" href="/check">
+            Show the kitchen
+          </Link>
+          <Link className="kg-btn quiet" href="/check">
+            Send it on
+          </Link>
         </div>
       </section>
 
       <section className="kg-landing-section paper">
-        <h2>What&apos;s the catch?</h2>
+        <h2>What&rsquo;s the catch?</h2>
         <p className="sub center">
-          There isn&apos;t one for you. You are the person carrying the risk and holding none of the power, so
-          you never pay and we never ask you for anything.
+          There isn&rsquo;t one, not for you. You are the one carrying the risk, so you never pay and we never
+          ask you for anything.
         </p>
         <div className="kg-grid-3">
           <article className="kg-landing-claim">
-            <h3>Free, permanently</h3>
-            <p>Not a trial, not a freemium tier that expires. Checking is free for households and always will be.</p>
+            <strong>Free, permanently</strong>
+            <p>Not a trial. Checking is free for families and always will be.</p>
           </article>
           <article className="kg-landing-claim">
-            <h3>No account to check</h3>
-            <p>No sign-up, no profile, no household to build. Type it, scan it, or photograph it and press check.</p>
+            <strong>No account to check</strong>
+            <p>No sign-up, no profile. Type it, scan it, or photograph it, then press check.</p>
           </article>
           <article className="kg-landing-claim">
-            <h3>Nothing kept</h3>
-            <p>Your check exists on your screen and nowhere else. It is written down only if you save it to share.</p>
+            <strong>Nothing kept</strong>
+            <p>Your check lives on your screen and nowhere else, unless you save it to share.</p>
           </article>
         </div>
-        <p className="kg-eyebrow" style={{ marginTop: 28 }}>
-          SIX THINGS WE DELIBERATELY DON&apos;T DO
+        <h3 className="kg-landing-donts-head">Six things we deliberately don&rsquo;t do</h3>
+        <p className="sub center">
+          We check claims. We never give advice. The moment we tell you what to eat, we would have a stake in
+          the answer, and a checker with a stake in the answer is worthless.
         </p>
         <div className="kg-landing-donts">
           {DONT.map((d) => (
-            <span key={d} className="chip">
-              {d}
-            </span>
+            <span key={d}>{d}</span>
           ))}
         </div>
-        <p className="sub center" style={{ marginTop: 20, maxWidth: 720 }}>
-          We rule claims. We never advise. The moment we start telling you what to eat, we have an interest in
-          the answer, and a checker with an interest in the answer is not a checker.
-        </p>
       </section>
 
       <section className="kg-landing-dev">
-        <div>
-          <h2>Building an agent that talks about food?</h2>
-          <p>
-            One tool call gives you all four answers with their sources and dates, for allergens and for numeric
-            limits. A free key covers direct API and MCP access.
-          </p>
-        </div>
-        <Link className="kg-btn lime" href="/developers">
+        <strong>Building an agent that talks about food?</strong>
+        <p>
+          One call returns the answer with its source and date, for allergens and for numbers. A free key
+          covers API and MCP access.
+        </p>
+        <Link className="kg-btn quiet" href="/developers">
           Read the docs
         </Link>
       </section>

@@ -618,8 +618,10 @@
 .kg-landing-form {
   background: #fff;
   border: 1px solid var(--kg-line);
-  border-radius: var(--kg-r);
-  padding: 22px 22px 18px;
+  border-radius: 14px;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 16px 18px;
   box-shadow: 0 10px 40px rgba(24, 32, 24, 0.04);
 }
 .kg-landing-form hr {
@@ -669,17 +671,11 @@
 .kg-landing-composer {
   display: flex;
   align-items: center;
-  gap: 10px;
-  border: 1px solid var(--kg-line);
-  border-radius: 999px;
-  padding: 6px 6px 6px 14px;
-  background: var(--kg-paper);
-}
-.kg-landing-composer .kind {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--kg-ink);
-  white-space: nowrap;
+  gap: 8px;
+  border: 1.5px solid var(--kg-ink);
+  border-radius: 10px;
+  padding: 8px;
+  background: #fff;
 }
 .kg-landing-composer input {
   flex: 1;
@@ -687,17 +683,29 @@
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
+  padding: 8px;
   outline: none;
 }
-.kg-landing-composer .kg-btn { border-radius: 999px; padding-inline: 18px; }
+.kg-landing-composer input::placeholder { color: #9aa398; }
+.kg-composer-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; flex-shrink: 0;
+  background: var(--kg-paper-2); border-radius: 7px;
+  font-size: 8px; font-weight: 600; letter-spacing: 0.32px; color: var(--kg-on-dark);
+}
+.kg-root .kg-landing-composer .kg-btn {
+  border-radius: 8px; padding: 10px 20px; font-size: 14px;
+}
 .kg-landing-form-note {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 14px;
-  font-size: 12px;
-  color: var(--kg-ink3);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 11.5px;
+  color: var(--kg-ink2);
 }
 .kg-landing-form-note p { margin: 0; }
 .kg-landing-error {
@@ -1071,3 +1079,32 @@
   .kg-tools-group li { grid-template-columns: 1fr auto; }
   .kg-tools-group .takes { grid-column: 1 / -1; }
 }
+
+/* —— Confirm step: the parser fills the form, the person approves it —— */
+.kg-confirm { display: flex; flex-direction: column; gap: 14px; }
+.kg-confirm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.kg-confirm-head .kg-eyebrow { margin: 0; }
+.kg-root button.kg-confirm-back {
+  background: none; border: 0; padding: 0; font: inherit; font-size: 12.5px; font-weight: 500;
+  color: var(--kg-ink2); text-decoration: underline; cursor: pointer;
+}
+.kg-confirm-note { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--kg-ink2); }
+.kg-confirm-row { display: flex; flex-direction: column; gap: 8px; }
+.kg-confirm-row .kg-eyebrow { margin: 0; }
+.kg-confirm-said { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--kg-ink2); }
+.kg-confirm-amount {
+  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+  border: 1px solid var(--kg-line); border-radius: 999px; padding: 5px 12px;
+  background: var(--kg-lime-soft); font-size: 13px;
+}
+.kg-confirm-amount input {
+  width: 62px; border: 0; background: transparent; font: inherit; font-weight: 600;
+  text-align: center; outline: none;
+}
+.kg-confirm-unparsed { margin: 0; font-size: 12px; color: var(--kg-ink3); line-height: 1.5; }
+.kg-root .kg-chip-row .chip button {
+  background: none; border: 0; padding: 0 0 0 6px; font: inherit; line-height: 1;
+  color: var(--kg-ink2); cursor: pointer;
+}
+.kg-root .kg-chip-row button.chip { cursor: pointer; }
+.kg-landing-donts-head { margin: 32px 0 8px; font-size: 22px; font-weight: 700; text-align: center; }

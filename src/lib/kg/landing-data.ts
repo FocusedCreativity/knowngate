@@ -23,8 +23,10 @@ export const LANDING_PRODUCTS = [
     expectedName: "Kettle & Fire Gluten Free Low Sodium Chicken Broth",
   },
   {
-    upc: "0002520000114",
-    expectedName: "Hurst's® HamBeens Cajun 15 Bean Soup",
+    // Made and packed in the store deli, so the no-panel story is structural
+    // rather than a gap in our records.
+    upc: "0001111006809",
+    expectedName: "Simple Truth® Cold Deli Fresh Whole Rotisserie Chicken",
   },
 ] as const;
 
