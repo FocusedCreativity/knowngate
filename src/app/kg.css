@@ -167,13 +167,22 @@
   padding: 44px var(--kg-pad);
   width: 100%;
 }
+/*
+ * Section metrics come off the frames: headings are 26px/1.5 on every public
+ * page, 28px/1.18 in the argument sections, and 26px/1.2 throughout /agents.
+ * Children sit on an 18px rhythm (20px in the argument sections).
+ */
 .kg-section h2 {
-  margin: 0 0 12px; font-size: clamp(1.5rem, 2.5vw, 32px);
-  font-weight: 700; line-height: 1.2; letter-spacing: -0.02em;
+  margin: 0 0 18px; font-size: 26px;
+  font-weight: 700; line-height: 1.5; letter-spacing: -0.02em;
 }
 .kg-section .sub {
-  margin: 0 0 24px; color: var(--kg-ink2); font-size: 15px; max-width: 880px;
+  margin: 0 0 18px; color: var(--kg-ink2); font-size: 15px; max-width: 880px;
 }
+.kg-section.tight h2 { line-height: 1.2; }
+.kg-section.argument { padding-block: 52px; }
+.kg-section.argument h2 { font-size: 28px; line-height: 1.18; margin-bottom: 20px; }
+.kg-section.argument .sub { margin-bottom: 20px; font-size: 15.5px; line-height: 1.6; }
 .kg-orient {
   background: var(--kg-paper); padding: 36px var(--kg-pad);
 }
@@ -198,8 +207,8 @@
   font-size: 11px; letter-spacing: 0.1em; color: var(--kg-ink3); font-weight: 600;
 }
 .kg-callout {
-  border: 1px solid var(--kg-line); border-radius: var(--kg-r);
-  padding: 17px 20px; background: var(--kg-paper);
+  border: 1px solid var(--kg-line); border-radius: 12px;
+  padding: 20px 24px; background: var(--kg-paper);
 }
 .kg-callout strong { display: block; margin-bottom: 8px; font-size: 15px; }
 .kg-callout p { margin: 0; font-size: 14px; color: var(--kg-ink2); }
@@ -335,22 +344,22 @@
 }
 .kg-corpus-stamp strong { color: var(--kg-ink); font-weight: 600; }
 .kg-tile {
-  border: 1px solid var(--kg-line); border-radius: var(--kg-r); padding: 18px 20px; background: #fff;
+  border: 1px solid var(--kg-line); border-radius: 13px; padding: 22px; background: #fff;
 }
 .kg-tile.paper { background: var(--kg-paper); border-color: transparent; }
-.kg-tile .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-bottom: 8px; }
+.kg-tile .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; margin-bottom: 8px; }
 .kg-tile .dot.clear { background: var(--kg-clear); }
 .kg-tile .dot.shut { background: var(--kg-shut); }
 .kg-tile .dot.ask { background: var(--kg-ask); }
 .kg-tile .dot.held { background: var(--kg-held); }
 .kg-tile .num { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
-.kg-tile .lbl { font-size: 13px; color: var(--kg-ink2); }
+.kg-tile .lbl { font-size: 13.5px; line-height: 1.6; color: var(--kg-ink2); }
 
 .kg-code {
   background: var(--kg-ink); color: #f2f2ef;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 10.5px; line-height: 1.7;
-  padding: 18px; border-radius: var(--kg-r);
+  font-size: 12.5px; line-height: 1.5;
+  padding: 17px 20px; border-radius: 11px;
   white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;
   margin: 0;
 }
