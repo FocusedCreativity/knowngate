@@ -40,7 +40,7 @@ export default async function RefusalsPage({
         </p>
       </header>
 
-      <section className="kg-section">
+      <section className="kg-section argument">
         <h2>A high refusal rate is the product working.</h2>
         <p className="sub">
           That is a convenient thing for us to say, so here is the reasoning rather than the assertion. Check

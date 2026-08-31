@@ -50,7 +50,7 @@ export default function AgentsPage() {
         </div>
       </header>
 
-      <section className="kg-section">
+      <section className="kg-section tight">
         <h2>Three ways in. None of them is the preferred one.</h2>
         <p className="sub">
           Pick by where your agent already lives. The engine, the verdicts and the evidence rules are identical
@@ -106,7 +106,7 @@ POST /v0/keys`}</pre>
         </div>
       </section>
 
-      <section className="kg-section">
+      <section className="kg-section tight">
         <h2>One worked call.</h2>
         <p className="sub">
           A real product against a real premise. One conflict and one refusal come back in the same response,
@@ -169,7 +169,7 @@ Authorization: Bearer kg_live_••••
         </div>
       </section>
 
-      <section className="kg-section">
+      <section className="kg-section tight">
         <h2>How to read a verdict.</h2>
         <p className="sub">Four values, and only four. They are never free text, and two of them are not answers.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -227,7 +227,7 @@ Authorization: Bearer kg_live_••••
         </div>
       </section>
 
-      <section className="kg-section paper">
+      <section className="kg-section paper tight">
         <h2>Get a key.</h2>
         <p className="sub">
           If your agent can make an HTTP request it can sign itself up. There is no confirmation click in the
@@ -292,7 +292,7 @@ Authorization: Bearer kg_live_••••
         </p>
       </section>
 
-      <section className="kg-section">
+      <section className="kg-section tight">
         <div className="kg-grid-3" style={{ alignItems: "start" }}>
           <article className="kg-tile paper">
             <div className="kg-tile-stat">

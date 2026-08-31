@@ -47,7 +47,7 @@ export default async function DevelopersPage() {
         <div className="kg-photo-ph">IMAGE · PHOTOGRAPH · A KITCHEN PASS</div>
       </div>
 
-      <section className="kg-section">
+      <section className="kg-section argument">
         <h2>This is a claims problem, not a data problem.</h2>
         <p className="sub">
           Most teams arrive comparing food databases on breadth and price per row. That comparison answers the
@@ -196,7 +196,7 @@ curl https://api.knowngate.com/v1/check_item \\
         </div>
       </section>
 
-      <section className="kg-section">
+      <section className="kg-section argument">
         <h2>Two of the four answers are not answers.</h2>
         <p className="sub">
           Ask one question and couldn&apos;t verify are what make the other two worth anything. A checker that
@@ -354,7 +354,7 @@ curl https://api.knowngate.com/v1/check_item \\
         />
       </section>
 
-      <section className="kg-section paper">
+      <section className="kg-section paper argument">
         <h2>Audit us before you rely on us.</h2>
         <p className="sub">
           Everything that governs a verdict is published, including the parts that do not flatter us. You should
