@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { LiveToken } from "./live-token";
+
 type Cell =
   | string
   | { token: string }
@@ -121,9 +123,7 @@ function renderCell(c: Cell) {
       </span>
     );
   }
-  return (
-    <span className={`kg-live-token${c.token.includes("CORPUS") ? " corpus" : ""}`}>[{c.token}]</span>
-  );
+  return <LiveToken label={c.token} />;
 }
 
 export function Orient({
