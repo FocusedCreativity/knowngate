@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { knownGateClient } from "@/lib/knowngate/client";
 import { compactBoard, compactItem, compactPlace } from "@/lib/knowngate/compact";
@@ -43,15 +43,42 @@ export function CheckWorkspace() {
   const human = data.human;
   const agent = data.agent;
   const agentRestrictions = (premise.agent_restrictions ?? ["milk"]) as string[];
-  const humanRestrictions = premise.restrictions;
 
-  const bannerLine = mode === "agent" ? (premise.agent_line ?? "milk") : premise.line;
+  // What the person actually asked for travels in the URL. The fixture is the
+  // fallback for arriving here cold, never an override of a real premise.
+  const urlRestrictions = (sp.get("restrictions") ?? "")
+    .split(",")
+    .map((r) => r.trim())
+    .filter(Boolean);
+  const humanRestrictions = urlRestrictions.length ? urlRestrictions : premise.restrictions;
+  const urlMax = Number(sp.get("sodium"));
+  const thresholdMax =
+    Number.isFinite(urlMax) && urlMax > 0 ? urlMax : premise.threshold.max;
+  const urlSubject = sp.get("subject")?.trim() || null;
+  const subjectDigits = urlSubject ? urlSubject.replace(/\D/g, "") : "";
+  const subjectIsUpc = subjectDigits.length >= 8 && subjectDigits.length <= 14;
+
+  const humanPremiseLine =
+    urlRestrictions.length || Number.isFinite(urlMax)
+      ? [...humanRestrictions, `sodium under ${thresholdMax} mg per serving`].join(" · ")
+      : premise.line;
+  const bannerLine = mode === "agent" ? (premise.agent_line ?? "milk") : humanPremiseLine;
   const bannerMeta = mode === "human" ? premise.human_meta : premise.agent_meta;
   const railLine =
     mode === "human"
-      ? `${humanRestrictions.join(", ")}, sodium under ${premise.threshold.max} mg`
+      ? `${humanRestrictions.join(", ")}, sodium under ${thresholdMax} mg`
       : agentRestrictions.join(", ");
   const railSub = mode === "human" ? human.rail_summary : agent.rail_summary;
+  /** Identifies the check this URL asks for, so a settled one is not run twice. */
+  const requestKey = [
+    mode,
+    humanRestrictions.join(","),
+    agentRestrictions.join(","),
+    thresholdMax,
+    urlSubject ?? "",
+  ].join("|");
+  const settledKey = useRef<string | null>(null);
+
   const rulingInProgress = mode === "agent" && step === 3;
   const showHumanResult = mode === "human" && step >= 4;
   const showAgentResult = mode === "agent" && step === 4;
@@ -158,25 +185,37 @@ export function CheckWorkspace() {
 
   useEffect(() => {
     if (!(showHumanResult || showAgentResult || rulingInProgress)) return;
+    // The handoff from the landing clears itself once read. Without this, the
+    // next run of this effect finds an empty store and checks all over again,
+    // which is the flash the result was handed over to avoid.
+    if (settledKey.current === requestKey) return;
     let cancelled = false;
-    setLoad("loading");
-    setError(null);
 
     async function run() {
       try {
+        // The landing already ran this check and handed the result over. Read
+        // it before anything announces loading, so arriving from the hero
+        // shows the verdict rather than flashing a spinner at a result we
+        // are already holding.
         if (mode === "human" && sp.get("from") === "landing") {
           const raw = sessionStorage.getItem(LANDING_RESULT_KEY);
           if (raw) {
             sessionStorage.removeItem(LANDING_RESULT_KEY);
             const result = JSON.parse(raw) as ItemResult;
             if (!cancelled) {
+              settledKey.current = requestKey;
               setItem(result);
               setPlace(null);
+              setError(null);
               setLoad("ready");
             }
             return;
           }
         }
+
+        if (cancelled) return;
+        setLoad("loading");
+        setError(null);
 
         if (mode === "human") {
           const restrictions: Restriction[] = humanRestrictions.map((key) => ({
@@ -184,21 +223,26 @@ export function CheckWorkspace() {
           }));
           const result = await knownGateClient.checkItem({
             restrictions,
-            subject: {
-              kind: "upc",
-              value: human.subject.upc_display ?? human.subject.upc,
-              name: human.subject.name,
-            },
+            subject: urlSubject
+              ? subjectIsUpc
+                ? { kind: "upc", value: subjectDigits.padStart(14, "0").slice(-14) }
+                : { kind: "product_query", value: urlSubject }
+              : {
+                  kind: "upc",
+                  value: human.subject.upc_display ?? human.subject.upc,
+                  name: human.subject.name,
+                },
             thresholds: [
               {
                 nutrient: premise.threshold.nutrient,
-                max: premise.threshold.max,
+                max: thresholdMax,
                 unit: premise.threshold.unit,
                 basis: "per_serving",
               },
             ],
           });
           if (!cancelled) {
+            settledKey.current = requestKey;
             setItem(result);
             setPlace(null);
             setLoad("ready");
@@ -214,6 +258,7 @@ export function CheckWorkspace() {
           venue: { name: agent.venue.name },
         });
         if (!cancelled) {
+          settledKey.current = requestKey;
           setPlace(result);
           setItem(null);
           setLoad("ready");
@@ -230,7 +275,7 @@ export function CheckWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [mode, step, showHumanResult, showAgentResult, rulingInProgress, sp]);
+  }, [mode, step, showHumanResult, showAgentResult, rulingInProgress, sp, requestKey]);
 
   const designVerdict: DesignVerdict | null = item ? toDesignVerdict(item.verdict) : null;
   const placeCounts = place ? mapPlaceCounts(place) : agent.counts;
@@ -244,7 +289,7 @@ export function CheckWorkspace() {
   const sodiumHit = item?.threshold_hits?.find((h) => h.nutrient === "sodium");
   const thresholdDetail =
     sodiumHit && sodiumHit.found !== null
-      ? `${sodiumHit.found} ${sodiumHit.unit} per serving, under the ${premise.threshold.max} mg limit.`
+      ? `${sodiumHit.found} ${sodiumHit.unit} per serving, under the ${thresholdMax} mg limit.`
       : human.threshold.detail;
 
   const conflictNames = item?.conflicts.map((c) => c.restriction) ?? [];
@@ -309,7 +354,7 @@ export function CheckWorkspace() {
             <>
               <p className="sec-label">KEEP UNDER</p>
               <p style={{ fontSize: 14, margin: "0 0 20px" }}>
-                Keep <strong>sodium</strong> under <strong>{premise.threshold.max} mg</strong> per serving
+                Keep <strong>sodium</strong> under <strong>{thresholdMax} mg</strong> per serving
               </p>
               <p className="sec-label">WHAT YOU CHECKED</p>
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
