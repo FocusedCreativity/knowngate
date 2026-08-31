@@ -1,0 +1,35 @@
+{
+  "verdict": "conflict",
+  "subject": {
+    "kind": "upc",
+    "value": "0005150024177",
+    "name": "Jif Creamy Peanut Butter"
+  },
+  "coverage": { "composition": "covered", "preparation": "covered" },
+  "conflicts": [
+    {
+      "restriction": "peanut",
+      "evidence": "Contains: Peanuts and their derivates"
+    }
+  ],
+  "unverified": [],
+  "question": null,
+  "source": {
+    "name": "retailer product data (Kroger API)",
+    "url": null,
+    "read_date": "2026-08-30"
+  },
+  "caveat": null,
+  "label_url": "/label/0005150024177",
+  "threshold_hits": [
+    {
+      "nutrient": "sodium",
+      "found": 140,
+      "unit": "mg",
+      "basis": "per serving",
+      "max": 600,
+      "verdict": "no_conflict",
+      "reason": "140 mg per serving, under the 600 mg limit"
+    }
+  ]
+}

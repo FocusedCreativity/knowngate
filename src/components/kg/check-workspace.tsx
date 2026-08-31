@@ -1,39 +1,153 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { knownGateClient } from "@/lib/knowngate/client";
+import type { ItemResult, PlaceResult, Restriction } from "@/lib/knowngate/contracts";
 import { getWorkspace } from "@/lib/kg/fixtures";
+import {
+  formatReadDate,
+  mapNotable,
+  mapPlaceCounts,
+  summarizeItem,
+  toDesignVerdict,
+} from "@/lib/kg/live-map";
 import { SourceLine, SummaryLine, VerdictCard } from "@/components/kg/primitives";
 import type { DesignVerdict } from "@/lib/kg/types";
+
+type LoadState = "idle" | "loading" | "ready" | "error";
 
 export function CheckWorkspace() {
   const sp = useSearchParams();
   const mode = sp.get("mode") === "agent" ? "agent" : "human";
-  const step = Math.min(4, Math.max(1, Number(sp.get("step") || (mode === "agent" ? 4 : 4))));
+  const step = Math.min(4, Math.max(1, Number(sp.get("step") || "4")));
   const data = getWorkspace();
   const [railOpen, setRailOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(step < 4);
+  const [load, setLoad] = useState<LoadState>("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [item, setItem] = useState<ItemResult | null>(null);
+  const [place, setPlace] = useState<PlaceResult | null>(null);
 
   const premise = data.premise;
   const human = data.human;
   const agent = data.agent;
+  const agentRestrictions = (premise.agent_restrictions ?? ["milk"]) as string[];
+  const humanRestrictions = premise.restrictions;
 
+  const bannerLine = mode === "agent" ? (premise.agent_line ?? "milk") : premise.line;
   const bannerMeta = mode === "human" ? premise.human_meta : premise.agent_meta;
   const railLine =
     mode === "human"
-      ? `${premise.restrictions.join(", ")}, sodium under ${premise.threshold.max} mg`
-      : `${premise.restrictions.join(", ")}, sodium under ${premise.threshold.max} mg`;
+      ? `${humanRestrictions.join(", ")}, sodium under ${premise.threshold.max} mg`
+      : agentRestrictions.join(", ");
   const railSub = mode === "human" ? human.rail_summary : agent.rail_summary;
-
-  const showResult = step >= 4 || (mode === "human" && step >= 4);
-
   const rulingInProgress = mode === "agent" && step === 3;
+  const showHumanResult = mode === "human" && step >= 4;
+  const showAgentResult = mode === "agent" && step === 4;
+
+  useEffect(() => {
+    if (!(showHumanResult || showAgentResult || rulingInProgress)) return;
+    let cancelled = false;
+    setLoad("loading");
+    setError(null);
+
+    async function run() {
+      try {
+        if (mode === "human") {
+          const restrictions: Restriction[] = humanRestrictions.map((key) => ({
+            key: key as Restriction["key"],
+          }));
+          const result = await knownGateClient.checkItem({
+            restrictions,
+            subject: {
+              kind: "upc",
+              value: human.subject.upc_display ?? human.subject.upc,
+              name: human.subject.name,
+            },
+            thresholds: [
+              {
+                nutrient: premise.threshold.nutrient,
+                max: premise.threshold.max,
+                unit: premise.threshold.unit,
+                basis: "per_serving",
+              },
+            ],
+          });
+          if (!cancelled) {
+            setItem(result);
+            setPlace(null);
+            setLoad("ready");
+          }
+          return;
+        }
+
+        const restrictions: Restriction[] = agentRestrictions.map((key) => ({
+          key: key as Restriction["key"],
+        }));
+        const result = await knownGateClient.checkPlace({
+          restrictions,
+          venue: { name: agent.venue.name },
+        });
+        if (!cancelled) {
+          setPlace(result);
+          setItem(null);
+          setLoad("ready");
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setLoad("error");
+          setError(e instanceof Error ? e.message : "Check failed");
+        }
+      }
+    }
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, step, showHumanResult, showAgentResult, rulingInProgress]);
+
+  const designVerdict: DesignVerdict | null = item ? toDesignVerdict(item.verdict) : null;
+  const placeCounts = place ? mapPlaceCounts(place) : agent.counts;
+  const notable = place ? mapNotable(place) : agent.notable;
+  const itemTotal =
+    placeCounts.no_conflict_found +
+    placeCounts.ask_one_question +
+    placeCounts.conflict_found +
+    placeCounts.couldnt_verify;
+
+  const sodiumHit = item?.threshold_hits?.find((h) => h.nutrient === "sodium");
+  const thresholdDetail =
+    sodiumHit && sodiumHit.found !== null
+      ? `${sodiumHit.found} ${sodiumHit.unit} per serving, under the ${premise.threshold.max} mg limit.`
+      : human.threshold.detail;
+
+  const conflictNames = item?.conflicts.map((c) => c.restriction) ?? [];
+  const humanSummary = item
+    ? [
+        summarizeItem(item),
+        sodiumHit || human.threshold
+          ? "The sodium limit is met."
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : human.summary;
+
+  const chips = item
+    ? [
+        ...conflictNames,
+        item.source?.name ?? "label",
+        item.source ? `read ${formatReadDate(item.source.read_date)}` : null,
+      ].filter(Boolean) as string[]
+    : human.chips;
 
   return (
     <>
       <div className="kg-premise-banner">
         <span className="tag">CHECKED AGAINST</span>
-        <span className="text">{premise.line}</span>
+        <span className="text">{bannerLine}</span>
         <span className="meta">{bannerMeta}</span>
         <button type="button" className="kg-btn quiet" style={{ padding: "6px 12px", fontSize: 13 }}>
           Change
@@ -53,25 +167,26 @@ export function CheckWorkspace() {
           <p className="sec-label">RESTRICTIONS</p>
           <div className="kg-chip-row">
             {["milk", "egg", "fish", "shellfish", "tree nuts", "peanut", "wheat", "soy", "sesame", "+ other"].map(
-              (c) => (
-                <span
-                  key={c}
-                  className={`chip${premise.restrictions.some((r) => c.includes(r) || r.includes(c.replace("tree nuts", "tree_nut"))) ? " on" : ""}`}
-                >
-                  {c}
-                </span>
-              ),
+              (c) => {
+                const activeKeys = mode === "agent" ? agentRestrictions : humanRestrictions;
+                const on = activeKeys.some((r) => c.includes(r) || r.includes(c.replace("tree nuts", "tree_nut")));
+                return (
+                  <span key={c} className={`chip${on ? " on" : ""}`}>
+                    {c}
+                  </span>
+                );
+              },
             )}
           </div>
           <p style={{ fontSize: 12, color: "var(--kg-ink2)", margin: "0 0 16px" }}>
             Tap any chip to change it and the check re-runs.
           </p>
-          <p className="sec-label">KEEP UNDER</p>
-          <p style={{ fontSize: 14, margin: "0 0 20px" }}>
-            Keep <strong>sodium</strong> under <strong>{premise.threshold.max} mg</strong> per serving
-          </p>
           {mode === "human" ? (
             <>
+              <p className="sec-label">KEEP UNDER</p>
+              <p style={{ fontSize: 14, margin: "0 0 20px" }}>
+                Keep <strong>sodium</strong> under <strong>{premise.threshold.max} mg</strong> per serving
+              </p>
               <p className="sec-label">WHAT YOU CHECKED</p>
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
                 <div
@@ -119,7 +234,9 @@ export function CheckWorkspace() {
                 </div>
                 <div>
                   <div style={{ fontWeight: 600 }}>{agent.venue.name}</div>
-                  <div style={{ fontSize: 12, color: "var(--kg-ink2)" }}>{agent.venue.line}</div>
+                  <div style={{ fontSize: 12, color: "var(--kg-ink2)" }}>
+                    {place ? `${itemTotal} menu items · ${place.venue.city ?? "chart"}` : agent.venue.line}
+                  </div>
                 </div>
               </div>
               <p className="sec-label">AGENT ACTIVITY</p>
@@ -128,7 +245,7 @@ export function CheckWorkspace() {
                   <div key={a.name} className="kg-activity-item">
                     <div className="name">
                       <span className="dot" aria-hidden />
-                      {a.name}
+                      {a.name === "check_venue" ? "check_place" : a.name}
                       {a.status === "not called" ? (
                         <span style={{ marginLeft: "auto", fontWeight: 400, color: "var(--kg-ink3)" }}>
                           not called
@@ -140,7 +257,11 @@ export function CheckWorkspace() {
                         </span>
                       ) : null}
                     </div>
-                    <div className="detail">{a.detail}</div>
+                    <div className="detail">
+                      {a.name === "check_venue" && place
+                        ? `${itemTotal} items ruled · milk premise`
+                        : a.detail}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -187,7 +308,7 @@ export function CheckWorkspace() {
                       <div key={a.name} className="kg-activity-item">
                         <div className="name">
                           <span className="dot" aria-hidden />
-                          {a.name}
+                          {a.name === "check_venue" ? "check_place" : a.name}
                           {a.status === "not called" ? (
                             <span style={{ marginLeft: "auto", fontWeight: 400, color: "var(--kg-ink3)" }}>
                               not called
@@ -197,11 +318,6 @@ export function CheckWorkspace() {
                         <div className="detail">{a.detail}</div>
                       </div>
                     ))}
-                    {step >= 4 ? (
-                      <p style={{ fontSize: 12, color: "var(--kg-ink2)", margin: "8px 0 0" }}>
-                        Collapsed by default once the ruling finishes. Tap the summary line above to reopen it.
-                      </p>
-                    ) : null}
                   </div>
                 )}
               </button>
@@ -211,7 +327,8 @@ export function CheckWorkspace() {
           {mode === "agent" && step === 3 ? (
             <div style={{ textAlign: "center", padding: "80px 20px" }}>
               <h2 style={{ fontSize: 28, margin: "0 0 16px" }}>
-                Ruling {agent.venue.item_count} items against 3 things
+                Ruling {place?.verdict_counts ? itemTotal : agent.venue.item_count} items against{" "}
+                {agentRestrictions.length} thing{agentRestrictions.length === 1 ? "" : "s"}
               </h2>
               <div
                 style={{
@@ -223,7 +340,14 @@ export function CheckWorkspace() {
                   overflow: "hidden",
                 }}
               >
-                <div style={{ width: "64%", height: "100%", background: "var(--kg-ink)" }} />
+                <div
+                  style={{
+                    width: load === "ready" ? "100%" : "64%",
+                    height: "100%",
+                    background: "var(--kg-ink)",
+                    transition: "width 0.4s ease",
+                  }}
+                />
               </div>
               <p style={{ color: "var(--kg-ink2)", maxWidth: 480, margin: "0 auto" }}>
                 Your agent is driving this. You are watching it happen, and the premise above is what it said
@@ -232,9 +356,19 @@ export function CheckWorkspace() {
             </div>
           ) : null}
 
-          {mode === "human" && showResult ? (
+          {load === "error" && (showHumanResult || showAgentResult) ? (
+            <div className="kg-callout" style={{ marginBottom: 20 }}>
+              <strong>Check failed.</strong>
+              <p>{error}</p>
+            </div>
+          ) : null}
+
+          {showHumanResult ? (
             <div>
-              <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+              {load === "loading" ? (
+                <p style={{ color: "var(--kg-ink2)" }}>Ruling against the live evidence…</p>
+              ) : null}
+              <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
                 <div
                   style={{
                     width: 180,
@@ -251,23 +385,23 @@ export function CheckWorkspace() {
                 >
                   PACK SHOT
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 220 }}>
                   <VerdictCard
-                    verdict={human.verdict as DesignVerdict}
-                    subject={human.subject.name}
-                    chips={human.chips}
+                    verdict={designVerdict ?? (human.verdict as DesignVerdict)}
+                    subject={item?.subject.name ?? human.subject.name}
+                    chips={chips}
                   />
                 </div>
               </div>
-              <SummaryLine text={human.summary} />
+              <SummaryLine text={humanSummary} />
               <p className="sec-label" style={{ marginTop: 24 }}>
                 THE EVIDENCE
               </p>
               <div className="kg-axes" style={{ marginTop: 12 }}>
-                <div className={`kg-axis ${human.axes.composition.state}`}>
+                <div className={`kg-axis ${item?.coverage.composition === "covered" ? "covered" : "not_covered"}`}>
                   <div className="axis-label">
                     <span className="dot" aria-hidden />
-                    Composition, covered
+                    Composition, {item?.coverage.composition === "covered" ? "covered" : "not covered"}
                   </div>
                   <div
                     style={{
@@ -284,12 +418,14 @@ export function CheckWorkspace() {
                   >
                     INGREDIENT PANEL
                   </div>
-                  <p style={{ margin: 0, fontSize: 13 }}>{human.axes.composition.detail}</p>
+                  <p style={{ margin: 0, fontSize: 13 }}>
+                    {item?.conflicts[0]?.evidence ?? human.axes.composition.detail}
+                  </p>
                 </div>
-                <div className={`kg-axis ${human.axes.preparation.state}`}>
+                <div className={`kg-axis ${item?.coverage.preparation === "covered" ? "covered" : "not_covered"}`}>
                   <div className="axis-label">
                     <span className="dot" aria-hidden />
-                    Preparation, covered
+                    Preparation, {item?.coverage.preparation === "covered" ? "covered" : "not covered"}
                   </div>
                   <p style={{ margin: "10px 0 0", fontSize: 13 }}>{human.axes.preparation.detail}</p>
                 </div>
@@ -313,13 +449,15 @@ export function CheckWorkspace() {
                   >
                     NUTRITION PANEL
                   </div>
-                  <p style={{ margin: 0, fontSize: 13 }}>{human.threshold.detail}</p>
+                  <p style={{ margin: 0, fontSize: 13 }}>{thresholdDetail}</p>
                 </div>
               </div>
               <SourceLine
-                kind={human.source.kind}
-                name={human.source.name}
-                read_at={human.source.read_at}
+                kind="label"
+                name={item?.source?.name ?? human.source.name}
+                read_at={
+                  item?.source ? formatReadDate(item.source.read_date) : human.source.read_at
+                }
               />
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 24 }}>
                 <button type="button" className="kg-btn">
@@ -339,28 +477,19 @@ export function CheckWorkspace() {
             </div>
           ) : null}
 
-          {mode === "agent" && step === 4 ? (
+          {showAgentResult ? (
             <div>
+              {load === "loading" ? (
+                <p style={{ color: "var(--kg-ink2)" }}>Ruling the venue against the live chart…</p>
+              ) : null}
               <div className="kg-chip-row" style={{ marginBottom: 20 }}>
-                <span className="chip on">
-                  <span className="dot clear" style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--kg-clear)", display: "inline-block", marginRight: 6 }} aria-hidden />
-                  {agent.counts.no_conflict_found} clear
-                </span>
-                <span className="chip">
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--kg-ask)", display: "inline-block", marginRight: 6 }} aria-hidden />
-                  {agent.counts.ask_one_question} ask
-                </span>
-                <span className="chip">
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--kg-shut)", display: "inline-block", marginRight: 6 }} aria-hidden />
-                  {agent.counts.conflict_found} conflict
-                </span>
-                <span className="chip">
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--kg-held)", display: "inline-block", marginRight: 6 }} aria-hidden />
-                  {agent.counts.couldnt_verify} couldn&apos;t verify
-                </span>
+                <span className="chip on">{placeCounts.no_conflict_found} clear</span>
+                <span className="chip">{placeCounts.ask_one_question} ask</span>
+                <span className="chip">{placeCounts.conflict_found} conflict</span>
+                <span className="chip">{placeCounts.couldnt_verify} couldn&apos;t verify</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                {agent.notable.map((n) => (
+                {notable.map((n) => (
                   <article
                     key={n.name}
                     style={{
@@ -394,7 +523,11 @@ export function CheckWorkspace() {
                   </article>
                 ))}
               </div>
-              <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 12 }}>{agent.more_line}</p>
+              <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 12 }}>
+                {itemTotal > notable.length
+                  ? `${itemTotal - notable.length} more items ruled. ${placeCounts.no_conflict_found} no conflict found, ${placeCounts.ask_one_question} ask one question, ${placeCounts.conflict_found} conflict found, ${placeCounts.couldnt_verify} couldn't verify.`
+                  : agent.more_line}
+              </p>
               <div style={{ display: "grid", gap: 12, marginTop: 24 }}>
                 <button type="button" className="kg-btn">
                   Save this record to share
@@ -412,12 +545,8 @@ export function CheckWorkspace() {
             </div>
           ) : null}
 
-          {step < 4 && mode === "human" ? (
-            <EmptyLanding step={step} />
-          ) : null}
-          {mode === "agent" && step < 3 ? (
-            <EmptyLanding step={step} agent />
-          ) : null}
+          {step < 4 && mode === "human" ? <EmptyLanding step={step} /> : null}
+          {mode === "agent" && step < 3 ? <EmptyLanding step={step} agent /> : null}
         </div>
       </div>
     </>
@@ -429,7 +558,6 @@ function EmptyLanding({ step, agent }: { step: number; agent?: boolean }) {
   return (
     <div style={{ maxWidth: 620, margin: "0 auto", padding: "40px 0" }}>
       <p style={{ textAlign: "center", fontSize: 13, color: "var(--kg-ink2)", marginBottom: 12 }}>
-        <span className="kg-live-dot" style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "var(--kg-lime)", marginRight: 8 }} aria-hidden />
         Free · no account to check · nothing stored unless you save a record
       </p>
       <h1 style={{ textAlign: "center", fontSize: "clamp(2rem,4vw,3rem)", margin: "0 0 12px" }}>

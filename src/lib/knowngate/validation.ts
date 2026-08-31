@@ -146,8 +146,42 @@ export function parseCheckItemRequest(value: unknown): CheckItemRequest {
   }
   return {
     restrictions: parseRestrictions(input.restrictions),
-    subject: { kind, value: text(subject.value, "subject.value"), ...(venue ? { venue } : {}) } as CheckItemRequest["subject"],
+    subject: {
+      kind: kind as CheckItemRequest["subject"]["kind"],
+      value: text(subject.value, "subject.value"),
+      ...(venue ? { venue } : {}),
+      ...(subject.name === undefined || subject.name === null
+        ? {}
+        : { name: text(subject.name, "subject.name") }),
+    },
+    ...(input.thresholds === undefined ? {} : { thresholds: parseThresholds(input.thresholds) }),
   };
+}
+
+function parseThresholds(value: unknown): CheckItemRequest["thresholds"] {
+  if (!Array.isArray(value)) {
+    throw new ContractError("thresholds must be an array", "invalid_thresholds", "thresholds");
+  }
+  return value.map((entry, index) => {
+    const item = record(entry, `thresholds[${index}]`);
+    const nutrient = text(item.nutrient, `thresholds[${index}].nutrient`);
+    const unit = text(item.unit, `thresholds[${index}].unit`);
+    const max = item.max === undefined ? undefined : Number(item.max);
+    const min = item.min === undefined ? undefined : Number(item.min);
+    if (max !== undefined && !Number.isFinite(max)) {
+      throw new ContractError(`thresholds[${index}].max is invalid`, "invalid_thresholds", `thresholds[${index}].max`);
+    }
+    if (min !== undefined && !Number.isFinite(min)) {
+      throw new ContractError(`thresholds[${index}].min is invalid`, "invalid_thresholds", `thresholds[${index}].min`);
+    }
+    return {
+      nutrient,
+      unit,
+      ...(max === undefined ? {} : { max }),
+      ...(min === undefined ? {} : { min }),
+      ...(item.basis === undefined ? {} : { basis: text(item.basis, `thresholds[${index}].basis`) }),
+    };
+  });
 }
 
 export function parseCheckPlaceRequest(value: unknown): CheckPlaceRequest {
@@ -206,7 +240,33 @@ export function parseItemResult(value: unknown): ItemResult {
       return { text: text(caveat.text, "caveat.text"), captured: text(caveat.captured, "caveat.captured") };
     })(),
     label_url: nullableText(input.label_url, "label_url"),
+    ...(input.threshold_hits === undefined
+      ? {}
+      : { threshold_hits: parseThresholdHits(input.threshold_hits) }),
   };
+}
+
+function parseThresholdHits(value: unknown): NonNullable<ItemResult["threshold_hits"]> {
+  if (!Array.isArray(value)) throw new ContractError("threshold_hits must be an array");
+  return value.map((entry, index) => {
+    const hit = record(entry, `threshold_hits[${index}]`);
+    const verdict = text(hit.verdict, `threshold_hits[${index}].verdict`);
+    if (!VERDICTS.has(verdict)) throw new ContractError(`threshold_hits[${index}].verdict is invalid`);
+    const found = hit.found === null || hit.found === undefined ? null : Number(hit.found);
+    if (found !== null && !Number.isFinite(found)) {
+      throw new ContractError(`threshold_hits[${index}].found is invalid`);
+    }
+    return {
+      nutrient: text(hit.nutrient, `threshold_hits[${index}].nutrient`),
+      found,
+      unit: text(hit.unit, `threshold_hits[${index}].unit`),
+      verdict: verdict as ItemResult["verdict"],
+      ...(hit.basis === undefined ? {} : { basis: text(hit.basis, `threshold_hits[${index}].basis`) }),
+      ...(hit.max === undefined ? {} : { max: Number(hit.max) }),
+      ...(hit.min === undefined ? {} : { min: Number(hit.min) }),
+      ...(hit.reason === undefined ? {} : { reason: text(hit.reason, `threshold_hits[${index}].reason`) }),
+    };
+  });
 }
 
 export function parsePlaceResult(value: unknown): PlaceResult {
