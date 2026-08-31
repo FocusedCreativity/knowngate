@@ -43,7 +43,8 @@ export default function StandardPage() {
       />
 
       <div className="kg-photo">
-        <img src="/kg/photo-label.png" alt="" width={1200} height={300} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/kg/photo-label.webp" alt="" width={1200} height={300} decoding="async" />
       </div>
 
       <section className="kg-section">

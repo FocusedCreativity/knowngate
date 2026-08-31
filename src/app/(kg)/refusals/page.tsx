@@ -84,7 +84,8 @@ export default async function RefusalsPage({
       </section>
 
       <div className="kg-photo">
-        <div className="kg-photo-ph">IMAGE · PHOTOGRAPH · A SHELF, MID-CHECK</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/kg/photo-shelf.webp" alt="" width={1200} height={300} decoding="async" />
       </div>
 
       <section className="kg-section">

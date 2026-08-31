@@ -50,7 +50,8 @@ export default async function QuestionsPage() {
       />
 
       <div className="kg-photo">
-        <div className="kg-photo-ph">IMAGE · PHOTOGRAPH · A QUESTION AT THE PASS</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/kg/photo-question.webp" alt="" width={1200} height={300} decoding="async" />
       </div>
 
       <section className="kg-section">

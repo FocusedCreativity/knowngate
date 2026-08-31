@@ -47,7 +47,8 @@ export default async function DevelopersPage() {
       </header>
 
       <div className="kg-photo">
-        <div className="kg-photo-ph">IMAGE · PHOTOGRAPH · A KITCHEN PASS</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/kg/photo-pass.webp" alt="" width={1200} height={300} decoding="async" />
       </div>
 
       <section className="kg-section argument">
