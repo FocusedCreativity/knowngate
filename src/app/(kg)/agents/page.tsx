@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+
 import { LiveToken } from "@/components/kg/live-token";
 import { MustNotOmit } from "@/components/kg/primitives";
 
@@ -189,7 +191,7 @@ Authorization: Bearer kg_live_••••
             },
             {
               v: "couldnt_verify",
-              d: "The gap cannot be closed by any question available. Stated plainly, never softened.",
+              d: "The gap cannot be closed by any question that exists. This is a finding. Give it somewhere to go in your interface.",
               c: "held",
             },
           ].map((row) => (
@@ -200,11 +202,129 @@ Authorization: Bearer kg_live_••••
             </div>
           ))}
         </div>
-        <div className="kg-callout" style={{ marginTop: 24 }}>
-          <strong>
-            An advisory line is a declared possibility. It cannot produce no_conflict_found for the allergen
-            it names.
-          </strong>
+        <div className="kg-grid-3" style={{ marginTop: 24 }}>
+          <div className="kg-callout">
+            <strong>Unknown counts as no.</strong>
+            <p>
+              Fail closed is the construction, not a setting. There is no flag that makes this more
+              permissive.
+            </p>
+          </div>
+          <div className="kg-callout">
+            <strong>May contain blocks a clear.</strong>
+            <p>
+              An advisory line is a declared possibility. It cannot produce no_conflict_found for the
+              allergen it names.
+            </p>
+          </div>
+          <div className="kg-callout">
+            <strong>KnownGate never says &ldquo;safe&rdquo;.</strong>
+            <p>
+              The word is not a valid rendering of any of the four values. Do not introduce it in your own
+              copy.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="kg-section paper">
+        <h2>Get a key.</h2>
+        <p className="sub">
+          If your agent can make an HTTP request it can sign itself up. There is no confirmation click in the
+          way, because a verification wall is the human login wearing a costume.
+        </p>
+        <div className="kg-signup-split">
+          <article className="kg-key-card">
+            <p className="kg-eyebrow">FOR AGENTS</p>
+            <h3>Sign yourself up. No browser needed.</h3>
+            <p className="lbl">
+              The email is for contact and recovery. It is not a wall you have to clear before the key works.
+            </p>
+            <div className="kg-grid-2" style={{ marginTop: 4 }}>
+              <div>
+                <span className="kg-eyebrow">REQUEST</span>
+                <pre className="kg-code kg-code-light" style={{ marginTop: 8 }}>{`POST /v0/keys
+
+{
+  "agent_name": "cardia-meal-agent",
+  "contact_email": "team@cardia.app"
+}`}</pre>
+              </div>
+              <div>
+                <span className="kg-eyebrow">RESPONSE</span>
+                <pre className="kg-code" style={{ marginTop: 8 }}>{`201 Created
+
+{
+  "key": "kg_live_••••",
+  "tier": "open",
+  "included_per_month": "{N}",
+  "created_by": "agent"
+}`}</pre>
+              </div>
+            </div>
+            <p className="kg-lede-lime">
+              On MCP already? Call the register tool and skip the HTTP entirely.
+            </p>
+            <p className="lbl">
+              One key per email, rate limited per IP, and every key starts on the free tier. Upgrades are
+              where a human and a payment method come in.
+            </p>
+          </article>
+          <article className="kg-key-card">
+            <p className="kg-eyebrow">FOR HUMANS</p>
+            <h3>Prefer a dashboard?</h3>
+            <p className="lbl">
+              Create and manage keys, see usage by tool and by premise type, and revoke anything you no longer
+              want live.
+            </p>
+            <Link className="kg-btn" href="/developers" style={{ width: "100%" }}>
+              Go to /developers
+            </Link>
+            <p className="lbl">
+              If your agent made a key first, sign in with the same email and it will be waiting for you. The
+              agent signs up, the human claims the account afterwards.
+            </p>
+          </article>
+        </div>
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 500 }}>
+          Nothing on knowngate.com itself needs a key. The workspace, the record pages and the published
+          standard are all open.
+        </p>
+      </section>
+
+      <section className="kg-section">
+        <div className="kg-grid-3" style={{ alignItems: "start" }}>
+          <article className="kg-tile paper">
+            <div className="kg-tile-stat">
+              <LiveToken label="LIVE" size="lg" />
+              <span className="lbl">declined</span>
+            </div>
+            <strong>What we have declined</strong>
+            <p className="lbl">
+              Pulled from /stats. Zero is a true number and this page is built to show it.
+            </p>
+            <Link className="kg-tile-link" href="/refusals">
+              See the refusal rate
+            </Link>
+          </article>
+          <article className="kg-tile paper">
+            <strong>A verdict you can open</strong>
+            <p className="lbl">
+              Every saved record is a dated page anyone can re-check without an account.
+            </p>
+            <Link className="kg-tile-link" href="/walkthrough">
+              See a sample record
+            </Link>
+          </article>
+          <article className="kg-tile paper">
+            <strong>What counts as proof</strong>
+            <p className="lbl">
+              The evidence standard, versioned and public, including what never counts.
+            </p>
+            <Link className="kg-tile-link" href="/standard">
+              Read the standard
+            </Link>
+          </article>
         </div>
       </section>
     </>

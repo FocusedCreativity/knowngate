@@ -199,7 +199,7 @@ export function StatsStrip({
       ) : null}
       {state === "steady" ? (
         <p style={{ margin: "14px 0 0", fontSize: 13, color: "var(--kg-ink2)" }}>
-          Percentages of [LIVE] checks ruled in the last 30 days. Values come from GET /v1/stats;
+          Percentages of [LIVE] checks ruled in the last 30 days. Values come from GET /v0/stats;
           nothing on this layer is written by hand.
         </p>
       ) : null}

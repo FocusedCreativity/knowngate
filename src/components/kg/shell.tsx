@@ -242,13 +242,18 @@ export function KgFooter() {
         </div>
       </div>
       <div className="kg-footer-bottom">
+        <div className="kg-footer-law">
+          <span>
+            Not a guarantee of safety. The word &ldquo;safe&rdquo; is not used anywhere in this system.
+          </span>
+          <span>Nothing stored, unless you save a record to share. No account to check.</span>
+        </div>
         <nav>
           <Link href="/standard">Terms</Link>
           <Link href="/standard">Privacy</Link>
           <Link href="/refusals">Report an error</Link>
           <span>© 2026 fuda</span>
         </nav>
-        <span>A finding, not a promise. Not allergen advice.</span>
       </div>
     </footer>
   );
