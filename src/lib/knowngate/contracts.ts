@@ -51,6 +51,19 @@ export type Threshold = {
   basis?: string;
 };
 
+export type Verdict =
+  | "no_conflict"
+  | "conflict"
+  | "ask_one_question"
+  | "cannot_verify";
+
+/** Live API may return design-system verdict names verbatim through the proxy. */
+export type LiveVerdict =
+  | Verdict
+  | "no_conflict_found"
+  | "conflict_found"
+  | "couldnt_verify";
+
 export type ThresholdHit = {
   nutrient: string;
   found: number | null;
@@ -58,7 +71,7 @@ export type ThresholdHit = {
   basis?: string;
   max?: number;
   min?: number;
-  verdict: Verdict;
+  verdict: LiveVerdict;
   reason?: string;
 };
 
@@ -66,12 +79,6 @@ export type CheckPlaceRequest = {
   restrictions: Restriction[];
   venue: { name: string; location?: string };
 };
-
-export type Verdict =
-  | "no_conflict"
-  | "conflict"
-  | "ask_one_question"
-  | "cannot_verify";
 
 export type CoverageState = "covered" | "silent" | "unknown";
 
@@ -97,7 +104,7 @@ export type Unverified = {
 };
 
 export type ItemResult = {
-  verdict: Verdict;
+  verdict: LiveVerdict;
   subject: Subject;
   coverage: {
     composition: CoverageState;

@@ -41,11 +41,11 @@ async function liveRequest(path: string, init?: RequestInit): Promise<unknown> {
 }
 
 export async function checkItem(request: CheckItemRequest) {
-  return isMockMode() ? fixtureItem(request) : parseItemResult(await liveRequest("/check/item", { method: "POST", body: JSON.stringify(request) }));
+  return isMockMode() ? fixtureItem(request) : parseItemResult(await liveRequest("/check_item", { method: "POST", body: JSON.stringify(request) }));
 }
 
 export async function checkPlace(request: CheckPlaceRequest) {
-  return isMockMode() ? fixturePlace(request) : parsePlaceResult(await liveRequest("/check/place", { method: "POST", body: JSON.stringify(request) }));
+  return isMockMode() ? fixturePlace(request) : parsePlaceResult(await liveRequest("/check_venue", { method: "POST", body: JSON.stringify(request) }));
 }
 
 export async function getLabel(gtin: string) {

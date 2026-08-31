@@ -1,15 +1,21 @@
-import type { ItemResult, PlaceResult, Verdict } from "@/lib/knowngate/contracts";
+import type { ItemResult, PlaceResult, LiveVerdict } from "@/lib/knowngate/contracts";
 import type { DesignVerdict } from "./types";
 
-export function toDesignVerdict(verdict: Verdict): DesignVerdict {
+/** Accept legacy adapter verdicts and live API design names. */
+export function toDesignVerdict(verdict: LiveVerdict | DesignVerdict | string): DesignVerdict {
   switch (verdict) {
     case "no_conflict":
+    case "no_conflict_found":
       return "no_conflict_found";
     case "conflict":
+    case "conflict_found":
       return "conflict_found";
     case "ask_one_question":
       return "ask_one_question";
     case "cannot_verify":
+    case "couldnt_verify":
+      return "couldnt_verify";
+    default:
       return "couldnt_verify";
   }
 }
@@ -40,11 +46,16 @@ export function summarizeItem(result: ItemResult): string {
 }
 
 export function mapPlaceCounts(result: PlaceResult) {
+  const counts = result.verdict_counts as PlaceResult["verdict_counts"] & {
+    no_conflict_found?: number;
+    conflict_found?: number;
+    couldnt_verify?: number;
+  };
   return {
-    no_conflict_found: result.verdict_counts.no_conflict,
-    ask_one_question: result.verdict_counts.ask_one_question,
-    conflict_found: result.verdict_counts.conflict,
-    couldnt_verify: result.verdict_counts.cannot_verify,
+    no_conflict_found: counts.no_conflict_found ?? counts.no_conflict,
+    ask_one_question: counts.ask_one_question,
+    conflict_found: counts.conflict_found ?? counts.conflict,
+    couldnt_verify: counts.couldnt_verify ?? counts.cannot_verify,
   };
 }
 
