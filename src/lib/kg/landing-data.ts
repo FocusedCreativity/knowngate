@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { ItemResult } from "@/lib/knowngate/contracts";
+import { questionText } from "@/lib/knowngate/contracts";
 import { normalizeItemResult, normalizePlaceResult } from "@/lib/knowngate/normalize";
 import { toDesignVerdict, formatReadDate } from "@/lib/kg/live-map";
 import type { DesignVerdict } from "@/lib/kg/types";
@@ -79,9 +80,17 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
   const url = base
     ? `${base}/${path}`
     : `https://www.knowngate.com/api/knowngate/v0/${path}`;
+  // This path talks to the upstream directly rather than through the wildcard
+  // proxy, so it has to carry the site header itself. Without it these calls
+  // are just another unkeyed caller, and the examples degrade to couldn't
+  // verify on the home page.
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  const siteSecret = process.env.KNOWNGATE_SITE_SECRET;
+  if (base && siteSecret) headers["x-knowngate-site"] = siteSecret;
+
   const res = await fetch(url, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify(body),
     cache: "no-store",
   });
@@ -208,7 +217,7 @@ export async function loadLandingExamples(): Promise<LandingExamples> {
           name: n.subject.name ?? n.subject.value,
           verdict,
           verdictLabel: VERDICT_PROSE[verdict],
-          line: n.question ?? "",
+          line: questionText(n.question) ?? "",
         };
       }),
     };

@@ -112,7 +112,8 @@ export type ItemResult = {
   };
   conflicts: Conflict[];
   unverified: Unverified[];
-  question: string | null;
+  /** The API returns the coded form; older payloads carried a bare string. */
+  question: string | { code: string; text: string; what_counts?: string } | null;
   source: Source | null;
   caveat: Caveat | null;
   label_url: string | null;
@@ -198,3 +199,11 @@ export const EMPTY_VERDICT_COUNTS: VerdictCounts = {
   ask_one_question: 0,
   cannot_verify: 0,
 };
+
+/** The question as a person would say it, whichever shape the payload used. */
+export function questionText(
+  q: string | { code: string; text: string; what_counts?: string } | null | undefined,
+): string | null {
+  if (!q) return null;
+  return typeof q === "string" ? q : q.text;
+}

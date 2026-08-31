@@ -1,4 +1,5 @@
 import type { ItemResult, PlaceResult, LiveVerdict } from "@/lib/knowngate/contracts";
+import { questionText } from "@/lib/knowngate/contracts";
 import type { DesignVerdict } from "./types";
 
 /** Accept legacy adapter verdicts and live API design names. */
@@ -37,7 +38,7 @@ export function summarizeItem(result: ItemResult): string {
       : "Conflict found.";
   }
   if (design === "ask_one_question") {
-    return result.question ?? "Ask one question to close the remaining gap.";
+    return questionText(result.question) ?? "Ask one question to close the remaining gap.";
   }
   if (design === "couldnt_verify") {
     return "Couldn't verify. The evidence does not cover what you asked.";

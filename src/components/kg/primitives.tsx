@@ -99,13 +99,14 @@ export function QuestionBlock({
 }: {
   code: string;
   text: string;
-  what_counts: string;
+  /** Omitted when the payload does not carry one; never invented here. */
+  what_counts?: string;
 }) {
   return (
     <div className="kg-question-block">
-      <div className="code">{code}</div>
+      {code ? <div className="code">{code}</div> : null}
       <div className="text">{text}</div>
-      <div className="what">What counts: {what_counts}</div>
+      {what_counts ? <div className="what">What counts: {what_counts}</div> : null}
     </div>
   );
 }

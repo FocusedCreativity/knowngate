@@ -28,7 +28,15 @@ async function liveRequest(path: string, init?: RequestInit): Promise<unknown> {
   try {
     response = await fetch(`${base}${path}`, {
       ...init,
-      headers: { "content-type": "application/json", ...init?.headers },
+      // Server-side callers talk to the upstream directly, so they carry the
+      // site header themselves; the wildcard proxy adds its own separately.
+      headers: {
+        "content-type": "application/json",
+        ...(process.env.KNOWNGATE_SITE_SECRET
+          ? { "x-knowngate-site": process.env.KNOWNGATE_SITE_SECRET }
+          : {}),
+        ...init?.headers,
+      },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       cache: "no-store",
     });

@@ -1171,3 +1171,23 @@
 .kg-agent-note p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.6; color: var(--kg-ink3); max-width: 880px; }
 .kg-agent-note p:last-child { margin-bottom: 0; }
 .kg-root .kg-agent-note a { color: var(--kg-lime-deep); }
+
+/* Agent selected, nothing sent (137:1833) */
+.kg-agent-idle-head { margin-bottom: 22px; }
+.kg-agent-idle-head strong { display: block; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.kg-agent-idle-head p { margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: var(--kg-ink2); }
+.kg-agent-empty {
+  border: 1px solid var(--kg-line); border-radius: 12px; padding: 16px; margin-bottom: 20px; background: #fff;
+}
+.kg-agent-empty strong { display: block; font-size: 16px; font-weight: 500; color: var(--kg-ink2); }
+.kg-agent-empty p { margin: 8px 0 0; font-size: 13px; color: var(--kg-ink3); }
+.kg-agent-waiting { text-align: center; padding: 60px 20px 0; }
+.kg-agent-waiting img { display: block; margin: 0 auto 24px; opacity: 0.75; }
+.kg-agent-waiting strong { display: block; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.kg-agent-waiting p { margin: 10px 0 0; font-size: 15px; color: var(--kg-ink2); }
+.kg-agent-waiting .kg-callout { margin-top: 36px; text-align: left; }
+
+/* One question closes this */
+.kg-question-wrap { margin-top: 24px; }
+.kg-question-wrap .kg-eyebrow { margin-bottom: 10px; }
+.kg-question-note { margin: 12px 0 0; font-size: 13px; line-height: 1.6; color: var(--kg-ink2); }

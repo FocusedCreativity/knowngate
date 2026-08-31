@@ -8,6 +8,7 @@ import { knownGateClient } from "@/lib/knowngate/client";
 import { parseCheckItemRequest, parseCheckPlaceRequest, parsePremise } from "@/lib/knowngate/validation";
 import { rulingRoomSchemas } from "@/lib/webmcp/schemas";
 import { useWebMcpTools } from "@/lib/webmcp/use-webmcp-tools";
+import { questionText } from "@/lib/knowngate/contracts";
 
 const LABELS: Record<Fda9Key, string> = { milk:"Milk",egg:"Egg",fish:"Fish",shellfish:"Shellfish",tree_nut:"Tree nuts",peanut:"Peanut",wheat:"Wheat",soy:"Soy",sesame:"Sesame" };
 const uid=()=>crypto.randomUUID();
@@ -50,6 +51,6 @@ export function RulingRoom(){
  </main>
 }
 function Mark(){return <svg className="mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="42 12"/><circle cx="12" cy="12" r="3.3" fill="var(--lime)"/></svg>}
-function Item({result}:{result:ItemResult}){return <div><p className={`verdict ${result.verdict}`}>{result.verdict==="no_conflict"?"No conflict found":result.verdict.replaceAll("_"," ")}</p>{result.question&&<p className="question">{result.question}</p>}{result.conflicts.map(c=><p key={c.restriction}>{c.restriction}: {c.evidence}</p>)}<p className="source">{result.source?`${result.source.name} · read ${result.source.read_date}`:"Source unavailable"}</p></div>}
+function Item({result}:{result:ItemResult}){return <div><p className={`verdict ${result.verdict}`}>{result.verdict==="no_conflict"?"No conflict found":result.verdict.replaceAll("_"," ")}</p>{questionText(result.question)&&<p className="question">{questionText(result.question)}</p>}{result.conflicts.map(c=><p key={c.restriction}>{c.restriction}: {c.evidence}</p>)}<p className="source">{result.source?`${result.source.name} · read ${result.source.read_date}`:"Source unavailable"}</p></div>}
 function Place({result}:{result:PlaceResult}){return <div><p className={`verdict ${result.chart==="none_found"?"cannot_verify":""}`}>{result.chart.replaceAll("_"," ")}</p><p>{result.verdict_counts.conflict} conflicts · {result.verdict_counts.ask_one_question} questions</p><p className="source">{result.source?`${result.source.name} · read ${result.source.read_date}`:"Source unavailable"}</p></div>}
 function Info({n,t,d}:{n:string;t:string;d:string}){return <article><p className="eyebrow">{n}</p><h3>{t}</h3><p>{d}</p></article>}; function Badge({c,t}:{c:string;t:string}){return <div className={`badge ${c}`}>{t}</div>}; function err(e:unknown){return{error:{code:"invalid_input",message:e instanceof Error?e.message:"Could not process that input."}}}

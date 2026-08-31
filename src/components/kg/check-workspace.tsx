@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { knownGateClient } from "@/lib/knowngate/client";
 import { compactBoard, compactItem, compactPlace } from "@/lib/knowngate/compact";
 import type { ItemResult, PlaceResult, Restriction } from "@/lib/knowngate/contracts";
@@ -16,9 +17,15 @@ import {
   summarizeItem,
   toDesignVerdict,
 } from "@/lib/kg/live-map";
-import { SourceLine, SummaryLine, VerdictCard } from "@/components/kg/primitives";
+import { QuestionBlock, SourceLine, SummaryLine, VerdictCard } from "@/components/kg/primitives";
 import type { DesignVerdict } from "@/lib/kg/types";
 import { LANDING_RESULT_KEY } from "@/lib/kg/landing-handoff";
+
+const AGENT_TOOLS = [
+  { name: "check_item", takes: "one dish or product" },
+  { name: "check_venue", takes: "a whole menu" },
+  { name: "check_plan", takes: "a set of things, a recipe, a basket" },
+] as const;
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -29,6 +36,7 @@ function chipToKey(chip: string): Restriction["key"] {
 
 export function CheckWorkspace() {
   const sp = useSearchParams();
+  const router = useRouter();
   const mode = sp.get("mode") === "agent" ? "agent" : "human";
   const step = Math.min(4, Math.max(1, Number(sp.get("step") || "4")));
   const data = getWorkspace();
@@ -38,6 +46,8 @@ export function CheckWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [item, setItem] = useState<ItemResult | null>(null);
   const [place, setPlace] = useState<PlaceResult | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const premise = data.premise;
   const human = data.human;
@@ -81,6 +91,12 @@ export function CheckWorkspace() {
 
   const rulingInProgress = mode === "agent" && step === 3;
   const humanRuling = mode === "human" && step === 3;
+  /** 137:1833: agent selected, nothing sent. Nothing is set and nothing is loaded. */
+  const agentIdle = mode === "agent" && step < 3;
+  /** save_record has not happened while the gate is still running. */
+  const shownActivity = agent.activity.filter(
+    (a) => !(rulingInProgress && a.name === "save_record"),
+  );
   /** Each restriction is one thing to rule, and the threshold is one more. */
   const thingsRuled = humanRestrictions.length + 1;
   const showHumanResult = mode === "human" && step >= 4;
@@ -280,6 +296,40 @@ export function CheckWorkspace() {
     };
   }, [mode, step, showHumanResult, showAgentResult, rulingInProgress, sp, requestKey]);
 
+  /**
+   * The only thing on this page that writes anything down, which is why it is
+   * a person's press and never a tool call. It freezes exactly what is on
+   * screen and hands back the dated page for it.
+   */
+  async function saveRecord() {
+    const results = item ? [item] : place ? [place] : [];
+    if (!results.length) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const frozen = await knownGateClient.freeze({
+        premise: {
+          restrictions: (mode === "agent" ? agentRestrictions : humanRestrictions).map((key) => ({
+            key: key as Restriction["key"],
+          })),
+        },
+        results,
+      });
+      router.push(`/ck/${frozen.ck_id}`);
+    } catch (e) {
+      setSaving(false);
+      setSaveError(e instanceof Error ? e.message : "The record could not be saved.");
+    }
+  }
+
+  /** Normalises the coded and legacy string forms. what_counts is shown only if sent. */
+  const askQuestion = (() => {
+    const q = item?.question;
+    if (!q) return null;
+    if (typeof q === "string") return { code: "", text: q, what_counts: undefined };
+    return { code: q.code, text: q.text, what_counts: q.what_counts };
+  })();
+
   const designVerdict: DesignVerdict | null = item ? toDesignVerdict(item.verdict) : null;
   const placeCounts = place ? mapPlaceCounts(place) : agent.counts;
   const notable = place ? mapNotable(place) : agent.notable;
@@ -356,23 +406,52 @@ export function CheckWorkspace() {
 
       <div className="kg-workspace">
         <aside className="kg-workspace-rail" style={railOpen ? { display: "block" } : undefined}>
-          <p className="sec-label">RESTRICTIONS</p>
-          <div className="kg-chip-row">
-            {["milk", "egg", "fish", "shellfish", "tree nuts", "peanut", "wheat", "soy", "sesame", "+ other"].map(
-              (c) => {
-                const activeKeys = mode === "agent" ? agentRestrictions : humanRestrictions;
-                const on = activeKeys.some((r) => c.includes(r) || r.includes(c.replace("tree nuts", "tree_nut")));
-                return (
-                  <span key={c} className={`chip${on ? " on" : ""}`}>
-                    {c}
+          {mode === "human" ? (
+            <>
+              <p className="sec-label">RESTRICTIONS</p>
+              <div className="kg-chip-row">
+                {[
+                  "milk",
+                  "egg",
+                  "fish",
+                  "shellfish",
+                  "tree nuts",
+                  "peanut",
+                  "wheat",
+                  "soy",
+                  "sesame",
+                  "+ other",
+                ].map((c) => {
+                  const on = humanRestrictions.some(
+                    (r) => c.includes(r) || r.includes(c.replace("tree nuts", "tree_nut")),
+                  );
+                  return (
+                    <span key={c} className={`chip${on ? " on" : ""}`}>
+                      {c}
+                    </span>
+                  );
+                })}
+              </div>
+              <p style={{ fontSize: 12, color: "var(--kg-ink2)", margin: "0 0 16px" }}>
+                Tap any chip to change it and the check re-runs.
+              </p>
+            </>
+          ) : agentIdle ? null : (
+            /* 166:123 and 167:44: what the agent set, not a picker to choose from. */
+            <>
+              <p className="sec-label">PREMISE</p>
+              <div className="kg-chip-row">
+                {agentRestrictions.map((r) => (
+                  <span key={r} className="chip on">
+                    {r.replace(/_/g, " ")}
                   </span>
-                );
-              },
-            )}
-          </div>
-          <p style={{ fontSize: 12, color: "var(--kg-ink2)", margin: "0 0 16px" }}>
-            Tap any chip to change it and the check re-runs.
-          </p>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: "var(--kg-ink2)", margin: "0 0 16px" }}>
+                Set by your agent. You can correct any of it.
+              </p>
+            </>
+          )}
           {mode === "human" ? (
             <>
               <p className="sec-label">KEEP UNDER</p>
@@ -406,6 +485,38 @@ export function CheckWorkspace() {
               </button>
             </>
           ) : (
+            agentIdle ? (
+            <>
+              <div className="kg-agent-idle-head">
+                <strong>Your agent checks.</strong>
+                <p>
+                  Nothing to fill in here. Ask your agent what you want to eat and who it is for, it sets the
+                  premise and calls the gate.
+                </p>
+              </div>
+              <p className="sec-label">PREMISE</p>
+              <div className="kg-agent-empty">
+                <strong>nothing yet</strong>
+                <p>Your agent will set this and you can correct any of it.</p>
+              </div>
+              <p className="sec-label">SUBJECT</p>
+              <div className="kg-agent-empty">
+                <strong>nothing loaded</strong>
+              </div>
+              <p className="sec-label">TOOLS EXPOSED TO YOUR AGENT</p>
+              <div className="kg-activity">
+                {AGENT_TOOLS.map((t) => (
+                  <div key={t.name} className="kg-activity-item">
+                    <div className="name">
+                      <span className="dot" aria-hidden />
+                      {t.name}
+                    </div>
+                    <div className="detail">{t.takes}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
             <>
               <p className="sec-label">SUBJECT</p>
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20 }}>
@@ -435,7 +546,7 @@ export function CheckWorkspace() {
               </div>
               <p className="sec-label">AGENT ACTIVITY</p>
               <div className="kg-activity">
-                {agent.activity.map((a) => (
+                {shownActivity.map((a) => (
                   <div key={a.name} className="kg-activity-item">
                     <div className="name">
                       <span className="dot" aria-hidden />
@@ -452,15 +563,17 @@ export function CheckWorkspace() {
                       ) : null}
                     </div>
                     <div className="detail">
-                      {a.name === "check_venue" && place
-                        ? `${itemTotal} items ruled · milk premise`
+                      {a.name === "check_venue"
+                        ? rulingInProgress
+                          ? `${place ? itemTotal : agent.venue.item_count} items on the published chart`
+                          : `${place ? itemTotal : agent.venue.item_count} items ruled`
                         : a.detail}
                     </div>
                   </div>
                 ))}
               </div>
             </>
-          )}
+          ))}
           <p style={{ fontSize: 12, color: "var(--kg-ink2)", marginTop: 20 }}>
             Nothing stored, unless you save a record to share.
           </p>
@@ -493,12 +606,12 @@ export function CheckWorkspace() {
                     marginBottom: activityOpen ? 12 : 0,
                   }}
                 >
-                  <span>AGENT ACTIVITY · {agent.activity.length} CALLS</span>
+                  <span>AGENT ACTIVITY · {shownActivity.length} CALLS</span>
                   <span aria-hidden>{activityOpen || rulingInProgress ? "▴" : "▾"}</span>
                 </div>
                 {(activityOpen || rulingInProgress) && (
                   <div className="kg-activity">
-                    {agent.activity.map((a) => (
+                    {shownActivity.map((a) => (
                       <div key={a.name} className="kg-activity-item">
                         <div className="name">
                           <span className="dot" aria-hidden />
@@ -522,7 +635,7 @@ export function CheckWorkspace() {
             <div style={{ textAlign: "center", padding: "80px 20px" }}>
               <h2 style={{ fontSize: 28, margin: "0 0 16px" }}>
                 Ruling {place?.verdict_counts ? itemTotal : agent.venue.item_count} items against{" "}
-                {agentRestrictions.length} thing{agentRestrictions.length === 1 ? "" : "s"}
+                {agentRestrictions.join(", ")}
               </h2>
               <div
                 style={{
@@ -681,14 +794,33 @@ export function CheckWorkspace() {
                   item?.source ? formatReadDate(item.source.read_date) : human.source.read_at
                 }
               />
+              {askQuestion ? (
+                <div className="kg-question-wrap">
+                  <p className="kg-eyebrow">ONE QUESTION CLOSES THIS</p>
+                  <QuestionBlock
+                    code={askQuestion.code}
+                    text={askQuestion.text}
+                    what_counts={askQuestion.what_counts}
+                  />
+                  <p className="kg-question-note">
+                    Ask it, then record what you were told. An unanswered question never becomes a clear, and
+                    nothing here changes until a real answer comes back.
+                  </p>
+                </div>
+              ) : null}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 24 }}>
-                <button type="button" className="kg-btn">
-                  Save this record to share
+                <button type="button" className="kg-btn" onClick={saveRecord} disabled={saving}>
+                  {saving ? "Saving…" : "Save this record to share"}
                 </button>
-                <button type="button" className="kg-btn quiet">
+                <Link className="kg-btn quiet" href="/">
                   Check something else
-                </button>
+                </Link>
               </div>
+              {saveError ? (
+                <p className="kg-landing-error" style={{ marginTop: 12 }}>
+                  {saveError} Nothing was saved, and the check above is unchanged.
+                </p>
+              ) : null}
               <div className="kg-callout" style={{ marginTop: 16 }}>
                 <strong>Saving is the only thing that writes anything down.</strong>
                 <p>
@@ -751,8 +883,8 @@ export function CheckWorkspace() {
                   : agent.more_line}
               </p>
               <div style={{ display: "grid", gap: 12, marginTop: 24 }}>
-                <button type="button" className="kg-btn">
-                  Save this record to share
+                <button type="button" className="kg-btn" onClick={saveRecord} disabled={saving}>
+                  {saving ? "Saving…" : "Save this record to share"}
                 </button>
                 <button type="button" className="kg-btn quiet">
                   Change the premise
@@ -769,8 +901,25 @@ export function CheckWorkspace() {
             </div>
           ) : null}
 
+          {agentIdle ? (
+            <div className="kg-agent-waiting">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/kg/living-loop.svg" alt="" width={56} height={56} />
+              <strong>Nothing ruled yet</strong>
+              <p>Ask your agent what you want to eat and who it is for.</p>
+              <p>Or switch to &ldquo;I&rsquo;m checking myself&rdquo; and do it by hand.</p>
+              <div className="kg-callout">
+                <strong>The two modes are not the same screen with a different label.</strong>
+                <p>
+                  A person needs controls: chips to tap, a field to type in, a button to press. An agent needs
+                  none of that, it writes to the same state through the tools. Showing a human the empty agent
+                  workspace would look broken; showing an agent a form would be pointless.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
           {step < 4 && mode === "human" ? <EmptyLanding step={step} /> : null}
-          {mode === "agent" && step < 3 ? <EmptyLanding step={step} agent /> : null}
         </div>
       </div>
     </>
