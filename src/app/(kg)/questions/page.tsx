@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 import { LiveToken } from "@/components/kg/live-token";
 import { QuestionsTable } from "@/components/kg/primitives";
 import { DataTable, Orient } from "@/components/kg/data-table";
-import { getCorpus, getQuestionCount, getQuestions } from "@/lib/kg/fixtures";
+import { getCorpus } from "@/lib/kg/fixtures";
+import { getQuestionLibrary } from "@/lib/kg/questions-data";
 
 export const metadata: Metadata = {
   title: "Question library — KnownGate",
   description: "Every question, published. The preparation and serving questions the gate can ask.",
 };
 
-export default function QuestionsPage() {
-  const all = getQuestions();
+export default async function QuestionsPage() {
+  const { questions: all, count: qCount } = await getQuestionLibrary();
   const prep = all.filter((q) => q.family === "preparation");
   const serv = all.filter((q) => q.family === "serving");
-  const qCount = getQuestionCount();
   const corpus = getCorpus();
 
   return (

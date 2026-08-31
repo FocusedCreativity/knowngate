@@ -3,15 +3,15 @@ import Link from "next/link";
 import { LiveToken } from "@/components/kg/live-token";
 import { DataTable } from "@/components/kg/data-table";
 import { MustNotOmit } from "@/components/kg/primitives";
-import { getQuestionCount } from "@/lib/kg/fixtures";
+import { getQuestionLibrary } from "@/lib/kg/questions-data";
 
 export const metadata: Metadata = {
   title: "Developers — KnownGate",
   description: "Don't let your agent guess. MCP, REST, free key, evidence standard v1.0.",
 };
 
-export default function DevelopersPage() {
-  const qCount = getQuestionCount();
+export default async function DevelopersPage() {
+  const { count: qCount } = await getQuestionLibrary();
   return (
     <>
       <header className="kg-hero">
