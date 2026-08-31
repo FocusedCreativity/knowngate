@@ -143,16 +143,16 @@ export default function WalkthroughPage() {
       </section>
 
       <section>
-        <h2>UNTOUCHED LIVE</h2>
+        <h2>UNTOUCHED LIVE → NOW DESIGN</h2>
         <ul>
           <li>
             <Link href="/">
-              / · RulingRoom <span>›</span>
+              / · design workspace (human default) <span>›</span>
             </Link>
           </li>
           <li>
-            <Link href="/check">
-              /check · RulingRoom <span>›</span>
+            <Link href="/check?mode=agent&step=4">
+              /check · design workspace (agent) <span>›</span>
             </Link>
           </li>
         </ul>

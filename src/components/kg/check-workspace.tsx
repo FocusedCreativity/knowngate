@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { knownGateClient } from "@/lib/knowngate/client";
+import { compactBoard, compactItem, compactPlace } from "@/lib/knowngate/compact";
 import type { ItemResult, PlaceResult, Restriction } from "@/lib/knowngate/contracts";
+import { parseCheckItemRequest, parseCheckPlaceRequest, parsePremise } from "@/lib/knowngate/validation";
+import { rulingRoomSchemas } from "@/lib/webmcp/schemas";
+import { useWebMcpTools, type RegisteredTool } from "@/lib/webmcp/use-webmcp-tools";
 import { getWorkspace } from "@/lib/kg/fixtures";
 import {
   formatReadDate,
@@ -16,6 +20,11 @@ import { SourceLine, SummaryLine, VerdictCard } from "@/components/kg/primitives
 import type { DesignVerdict } from "@/lib/kg/types";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
+
+function chipToKey(chip: string): Restriction["key"] {
+  if (chip === "tree nuts") return "tree_nut";
+  return chip as Restriction["key"];
+}
 
 export function CheckWorkspace() {
   const sp = useSearchParams();
@@ -45,6 +54,106 @@ export function CheckWorkspace() {
   const rulingInProgress = mode === "agent" && step === 3;
   const showHumanResult = mode === "human" && step >= 4;
   const showAgentResult = mode === "agent" && step === 4;
+
+  const tools: RegisteredTool[] = [
+    {
+      name: "propose_premise",
+      description: "Propose a household premise for visible human confirmation.",
+      inputSchema: rulingRoomSchemas.propose_premise,
+      async execute(input) {
+        try {
+          const premise = parsePremise(input);
+          return { status: "awaiting_human_confirmation", premise };
+        } catch (e) {
+          return {
+            error: {
+              code: "invalid_premise",
+              message: e instanceof Error ? e.message : "Invalid premise",
+            },
+          };
+        }
+      },
+    },
+    {
+      name: "check_item",
+      description: "Rule one food subject against the confirmed household premise.",
+      inputSchema: rulingRoomSchemas.check_item,
+      async execute(input) {
+        try {
+          const restrictions: Restriction[] = humanRestrictions.map((key) => ({
+            key: chipToKey(key),
+          }));
+          const req = parseCheckItemRequest({ ...(input as object), restrictions });
+          const result = await knownGateClient.checkItem(req);
+          setItem(result);
+          setPlace(null);
+          setLoad("ready");
+          return compactItem(result);
+        } catch (e) {
+          return {
+            error: {
+              code: "check_failed",
+              message: e instanceof Error ? e.message : "Check failed",
+            },
+          };
+        }
+      },
+    },
+    {
+      name: "check_place",
+      description: "Rule a venue against the confirmed household premise.",
+      inputSchema: rulingRoomSchemas.check_place,
+      async execute(input) {
+        try {
+          const restrictions: Restriction[] = agentRestrictions.map((key) => ({
+            key: chipToKey(key),
+          }));
+          const v = input as { venue?: string; location?: string };
+          const req = parseCheckPlaceRequest({
+            restrictions,
+            venue: { name: v.venue ?? agent.venue.name, ...(v.location ? { location: v.location } : {}) },
+          });
+          const result = await knownGateClient.checkPlace(req);
+          setPlace(result);
+          setItem(null);
+          setLoad("ready");
+          return compactPlace(result);
+        } catch (e) {
+          return {
+            error: {
+              code: "check_failed",
+              message: e instanceof Error ? e.message : "Check failed",
+            },
+          };
+        }
+      },
+    },
+    {
+      name: "get_board",
+      description: "Read the confirmed premise and visible evidence ledger.",
+      inputSchema: rulingRoomSchemas.empty,
+      annotations: { readOnlyHint: true },
+      async execute() {
+        const restrictions =
+          mode === "agent"
+            ? agentRestrictions.map((key) => ({ key: chipToKey(key) }))
+            : humanRestrictions.map((key) => ({ key: chipToKey(key) }));
+        return compactBoard(
+          { restrictions },
+          [...(item ? [item] : []), ...(place ? [place] : [])],
+        );
+      },
+    },
+    {
+      name: "freeze_check",
+      description: "Request visible human confirmation to freeze the current evidence ledger.",
+      inputSchema: rulingRoomSchemas.empty,
+      async execute() {
+        return { status: "awaiting_human_confirmation" };
+      },
+    },
+  ];
+  useWebMcpTools(tools);
 
   useEffect(() => {
     if (!(showHumanResult || showAgentResult || rulingInProgress)) return;

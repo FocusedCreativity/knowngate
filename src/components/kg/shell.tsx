@@ -58,7 +58,12 @@ export function KgHeader({
   const [open, setOpen] = useState(false);
   const mode = (searchParams.get("mode") === "agent" ? "agent" : "human") as Mode;
   const resolvedModeHref =
-    modeHref ?? (pathname.startsWith("/walkthrough/check") ? "/walkthrough/check" : undefined);
+    modeHref ??
+    (pathname.startsWith("/walkthrough/check")
+      ? "/walkthrough/check"
+      : pathname === "/" || pathname === "/check"
+        ? pathname
+        : undefined);
 
   function setMode(next: Mode) {
     const q = new URLSearchParams(searchParams.toString());
@@ -140,7 +145,7 @@ export function KgHeader({
           </p>
         </div>
         <div className="kg-menu-links">
-          <Link className="kg-menu-link" href="/walkthrough/check" onClick={() => setOpen(false)}>
+          <Link className="kg-menu-link" href="/check" onClick={() => setOpen(false)}>
             <div>
               <strong>Check something</strong>
               <span>the workspace, no account needed</span>
@@ -197,7 +202,7 @@ export function KgFooter() {
           <h4>CHECK</h4>
           <ul>
             <li>
-              <Link href="/walkthrough/check">Check something</Link>
+              <Link href="/check">Check something</Link>
             </li>
             <li>
               <Link href="/ck/ck_demo29b6e359cae50ab4">A saved record</Link>
