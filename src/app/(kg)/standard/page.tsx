@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DataTable, Orient } from "@/components/kg/data-table";
 
 export const metadata: Metadata = {
-  title: "Evidence standard v1.0 — KnownGate",
+  title: "Evidence standard v1.0 · KnownGate",
   description: "What counts as proof. Published in full so the reasoning can be checked rather than trusted.",
 };
 
@@ -13,9 +13,9 @@ export default function StandardPage() {
         <p className="kg-eyebrow">EVIDENCE STANDARD</p>
         <h1>What counts as proof.</h1>
         <p className="lead">
-          The rules the gate applies to both kinds of premise, what must be absent and what must stay under
-          a number. Published in full so the reasoning can be checked rather than trusted. Version 1.0,
-          effective 30 August 2026.
+          The rules we check against: what must not be in the food, and what must stay under a number.
+          Published in full, so you can check our reasoning instead of trusting it. Version 1.0, effective
+          30 August 2026.
         </p>
         <div className="kg-chips">
           <span className="kg-chip">v1.0</span>
@@ -47,10 +47,9 @@ export default function StandardPage() {
       </div>
 
       <section className="kg-section">
-        <h2>Two kinds of premise</h2>
+        <h2>Two kinds of check</h2>
         <p className="sub">
-          What is being asserted decides what counts as proof. The gate is the same; the evidence requirement
-          is not.
+          What you ask decides what counts as proof. The check is the same; the evidence it needs is not.
         </p>
         <DataTable
           headers={["Premise", "What it asserts", "What must be covered"]}
@@ -58,25 +57,24 @@ export default function StandardPage() {
             {
               cells: [
                 "Absence",
-                "This must not be present. The FDA-9, plus in-group restrictions recorded rather than silently mapped, cashew under tree nut.",
-                "Both axes. Composition (what the ingredient list declares) and preparation (shared equipment, surfaces, practice). Composition alone never produces a clear.",
+                "This must not be present. The nine major allergens, plus anything more specific you name; \u201ccashew\u201d is recorded as cashew, not blurred into \u201ctree nut\u201d.",
+                "Both halves must be covered: what is in it (the ingredient list) and how it is made (shared equipment, surfaces, practice). The list alone never produces a clear.",
               ],
             },
             {
               cells: [
                 "Threshold",
                 "This must stay under a number, per serving. Sodium, added sugar, saturated fat, potassium, protein floors.",
-                "The nutrition panel alone, cited and dated, on a stated basis. The preparation axis does not apply, a number is not transferred by contact.",
+                "The nutrition panel alone, cited and dated, with its serving size stated. How it is made does not apply here; a number does not rub off a shared board.",
               ],
             },
           ]}
         />
         <div className="kg-callout" style={{ marginTop: 24 }}>
-          <strong>The two-axis rule is a rule about absence premises only.</strong>
+          <strong>The both-halves rule applies to allergens only.</strong>
           <p>
-            Applying it to a threshold would be incoherent. Nothing shares sodium off a board. A numeric
-            verdict rests on one source and stands or falls on whether that source is present, current, and
-            stated per serving.
+            Numbers work differently. Nothing picks up sodium from a shared board. A number stands or falls
+            on one source, the panel: whether it exists, is current, and states its serving.
           </p>
         </div>
       </section>
@@ -84,8 +82,8 @@ export default function StandardPage() {
       <section className="kg-section">
         <h2>Source kinds, and the highest verdict each can reach</h2>
         <p className="sub">
-          Authorship decides the ceiling, not accuracy. A correct reading of a PDF is still our reading, not
-          theirs.
+          Who wrote the evidence decides how far it can take you, not whether it happens to be right. A
+          correct reading of a PDF is still our reading, not theirs.
         </p>
         <DataTable
           headers={["Source", "What it is", "Ceiling"]}
@@ -117,7 +115,10 @@ export default function StandardPage() {
           <article className="kg-tile">
             <span className="dot clear" aria-hidden />
             <div style={{ fontWeight: 700, marginBottom: 8 }}>no conflict found</div>
-            <p className="lbl">Both axes covered by a source at ceiling, and no restriction present.</p>
+            <p className="lbl">
+              Both what is in it and how it is made were covered by a source that can say so, and nothing you
+              named was found.
+            </p>
           </article>
           <article className="kg-tile">
             <span className="dot shut" aria-hidden />
@@ -127,7 +128,10 @@ export default function StandardPage() {
           <article className="kg-tile">
             <span className="dot ask" aria-hidden />
             <div style={{ fontWeight: 700, marginBottom: 8 }}>ask one question</div>
-            <p className="lbl">One axis covered, the other reachable by a question we can name.</p>
+            <p className="lbl">
+              One half is covered. The other can be closed by a single question, and we tell you exactly what
+              to ask.
+            </p>
           </article>
           <article className="kg-tile">
             <span className="dot held" aria-hidden />

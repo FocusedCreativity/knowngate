@@ -5,8 +5,8 @@ import { LiveToken } from "@/components/kg/live-token";
 import { MustNotOmit } from "@/components/kg/primitives";
 
 export const metadata: Metadata = {
-  title: "Agents — KnownGate",
-  description: "The machine front door. WebMCP, MCP, and REST — same engine, same verdicts.",
+  title: "Agents · KnownGate",
+  description: "The machine front door. WebMCP, MCP, and REST. Same engine, same verdicts.",
 };
 
 export default function AgentsPage() {

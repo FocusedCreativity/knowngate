@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "KnownGate — every answer, with its source",
+  title: "KnownGate · every answer, with its source",
   description: "A verification layer where agents propose, the page rules, and humans own the premise.",
 };
 

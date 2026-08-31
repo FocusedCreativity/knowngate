@@ -8,7 +8,7 @@ import { getCorpusSnapshot } from "@/lib/kg/corpus-data";
 import { formatInt } from "@/lib/kg/fixtures";
 
 export const metadata: Metadata = {
-  title: "Developers — KnownGate",
+  title: "Developers · KnownGate",
   description: "Don't let your agent guess. MCP, REST, free key, evidence standard v1.0.",
 };
 
@@ -102,12 +102,12 @@ export default async function DevelopersPage() {
         </p>
         <pre className="kg-code">{`// MCP, the key travels in the server config
 { "mcpServers": { "knowngate": {
-  "url": "https://mcp.knowngate.com/v1",
+  "url": "https://mcp.knowngate.com",
   "headers": { "Authorization": "Bearer kg_live_…" }
 } } }
 
 // or REST, absence and threshold in one call
-curl https://api.knowngate.com/v1/check_item \\
+curl https://www.knowngate.com/api/knowngate/v0/check_item \\
   -H "Authorization: Bearer kg_live_…" \\
   -d '{"subject":{"upc":"0 78742 11934 6"},
   "restrictions":["peanut","sesame"],
@@ -423,7 +423,7 @@ curl https://api.knowngate.com/v1/check_item \\
               cells: [
                 "No numeric premise outside beta",
                 corpus
-                  ? `Thresholds are live in beta against ${formatInt(corpus.panels_with_serving)} rulable panels. Treat the coverage as growing rather than complete.`
+                  ? `Thresholds are live in beta against ${formatInt(corpus.nutrition_panels)} rulable panels. Treat the coverage as growing rather than complete.`
                   : "Thresholds are live in beta. Treat the coverage as growing rather than complete.",
               ],
             },

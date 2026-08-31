@@ -7,14 +7,14 @@ export default function ConsolePage() {
       <h1>Your keys, and what they have asked</h1>
       <p className="lead">
         Keys are for agents and backends. A person on this site never needs one to run a check. Sign in when
-        key management ships — until then, this page stays empty on purpose.
+        key management ships. Until then, this page stays empty on purpose.
       </p>
 
       <section className="kg-console-section">
         <h2>API KEYS</h2>
         <div className="kg-empty-keys">
           <p style={{ margin: "0 0 16px" }}>
-            No keys yet. The keys backend is not live. When it is, keys you create will appear here — never as
+            No keys yet. The keys backend is not live. When it is, keys you create will appear here, never as
             sample values on this route.
           </p>
           <button type="button" className="kg-btn" disabled>

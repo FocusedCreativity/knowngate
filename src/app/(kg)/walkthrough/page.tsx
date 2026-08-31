@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Design walkthrough — KnownGate",
+  title: "Design walkthrough · KnownGate",
   description: "Review index for fixture-fed design screens. Not for public crawl.",
   robots: { index: false, follow: false },
 };

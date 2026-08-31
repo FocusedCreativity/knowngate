@@ -15,7 +15,7 @@ export function ConsoleDemo({ keys }: { keys: KeysState }) {
       <p className="kg-eyebrow">DEVELOPER HOME · WALKTHROUGH</p>
       <h1>Your keys, and what they have asked</h1>
       <p className="lead">
-        Demonstration states for the key UI. The keys backend does not exist yet — these values are fixtures,
+        Demonstration states for the key UI. The keys backend does not exist yet. These values are fixtures,
         not live secrets.
       </p>
 

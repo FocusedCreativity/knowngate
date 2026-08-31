@@ -720,11 +720,11 @@ function EmptyLanding({ step, agent }: { step: number; agent?: boolean }) {
         </p>
         {agent ? (
           <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 16 }}>
-            Agent mode — waiting for your agent to call set_restrictions and load_subject.
+            Agent mode. Waiting for your agent to call set_restrictions and load_subject.
           </p>
         ) : (
           <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 16 }}>
-            {step === 1 ? "Nothing entered yet." : "Premise set — enter a subject to check."}
+            {step === 1 ? "Nothing entered yet." : "Premise set. Enter a subject to check."}
           </p>
         )}
       </div>

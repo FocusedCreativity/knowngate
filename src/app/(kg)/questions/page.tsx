@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import { LiveToken } from "@/components/kg/live-token";
 import { QuestionsTable } from "@/components/kg/primitives";
 import { DataTable, Orient } from "@/components/kg/data-table";
-import { getCorpus } from "@/lib/kg/fixtures";
 import { getQuestionLibrary } from "@/lib/kg/questions-data";
 
 export const metadata: Metadata = {
-  title: "Question library — KnownGate",
+  title: "Question library · KnownGate",
   description: "Every question, published. The preparation and serving questions the gate can ask.",
 };
 
@@ -14,7 +13,6 @@ export default async function QuestionsPage() {
   const { questions: all, count: qCount } = await getQuestionLibrary();
   const prep = all.filter((q) => q.family === "preparation");
   const serv = all.filter((q) => q.family === "serving");
-  const corpus = getCorpus();
 
   return (
     <>
@@ -23,8 +21,8 @@ export default async function QuestionsPage() {
         <h1>Every question, published.</h1>
         <p className="lead">
           A question is only useful if a person can say it out loud and recognise a real answer. These are all
-          of them, the preparation questions that close an absence gap, and the serving questions that close a
-          numeric one.
+          of them: the kitchen questions that close a gap about what is in the food, and the pack questions
+          that close a gap about a number.
         </p>
         <div className="kg-chips">
           <span className="kg-chip">{qCount} questions</span>
@@ -61,11 +59,7 @@ export default async function QuestionsPage() {
           This is why seventeen askable items collapse to three questions. Two dishes missing the same
           evidence get the same question, and one answer resolves both.
         </p>
-        <div className="kg-callout">
-          <strong>{corpus.questions_strip}</strong>
-          <p>Measured {corpus.measured_at} against the live chart.</p>
-        </div>
-        <div className="kg-grid-3" style={{ marginTop: 16 }}>
+        <div className="kg-grid-3">
           <article className="kg-tile">
             <div style={{ fontWeight: 600 }}>Q-PREP-07</div>
             <p className="lbl" style={{ marginTop: 8 }}>
@@ -109,8 +103,8 @@ export default async function QuestionsPage() {
           <LiveToken label="LIVE" />
         </div>
         <p className="sub">
-          A threshold has one source, so it has one kind of gap: the panel is missing, stale, or stated on a
-          basis you did not ask about. These are the questions that close it.
+          A number has one source, the panel. So only three things can be missing: the panel itself, its
+          date, or its serving size. These are the questions that close those gaps.
         </p>
         <QuestionsTable questions={serv} />
         <div className="kg-callout" style={{ marginTop: 24 }}>

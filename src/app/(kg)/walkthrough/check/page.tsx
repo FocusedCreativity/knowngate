@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { CheckWorkspace } from "@/components/kg/check-workspace";
 
 export const metadata: Metadata = {
-  title: "Check workspace — KnownGate walkthrough",
+  title: "Check workspace · KnownGate walkthrough",
   robots: { index: false, follow: false },
 };
 
