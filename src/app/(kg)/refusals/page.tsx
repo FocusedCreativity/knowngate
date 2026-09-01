@@ -252,33 +252,29 @@ export default async function RefusalsPage({
           allergen checks, because a panel either exists or it does not.
         </p>
         <DataTable
-          headers={["Arm", "Couldn't verify", "Why"]}
+          headers={["Arm", "Why"]}
           rows={[
             {
               cells: [
                 "Shop · packaged",
-                { token: "CORPUS" },
                 "A label is a legal declaration. Most products resolve.",
               ],
             },
             {
               cells: [
                 "Eat out",
-                { token: "CORPUS" },
                 "A person is present, so questions convert into answers.",
               ],
             },
             {
               cells: [
                 "Cook",
-                { token: "CORPUS" },
                 "Preparation is the household’s own kitchen and is not ruled.",
               ],
             },
             {
               cells: [
                 "Order in",
-                { token: "CORPUS" },
                 // Structural only while delivery is unruled. When the chain
                 // charts grow, an order from a chain is ruled by that chain's
                 // chart and this row stops being structural. Revisit it then.
@@ -288,14 +284,12 @@ export default async function RefusalsPage({
             {
               cells: [
                 "Snack and drink",
-                { token: "CORPUS" },
                 "Same evidence as shop: a label, a barcode, a panel. Refusals here are coverage gaps, not structure, and they sit where convenience and vending brands skew away from grocery shelves.",
               ],
             },
             {
               cells: [
                 "Packaged · numeric threshold",
-                { token: "CORPUS" },
                 c
                   ? `One source, and ${formatInt(c.nutrition_panels)} panels are rulable. The lowest refusal rate in the product.`
                   : "One source. The lowest refusal rate in the product.",
@@ -304,16 +298,22 @@ export default async function RefusalsPage({
             {
               cells: [
                 "Restaurant dish · numeric threshold",
-                { token: "CORPUS" },
                 "Almost no venue publishes a panel. Structurally the highest, and honestly so.",
               ],
             },
           ]}
         />
+        {/*
+          Same reason as the causes table above: the stats count by verdict and
+          by four rolled-up arms, which is not the seven rows here, so a column
+          of per-arm refusal rates could be filled for some rows and not
+          others. Half a column of real numbers beside half a column of
+          placeholders is worse than neither.
+        */}
         <p style={{ marginTop: 20, fontSize: 14, color: "var(--kg-ink2)" }}>
-          Corpus values above were measured {c ? c.measured_at : "not available"} against production. They are
-          never estimates and never filled in by hand. Order-in refusals are structural today: the kitchen
-          behind a delivery order is not yet ruled. Not covered by any source, not a fake zero.
+          We publish how often we refuse in total. We do not yet measure refusals by arm. When we do, the
+          shares will appear here, dated. Order-in refusals are structural today: the kitchen behind a
+          delivery order is not yet ruled. Not covered by any source, not a fake zero.
         </p>
       </section>
 
