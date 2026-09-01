@@ -174,73 +174,75 @@ export default async function RefusalsPage({
           </p>
         )}
         <DataTable
-          headers={["Cause", "Share of refusals", "Who could close it"]}
+          headers={["Cause", "Who could close it"]}
           rows={[
             {
               cells: [
                 "No preparation evidence published",
-                { token: "CORPUS" },
                 "The venue or the manufacturer, by filing a statement.",
               ],
             },
             {
               cells: [
                 "Collective terms on the label",
-                { token: "CORPUS" },
                 "The manufacturer, by naming the source of the flavoring.",
               ],
             },
             {
               cells: [
                 "No label exists at all",
-                { token: "CORPUS" },
                 "Nobody, in-store bakery, deli counter, a home kitchen.",
               ],
             },
             {
               cells: [
                 "No fixed recipe",
-                { token: "CORPUS" },
                 "Nobody, a daily special changes by definition.",
               ],
             },
             {
               cells: [
                 "Venue could not be resolved",
-                { token: "CORPUS" },
                 "The agent, by confirming which venue it meant.",
               ],
             },
             {
               cells: [
                 "Question raised, unanswered",
-                { token: "CORPUS" },
                 "The kitchen, at the table.",
               ],
             },
             {
               cells: [
                 "No nutrition panel exists",
-                { token: "CORPUS" },
                 "Nobody, a made-on-site item has none. A finding, not a failure.",
               ],
             },
             {
               cells: [
                 "Panel present, serving basis unstated",
-                { token: "CORPUS" },
                 "The manufacturer, by stating whether the figure is per serving or per 100g.",
               ],
             },
             {
               cells: [
                 "Panel older than the current formulation",
-                { token: "CORPUS" },
                 "The manufacturer, by dating the panel they publish.",
               ],
             },
           ]}
         />
+        {/*
+          There was a share column here, filled with a live token that never
+          had a value behind it: the stats count by verdict and by arm, not by
+          cause, so the share of refusals attributable to each of these is not
+          measured anywhere. A column of placeholders on the page that
+          publishes our refusal rate is the one place we cannot afford it.
+        */}
+        <p style={{ marginTop: 20, fontSize: 14, color: "var(--kg-ink2)" }}>
+          We publish how often we refuse in total. We do not yet measure refusals by cause. When we do,
+          the shares will appear here, dated.
+        </p>
       </section>
 
       <section className="kg-section">
