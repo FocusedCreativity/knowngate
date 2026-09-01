@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function WalkthroughCheckPage() {
   return (
     <Suspense fallback={<div className="kg-section">Loading workspace…</div>}>
-      <CheckWorkspace />
+      <CheckWorkspace demo />
     </Suspense>
   );
 }

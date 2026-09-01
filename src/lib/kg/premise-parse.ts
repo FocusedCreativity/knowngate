@@ -154,3 +154,14 @@ export const RESTRICTION_CHIPS = [
   "soy",
   "sesame",
 ] as const;
+
+/**
+ * A whole restaurant, written in the same field as a product. Without this an
+ * agent driving the DOM has no way to reach check_venue at all and has to
+ * leave the site to ask about a menu.
+ */
+export function venueFromInput(raw: string): string | null {
+  const m = raw.trim().match(/^(?:venue|restaurant|menu)\s*:\s*(.+)$/i);
+  const name = m?.[1]?.trim();
+  return name ? name : null;
+}

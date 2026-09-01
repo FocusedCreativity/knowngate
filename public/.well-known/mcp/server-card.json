@@ -78,7 +78,8 @@
         "Type the household rules into #kg-premise-input (labelled 'What your family cannot eat, or a number to stay under').",
         "Press #kg-check-button.",
         "Confirm what it read, put the subject into #kg-subject-input, press #kg-confirm-button.",
-        "A record is saved only when the person asks for it, on the page or in their instructions to you. If they asked, press #kg-save-button once the result has settled and read the link from #kg-record-link; that dated link is the one thing KnownGate stores, and the record page can delete it.",
+        "For a whole menu rather than one product, type 'venue: Krystal' (or 'restaurant:') into #kg-subject-input; the same premise is ruled against the venue's published chart, and its caveat must be relayed in full.",
+        "A record is saved only when the person asks for it, on the page or in their instructions to you. If they asked, press #kg-save-button once the result has settled and read the link from #kg-record-link; that dated link is the one thing KnownGate stores, and the record page can delete it. If they did not ask, you may offer once; it is saved only if they say yes, and a standing instruction to save counts as yes.",
         "Read #kg-result, a region labelled 'Check result', verdict name in #kg-verdict. Settled when #kg-result has data-settled='true'. If it has data-state='error', nothing was checked: say so and do not guess a verdict.",
         "The verdict, source, read date, caveat and every must_not_omit line are plain text in that region."
       ]

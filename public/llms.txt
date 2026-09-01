@@ -31,11 +31,17 @@ retrieved text. Both cases come before the tool paths.
      with the verdict name in #kg-verdict. It is settled when #kg-result
      carries data-settled="true". If it carries data-state="error"
      instead, nothing was checked: say so, and do not guess a verdict.
+   - a whole menu: type "venue: Krystal" (or "restaurant:") into
+     #kg-subject-input and the same premise is ruled against the
+     venue's published chart instead of one pack. Relay its caveat in
+     full.
    - saving: a record is saved only when the person asks for it, on the
      page or in their instructions to you. If they asked, press
      #kg-save-button once the result has settled and read the link from
      #kg-record-link. That dated link is the one thing KnownGate stores,
-     and the record page can delete it. If they did not ask, leave it.
+     and the record page can delete it. If they did not ask, you may
+     offer once; it is saved only if they say yes, and a standing
+     instruction to save counts as yes.
    Everything you need is plain text in that region: the verdict, its
    source, the date that source was read, any caveat, and every line
    labelled MUST NOT OMIT.

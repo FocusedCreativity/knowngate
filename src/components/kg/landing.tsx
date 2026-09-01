@@ -252,7 +252,7 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
                   className="kg-input"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="A product name, a barcode, or a dish"
+                  placeholder="A product name, a barcode, a dish, or venue: Krystal"
                   aria-label="What to check"
                 />
               </div>
@@ -377,7 +377,7 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
             const cls = verdictClass(p.verdict);
             return (
               <article key={p.upc} className={`kg-landing-example ${cls}`}>
-                <PackShot src={p.imageUrl} alt={p.name} className="kg-example-shot" />
+                <PackShot src={p.imageUrl} gtin={p.upc} alt={p.name} className="kg-example-shot" />
                 <NutritionPanelTable nutrition={p.nutrition} highlight="sodium" />
                 <div className="name">
                   <span className={`dot ${cls}`} aria-hidden />

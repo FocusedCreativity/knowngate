@@ -35,7 +35,7 @@ export function ResultEvidence({
   return (
     <>
       <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
-        <PackShot src={label?.image_url ?? null} alt={subject} />
+        <PackShot src={label?.image_url ?? null} gtin={label?.gtin ?? null} alt={subject} />
         <div style={{ flex: 1, minWidth: 220 }}>
           <VerdictCard verdict={toDesignVerdict(item.verdict)} subject={subject} chips={chips} />
         </div>

@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { knownGateClient } from "@/lib/knowngate/client";
 import type { ParsedPremise, ParsedThreshold } from "@/lib/kg/premise-parse";
-import { chipToKey, parsePremise, subjectFromInput } from "@/lib/kg/premise-parse";
+import { chipToKey, parsePremise, subjectFromInput, venueFromInput } from "@/lib/kg/premise-parse";
 import { LANDING_RESULT_KEY } from "@/lib/kg/landing-handoff";
 
 export type Stage = "compose" | "confirm";
@@ -115,7 +115,25 @@ export function usePremiseFlow({
     setError(null);
     onStep?.("subject_set");
     onStep?.("check_started");
+    // "venue: Krystal" asks about a whole menu. Same premise, same rules, the
+    // other call: without this the DOM path could only ever reach one product.
+    const venue = venueFromInput(subjectValue);
     try {
+      if (venue) {
+        const place = await knownGateClient.checkPlace({
+          restrictions: restrictionKeys.map((key) => ({ key: chipToKey(key) })),
+          venue: { name: venue },
+        });
+        sessionStorage.setItem(LANDING_RESULT_KEY, JSON.stringify(place));
+        const vq = new URLSearchParams();
+        vq.set("mode", mode);
+        vq.set("step", "4");
+        vq.set("from", mode === "agent" ? "agent" : "landing");
+        if (restrictionKeys.length) vq.set("restrictions", restrictionKeys.join(","));
+        vq.set("venue", venue);
+        router.push(`/check?${vq.toString()}`);
+        return;
+      }
       const result = await knownGateClient.checkItem({
         restrictions: restrictionKeys.map((key) => ({ key: chipToKey(key) })),
         subject: subjectFromInput(subjectValue),

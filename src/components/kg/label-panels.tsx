@@ -10,15 +10,21 @@ import type { LabelResult, NutritionPanel } from "@/lib/knowngate/contracts";
  */
 export function PackShot({
   src,
+  gtin,
   alt,
   className = "kg-packshot",
 }: {
   src: string | null;
+  /** When known, the photo comes through our own origin instead. */
+  gtin?: string | null;
   alt: string;
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
-  if (!src || failed) {
+  // Agentic browsers drop third-party image requests, so a same-origin url is
+  // the difference between a reader seeing the pack and seeing a grey box.
+  const href = gtin && /^\d{8,14}$/.test(gtin) ? `/api/label-image/${gtin}` : src;
+  if (!href || failed) {
     return (
       <div className={`${className} is-empty`} aria-hidden>
         PACK SHOT
@@ -31,7 +37,7 @@ export function PackShot({
     // eslint-disable-next-line @next/next/no-img-element
     <img
       className={className}
-      src={src}
+      src={href}
       alt={alt}
       loading="lazy"
       onError={() => setFailed(true)}

@@ -43,7 +43,12 @@ function chipToKey(chip: string): Restriction["key"] {
   return chip as Restriction["key"];
 }
 
-export function CheckWorkspace() {
+/**
+ * `demo` is what /walkthrough/check passes to see the fixture states on
+ * purpose. Everywhere else the fixtures are not a fallback: an empty
+ * workspace says it is empty rather than borrowing somebody else's premise.
+ */
+export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
   const sp = useSearchParams();
   const mode = sp.get("mode") === "agent" ? "agent" : "human";
   const step = Math.min(4, Math.max(1, Number(sp.get("step") || "4")));
@@ -112,24 +117,32 @@ export function CheckWorkspace() {
   const subjectDigits = urlSubject ? urlSubject.replace(/\D/g, "") : "";
   const subjectIsUpc = subjectDigits.length >= 8 && subjectDigits.length <= 14;
 
-  const humanPremiseLine = hasUrlPremise
-    ? [...humanRestrictions, checkThreshold ? `sodium under ${thresholdMax} mg per serving` : null]
-        .filter(Boolean)
-        .join(" · ")
-    : premise.line;
-  // A url that states a premise states all of it, in either mode. Agent mode
-  // used to fall back to the fixture's line, which said "milk" beside a
-  // ruling that turned on 200 mg of sodium.
-  const bannerLine =
-    hasUrlPremise || agentLog.length
-      ? humanPremiseLine
-      : mode === "agent"
-        ? (premise.agent_line ?? "milk")
-        : humanPremiseLine;
+  const statedPremise = [
+    ...humanRestrictions,
+    checkThreshold ? `sodium under ${thresholdMax} mg per serving` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  /**
+   * Whether anything has actually been set. The banner used to fall through
+   * to the fixture whenever nothing had, so a fresh agent workspace announced
+   * "peanut · sesame · sodium under 600 mg per serving · Set by your agent"
+   * with nothing set and nothing checked.
+   */
+  const premiseIsSet = hasUrlPremise || agentLog.length > 0;
+  const bannerLine = premiseIsSet
+    ? statedPremise
+    : demo
+      ? (mode === "agent" ? (premise.agent_line ?? "milk") : premise.line)
+      : "no premise yet";
   // Who set it. In agent mode the premise arrives from the agent, whether it
   // typed into the field or wrote through a tool.
-  const bannerMeta =
-    mode === "human"
+  // Who set it, only once somebody has. An empty workspace claims no author.
+  const bannerMeta = !premiseIsSet
+    ? demo
+      ? (mode === "human" ? premise.human_meta : premise.agent_meta)
+      : ""
+    : mode === "human"
       ? premise.human_meta
       : agentLog.length
         ? "Set by your agent"
@@ -371,12 +384,15 @@ export function CheckWorkspace() {
           return;
         }
 
-        const restrictions: Restriction[] = agentRestrictions.map((key) => ({
-          key: key as Restriction["key"],
-        }));
+        const restrictions: Restriction[] = (urlRestrictions.length
+          ? urlRestrictions
+          : agentRestrictions
+        ).map((key) => ({ key: chipToKey(key) }));
+        // The venue the url names, not the fixture's. Without this every
+        // menu check ruled Krystal whatever was asked for.
         const result = await knownGateClient.checkPlace({
           restrictions,
-          venue: { name: agent.venue.name },
+          venue: { name: urlVenue ?? agent.venue.name },
         });
         if (!cancelled) {
           settledKey.current = requestKey;
@@ -775,7 +791,7 @@ export function CheckWorkspace() {
                     value={agentFlow.subject}
                     onChange={(e) => agentFlow.setSubject(e.target.value)}
                     aria-label="What to check"
-                    placeholder="e.g. Kroger 99% Fat Free Chicken Broth"
+                    placeholder="e.g. Kroger 99% Fat Free Chicken Broth, or venue: Krystal"
                   />
                 </div>
 
@@ -851,7 +867,7 @@ export function CheckWorkspace() {
                       verdict beside somebody else's subject is the worst
                       thing this rail can say. */}
                   <div style={{ fontWeight: 600 }}>
-                    {resultIsItem ? checkedSubject : agent.venue.name}
+                    {resultIsItem ? checkedSubject : (place?.venue.name ?? urlVenue ?? agent.venue.name)}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--kg-ink2)" }}>
                     {resultIsItem
@@ -1036,7 +1052,11 @@ export function CheckWorkspace() {
                 <p style={{ color: "var(--kg-ink2)" }}>Ruling against the live evidence…</p>
               ) : null}
               <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
-                <PackShot src={shownLabel?.image_url ?? null} alt={checkedSubject} />
+                <PackShot
+                  src={shownLabel?.image_url ?? null}
+                  gtin={shownLabel?.gtin ?? null}
+                  alt={checkedSubject}
+                />
                 <div style={{ flex: 1, minWidth: 220 }}>
                   <VerdictCard
                     verdict={designVerdict ?? (human.verdict as DesignVerdict)}

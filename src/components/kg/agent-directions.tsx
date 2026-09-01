@@ -26,11 +26,18 @@ export function AgentDirections() {
         instead, nothing was checked: say so and do not guess a verdict.
       </p>
       <p>
+        <strong>A whole menu.</strong> The subject field takes a restaurant as well as a product. Type{" "}
+        <code>venue: Krystal</code> (or <code>restaurant:</code>) into <code>#kg-subject-input</code> and
+        the same premise is ruled against the venue&rsquo;s published chart instead of one pack. You get
+        counts by verdict and the venue&rsquo;s caveat; relay the caveat in full.
+      </p>
+      <p>
         <strong>Saving.</strong> A record is saved only when the person asks for it, on the page or in
         their instructions to you. If they have asked, press <code>#kg-save-button</code> once the result
         has settled and read the link out of <code>#kg-record-link</code>, then hand it to them. That
         dated link is the one thing KnownGate stores, and the record page can delete it. If they have not
-        asked, do not press it.
+        asked, you may offer once; it is saved only if they say yes, and a standing instruction to save
+        counts as yes.
       </p>
       <p>
         <strong>2. Can you only read this page, not drive it?</strong> Then relay what is printed here

@@ -72,3 +72,17 @@ test("a named conflict opens its sentence in upper case and agrees in number", (
     "Conflict found. Peanut, milk are present on the evidence.",
   );
 });
+
+test("a venue is recognised by prefix, and a product is not mistaken for one", async () => {
+  const { venueFromInput, subjectFromInput } = await import("../src/lib/kg/premise-parse.ts");
+  assert.equal(venueFromInput("venue: Krystal"), "Krystal");
+  assert.equal(venueFromInput("Restaurant:  Krystal "), "Krystal");
+  assert.equal(venueFromInput("menu: Joe's Diner"), "Joe's Diner");
+  assert.equal(venueFromInput("Kroger 99% Fat Free Chicken Broth"), null);
+  assert.equal(venueFromInput("venue:"), null);
+  // A barcode stays a barcode.
+  assert.deepEqual(subjectFromInput("0005150024177"), {
+    kind: "upc",
+    value: "00005150024177",
+  });
+});
