@@ -160,6 +160,34 @@ export function CheckWorkspace() {
   const resultIsItem = !!urlSubject || (!!item && !place);
   const showItemResult = (showHumanResult || showAgentResult) && resultIsItem;
   const showPlaceResult = showAgentResult && !resultIsItem;
+  /**
+   * The steps to show beside a settled item ruling. The live log if this
+   * session drove it; otherwise reconstructed from the url that carries the
+   * premise, so a shared agent-mode link still describes its own check rather
+   * than borrowing the fixture's venue run.
+   */
+  const settledLog: { name: string; detail: string }[] = !resultIsItem
+    ? []
+    : agentLog.length
+      ? [
+          ...agentLog,
+          ...(load === "ready"
+            ? [{ name: "result settled", detail: "verdict, source and read date returned" }]
+            : []),
+        ]
+      : showAgentResult
+        ? [
+            { name: "premise set", detail: railLine },
+            { name: "subject loaded", detail: checkedSubject },
+            {
+              name: "check_item",
+              detail: load === "ready" ? "one product ruled" : "ruling against the live evidence",
+            },
+            ...(load === "ready"
+              ? [{ name: "result settled", detail: "verdict, source and read date returned" }]
+              : []),
+          ]
+        : [];
 
   const tools: RegisteredTool[] = [
     {
@@ -561,11 +589,18 @@ export function CheckWorkspace() {
             <>
               <p className="sec-label">PREMISE</p>
               <div className="kg-chip-row">
-                {agentRestrictions.map((r) => (
+                {/* A url that states a premise states all of it. Showing only
+                    the allergens dropped the number the verdict turned on. */}
+                {(urlRestrictions.length ? urlRestrictions : agentRestrictions).map((r) => (
                   <span key={r} className="chip on">
                     {r.replace(/_/g, " ")}
                   </span>
                 ))}
+                {checkThreshold ? (
+                  <span className="chip on">
+                    {premise.threshold.nutrient} under {thresholdMax} {premise.threshold.unit}
+                  </span>
+                ) : null}
               </div>
               <p style={{ fontSize: 12, color: "var(--kg-ink2)", margin: "0 0 16px" }}>
                 Set by your agent. You can correct any of it.
@@ -792,20 +827,41 @@ export function CheckWorkspace() {
                     fontWeight: 600,
                   }}
                 >
-                  VENUE
+                  {resultIsItem ? "PACK" : "VENUE"}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600 }}>{agent.venue.name}</div>
+                  {/* What was checked, never the fixture's venue: a real
+                      verdict beside somebody else's subject is the worst
+                      thing this rail can say. */}
+                  <div style={{ fontWeight: 600 }}>
+                    {resultIsItem ? checkedSubject : agent.venue.name}
+                  </div>
                   <div style={{ fontSize: 12, color: "var(--kg-ink2)" }}>
-                    {place
-                      ? `${itemTotal} menu items · ${place.source?.name ?? "published allergen chart"}`
-                      : agent.venue.line}
+                    {resultIsItem
+                      ? (item?.source?.name ?? "as your agent named it")
+                      : place
+                        ? `${itemTotal} menu items · ${place.source?.name ?? "published allergen chart"}`
+                        : agent.venue.line}
                   </div>
                 </div>
               </div>
               <p className="sec-label">AGENT ACTIVITY</p>
+              {/*
+                An item check the agent drove has its own log. The fixture's
+                tool list describes a venue run, so showing it here would put
+                "check_venue, 84 items ruled" beside a ruling on one pack.
+              */}
               <div className="kg-activity">
-                {shownActivity.map((a) => (
+                {settledLog.map((a, i) => (
+                  <div key={`${a.name}-${i}`} className="kg-activity-item">
+                    <div className="name">
+                      <span className="dot" aria-hidden />
+                      {a.name}
+                    </div>
+                    <div className="detail">{a.detail}</div>
+                  </div>
+                ))}
+                {settledLog.length ? null : shownActivity.map((a) => (
                   <div key={a.name} className="kg-activity-item">
                     <div className="name">
                       <span className="dot" aria-hidden />
