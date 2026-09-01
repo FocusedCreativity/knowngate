@@ -1651,3 +1651,50 @@
 .kg-root .kg-record-notable .name { font-weight: 600; margin-bottom: 6px; }
 .kg-root .kg-record-notable p { margin: 0; font-size: 13.5px; line-height: 1.6; }
 .kg-root .kg-record-notable .kg-source { margin-top: 8px; }
+
+/* ---- A menu's counts, as proportion ---- */
+
+/* Four numbers in a chip row read alike whether they say 12 or 368. The bar
+   is the same data in the shape a reader takes in at a glance. */
+.kg-root .kg-venue-counts { margin: 18px 0 0; }
+
+.kg-root .kg-venue-bar {
+  display: flex;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--kg-paper-2);
+}
+
+.kg-root .kg-venue-bar .band { display: block; height: 100%; }
+.kg-root .kg-venue-bar .band.no_conflict_found { background: var(--kg-clear); }
+.kg-root .kg-venue-bar .band.conflict_found { background: var(--kg-shut); }
+.kg-root .kg-venue-bar .band.ask_one_question { background: var(--kg-ask); }
+.kg-root .kg-venue-bar .band.couldnt_verify { background: var(--kg-ink3); }
+
+.kg-root .kg-venue-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  font-size: 13.5px;
+  color: var(--kg-ink2);
+}
+
+.kg-root .kg-venue-legend li { display: flex; align-items: center; gap: 7px; }
+.kg-root .kg-venue-legend li.is-zero { opacity: 0.45; }
+.kg-root .kg-venue-legend strong { color: var(--kg-ink); font-variant-numeric: tabular-nums; }
+
+.kg-root .kg-venue-legend .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kg-root .kg-venue-legend .dot.no_conflict_found { background: var(--kg-clear); }
+.kg-root .kg-venue-legend .dot.conflict_found { background: var(--kg-shut); }
+.kg-root .kg-venue-legend .dot.ask_one_question { background: var(--kg-ask); }
+.kg-root .kg-venue-legend .dot.couldnt_verify { background: var(--kg-ink3); }

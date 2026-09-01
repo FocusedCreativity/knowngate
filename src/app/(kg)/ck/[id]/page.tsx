@@ -5,8 +5,8 @@ import type { FrozenCheck, ItemResult, LabelResult, PlaceResult } from "@/lib/kn
 import { questionText } from "@/lib/knowngate/contracts";
 import { isFreezeId } from "@/lib/knowngate/validation";
 import { formatReadDate, summarizeItem } from "@/lib/kg/live-map";
-import { MustNotOmit, SourceLine } from "@/components/kg/primitives";
-import { ResultEvidence } from "@/components/kg/result-evidence";
+import { SourceLine } from "@/components/kg/primitives";
+import { PlaceEvidence, ResultEvidence } from "@/components/kg/result-evidence";
 import { RecordActions } from "@/components/kg/record-actions";
 
 export const dynamic = "force-dynamic";
@@ -124,29 +124,10 @@ export default async function FrozenPage({ params }: { params: Promise<{ id: str
             <ResultEvidence key={i} item={r} label={labels[i]} />
           ) : (
             <section key={i} className="kg-record-place">
-              <h2>{r.venue?.name || "This venue"}</h2>
-              <p className="kg-summary">{chartLine(r)}</p>
-              <MustNotOmit items={r.must_not_omit ?? []} />
-              {r.caveat ? (
-                <div className="kg-must-not-omit">
-                  <ul>
-                    <li>
-                      <span className="mno-label">MUST NOT OMIT:</span> {r.caveat.text}
-                    </li>
-                  </ul>
-                </div>
-              ) : null}
-              {venueTotal(r) ? (
-                <div className="kg-chip-row" style={{ margin: "16px 0" }}>
-                  <span className="chip on">{r.verdict_counts.no_conflict} clear</span>
-                  <span className="chip">{r.verdict_counts.ask_one_question} ask one question</span>
-                  <span className="chip">{r.verdict_counts.conflict} conflict found</span>
-                  <span className="chip">{r.verdict_counts.cannot_verify} couldn&rsquo;t verify</span>
-                </div>
-              ) : null}
+              <PlaceEvidence result={r} chartLine={chartLine(r)} />
               {r.notable?.length ? (
                 <>
-                  <p className="sec-label" style={{ marginTop: 20 }}>
+                  <p className="sec-label" style={{ marginTop: 24 }}>
                     WHAT IT ASKED
                   </p>
                   {r.notable.map((n, j) => (
