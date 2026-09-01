@@ -160,34 +160,6 @@ export function CheckWorkspace() {
   const resultIsItem = !!urlSubject || (!!item && !place);
   const showItemResult = (showHumanResult || showAgentResult) && resultIsItem;
   const showPlaceResult = showAgentResult && !resultIsItem;
-  /**
-   * The steps to show beside a settled item ruling. The live log if this
-   * session drove it; otherwise reconstructed from the url that carries the
-   * premise, so a shared agent-mode link still describes its own check rather
-   * than borrowing the fixture's venue run.
-   */
-  const settledLog: { name: string; detail: string }[] = !resultIsItem
-    ? []
-    : agentLog.length
-      ? [
-          ...agentLog,
-          ...(load === "ready"
-            ? [{ name: "result settled", detail: "verdict, source and read date returned" }]
-            : []),
-        ]
-      : showAgentResult
-        ? [
-            { name: "premise set", detail: railLine },
-            { name: "subject loaded", detail: checkedSubject },
-            {
-              name: "check_item",
-              detail: load === "ready" ? "one product ruled" : "ruling against the live evidence",
-            },
-            ...(load === "ready"
-              ? [{ name: "result settled", detail: "verdict, source and read date returned" }]
-              : []),
-          ]
-        : [];
 
   const tools: RegisteredTool[] = [
     {
@@ -482,6 +454,34 @@ export function CheckWorkspace() {
     placeCounts.conflict_found +
     placeCounts.couldnt_verify;
 
+  /**
+   * The steps to show beside a settled item ruling. The live log if this
+   * session drove it; otherwise reconstructed from the url that carries the
+   * premise, so a shared agent-mode link still describes its own check rather
+   * than borrowing the fixture's venue run.
+   */
+  const settledLog: { name: string; detail: string }[] = !resultIsItem
+    ? []
+    : agentLog.length
+      ? [
+          ...agentLog,
+          ...(load === "ready"
+            ? [{ name: "result settled", detail: "verdict, source and read date returned" }]
+            : []),
+        ]
+      : showAgentResult
+        ? [
+            { name: "premise set", detail: railLine },
+            { name: "subject loaded", detail: checkedSubject },
+            {
+              name: "check_item",
+              detail: load === "ready" ? "one product ruled" : "ruling against the live evidence",
+            },
+            ...(load === "ready"
+              ? [{ name: "result settled", detail: "verdict, source and read date returned" }]
+              : []),
+          ]
+        : [];
   /**
    * What is left after the items already listed. Reporting the full counts
    * here would count the six shown twice, which is how it read as "84 more
