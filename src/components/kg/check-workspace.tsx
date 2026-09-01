@@ -453,11 +453,21 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
     setSaving(true);
     setSaveError(null);
     try {
+      /**
+       * The premise that was actually ruled, which is the one the url carries.
+       * Agent mode used to freeze the fixture's restrictions, so a record of a
+       * peanut check was filed, permanently and shareably, as a check on milk.
+       */
+      const savedRestrictions = urlRestrictions.length
+        ? urlRestrictions
+        : agentFlow.parsed?.restrictions.length
+          ? agentFlow.parsed.restrictions
+          : mode === "agent"
+            ? agentRestrictions
+            : humanRestrictions;
       const frozen = await knownGateClient.freeze({
         premise: {
-          restrictions: (mode === "agent" ? agentRestrictions : humanRestrictions).map((key) => ({
-            key: key as Restriction["key"],
-          })),
+          restrictions: savedRestrictions.map((key) => ({ key: chipToKey(key) })),
         },
         results,
       });
@@ -499,6 +509,12 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
     ? (item.subject?.name ?? item.subject?.value ?? urlSubject ?? "what you asked about")
     : (urlSubject ?? human.subject.name);
   const placeCounts = place ? mapPlaceCounts(place) : agent.counts;
+  /** Nothing ruled is a state to describe, not a row of zeros to print. */
+  const venueRuledCount =
+    placeCounts.no_conflict_found +
+    placeCounts.conflict_found +
+    placeCounts.ask_one_question +
+    placeCounts.couldnt_verify;
   const notable = place ? mapNotable(place) : agent.notable;
   const itemTotal =
     placeCounts.no_conflict_found +
@@ -1196,12 +1212,36 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
                 <p style={{ color: "var(--kg-ink2)" }}>Ruling the venue against the live chart…</p>
               ) : null}
               <MustNotOmit items={place?.must_not_omit ?? agent.must_not_omit ?? []} />
-              <div className="kg-chip-row" style={{ marginBottom: 20 }}>
-                <span className="chip on">{placeCounts.no_conflict_found} clear</span>
-                <span className="chip">{placeCounts.ask_one_question} ask</span>
-                <span className="chip">{placeCounts.conflict_found} conflict</span>
-                <span className="chip">{placeCounts.couldnt_verify} couldn&apos;t verify</span>
-              </div>
+              {/*
+                A venue with nothing behind it used to render four zeros and a
+                line about rounding nothing into "mostly fine", which tells a
+                reader neither what was looked for nor what the zeros mean.
+                Say it instead.
+              */}
+              {place && !venueRuledCount ? (
+                <div className="kg-callout" style={{ marginBottom: 20 }}>
+                  <strong>
+                    {place.chart === "none_found"
+                      ? "No published allergen chart was found for this venue."
+                      : place.chart === "published_not_machine_readable"
+                        ? "This venue publishes allergen information, but not in a form that can be ruled on."
+                        : "The chart was read, and it listed no items to rule against."}
+                  </strong>
+                  <p>
+                    Nothing here was checked, so this is not a clear and not a conflict. The evidence
+                    needed to answer does not exist anywhere we can read it. Ask{" "}
+                    {place.venue?.name || "the venue"} directly, and treat what they say as a claim with
+                    a date on it.
+                  </p>
+                </div>
+              ) : (
+                <div className="kg-chip-row" style={{ marginBottom: 20 }}>
+                  <span className="chip on">{placeCounts.no_conflict_found} clear</span>
+                  <span className="chip">{placeCounts.ask_one_question} ask</span>
+                  <span className="chip">{placeCounts.conflict_found} conflict</span>
+                  <span className="chip">{placeCounts.couldnt_verify} couldn&apos;t verify</span>
+                </div>
+              )}
               <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                 {notable.map((n) => (
                   <article

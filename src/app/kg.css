@@ -1639,3 +1639,15 @@
   padding: 9px 20px;
   font-size: 13.5px;
 }
+
+/* A question the venue check asked, on a saved record. */
+.kg-root .kg-record-notable {
+  border: 1px solid var(--kg-line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.kg-root .kg-record-notable .name { font-weight: 600; margin-bottom: 6px; }
+.kg-root .kg-record-notable p { margin: 0; font-size: 13.5px; line-height: 1.6; }
+.kg-root .kg-record-notable .kg-source { margin-top: 8px; }

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getFreeze, getLabel, KnownGateApiError } from "@/lib/knowngate/api";
-import type { FrozenCheck, ItemResult, LabelResult } from "@/lib/knowngate/contracts";
+import type { FrozenCheck, ItemResult, LabelResult, PlaceResult } from "@/lib/knowngate/contracts";
+import { questionText } from "@/lib/knowngate/contracts";
 import { isFreezeId } from "@/lib/knowngate/validation";
-import { formatReadDate } from "@/lib/kg/live-map";
-import { MustNotOmit } from "@/components/kg/primitives";
+import { formatReadDate, summarizeItem } from "@/lib/kg/live-map";
+import { MustNotOmit, SourceLine } from "@/components/kg/primitives";
 import { ResultEvidence } from "@/components/kg/result-evidence";
 import { RecordActions } from "@/components/kg/record-actions";
 
@@ -26,6 +27,31 @@ async function load(id: string): Promise<{ frozen?: FrozenCheck; missing?: boole
 
 function isItem(result: FrozenCheck["payload"]["results"][number]): result is ItemResult {
   return "verdict" in result;
+}
+
+function venueTotal(r: PlaceResult): number {
+  const c = r.verdict_counts;
+  return c.no_conflict + c.conflict + c.ask_one_question + c.cannot_verify;
+}
+
+/**
+ * What the chart state means, in words. It used to print the raw state, so a
+ * venue we could not find read as "none found" with nothing else on the page,
+ * which tells a reader neither what was looked for nor what it means.
+ */
+function chartLine(r: PlaceResult): string {
+  const total = venueTotal(r);
+  if (r.chart === "none_found") {
+    return "No published allergen chart was found for this venue, so nothing here was ruled. That is not a clear and not a conflict: it means the evidence to answer does not exist where we can read it.";
+  }
+  if (r.chart === "published_not_machine_readable") {
+    return "This venue publishes allergen information, but not in a form that can be read and ruled on. Ask the venue directly.";
+  }
+  if (!total) {
+    return "The chart was read, but it listed no items to rule against.";
+  }
+  const c = r.verdict_counts;
+  return `${total} items ruled against the published chart: ${c.no_conflict} clear, ${c.conflict} conflict found, ${c.ask_one_question} ask one question, ${c.cannot_verify} couldn't verify.`;
 }
 
 /**
@@ -98,14 +124,51 @@ export default async function FrozenPage({ params }: { params: Promise<{ id: str
             <ResultEvidence key={i} item={r} label={labels[i]} />
           ) : (
             <section key={i} className="kg-record-place">
-              <h2>{r.venue.name}</h2>
-              <p className="kg-summary">{r.chart.replaceAll("_", " ")}</p>
-              {r.source ? (
-                <p className="kg-source">
-                  {r.source.name} · read on {formatReadDate(r.source.read_date)}
-                </p>
-              ) : null}
+              <h2>{r.venue?.name || "This venue"}</h2>
+              <p className="kg-summary">{chartLine(r)}</p>
               <MustNotOmit items={r.must_not_omit ?? []} />
+              {r.caveat ? (
+                <div className="kg-must-not-omit">
+                  <ul>
+                    <li>
+                      <span className="mno-label">MUST NOT OMIT:</span> {r.caveat.text}
+                    </li>
+                  </ul>
+                </div>
+              ) : null}
+              {venueTotal(r) ? (
+                <div className="kg-chip-row" style={{ margin: "16px 0" }}>
+                  <span className="chip on">{r.verdict_counts.no_conflict} clear</span>
+                  <span className="chip">{r.verdict_counts.ask_one_question} ask one question</span>
+                  <span className="chip">{r.verdict_counts.conflict} conflict found</span>
+                  <span className="chip">{r.verdict_counts.cannot_verify} couldn&rsquo;t verify</span>
+                </div>
+              ) : null}
+              {r.notable?.length ? (
+                <>
+                  <p className="sec-label" style={{ marginTop: 20 }}>
+                    WHAT IT ASKED
+                  </p>
+                  {r.notable.map((n, j) => (
+                    <article key={j} className="kg-record-notable">
+                      <div className="name">{n.subject?.name ?? n.subject?.value ?? "An item"}</div>
+                      <p>{questionText(n.question) ?? summarizeItem(n)}</p>
+                      {n.source ? (
+                        <p className="kg-source">
+                          {n.source.name} · read on {formatReadDate(n.source.read_date)}
+                        </p>
+                      ) : null}
+                    </article>
+                  ))}
+                </>
+              ) : null}
+              {r.source ? (
+                <SourceLine
+                  kind="chart"
+                  name={r.source.name}
+                  read_at={formatReadDate(r.source.read_date)}
+                />
+              ) : null}
             </section>
           ),
         )}
