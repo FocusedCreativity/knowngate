@@ -62,23 +62,33 @@ export function CheckWorkspace() {
     .filter(Boolean);
   const humanRestrictions = urlRestrictions.length ? urlRestrictions : premise.restrictions;
   const urlMax = Number(sp.get("sodium"));
-  const thresholdMax =
-    Number.isFinite(urlMax) && urlMax > 0 ? urlMax : premise.threshold.max;
+  const hasUrlMax = Number.isFinite(urlMax) && urlMax > 0;
+  /**
+   * A URL that states a premise states all of it. Falling back to the fixture's
+   * 600mg for someone who only named an allergen would check them against a
+   * number they never gave.
+   */
+  const hasUrlPremise = urlRestrictions.length > 0 || hasUrlMax;
+  const thresholdMax = hasUrlMax ? urlMax : premise.threshold.max;
+  const checkThreshold = hasUrlPremise ? hasUrlMax : true;
   const urlSubject = sp.get("subject")?.trim() || null;
   /** A dish needs the venue it is served at; it is the only subject that can carry a question. */
   const urlVenue = sp.get("venue")?.trim() || null;
   const subjectDigits = urlSubject ? urlSubject.replace(/\D/g, "") : "";
   const subjectIsUpc = subjectDigits.length >= 8 && subjectDigits.length <= 14;
 
-  const humanPremiseLine =
-    urlRestrictions.length || Number.isFinite(urlMax)
-      ? [...humanRestrictions, `sodium under ${thresholdMax} mg per serving`].join(" · ")
-      : premise.line;
+  const humanPremiseLine = hasUrlPremise
+    ? [...humanRestrictions, checkThreshold ? `sodium under ${thresholdMax} mg per serving` : null]
+        .filter(Boolean)
+        .join(" · ")
+    : premise.line;
   const bannerLine = mode === "agent" ? (premise.agent_line ?? "milk") : humanPremiseLine;
   const bannerMeta = mode === "human" ? premise.human_meta : premise.agent_meta;
   const railLine =
     mode === "human"
-      ? `${humanRestrictions.join(", ")}, sodium under ${thresholdMax} mg`
+      ? [...humanRestrictions, checkThreshold ? `sodium under ${thresholdMax} mg` : null]
+          .filter(Boolean)
+          .join(", ")
       : agentRestrictions.join(", ");
   const railSub = mode === "human" ? human.rail_summary : agent.rail_summary;
   /** Identifies the check this URL asks for, so a settled one is not run twice. */
@@ -256,14 +266,18 @@ export function CheckWorkspace() {
                   value: human.subject.upc_display ?? human.subject.upc,
                   name: human.subject.name,
                 },
-            thresholds: [
-              {
-                nutrient: premise.threshold.nutrient,
-                max: thresholdMax,
-                unit: premise.threshold.unit,
-                basis: "per_serving",
-              },
-            ],
+            ...(checkThreshold
+              ? {
+                  thresholds: [
+                    {
+                      nutrient: premise.threshold.nutrient,
+                      max: thresholdMax,
+                      unit: premise.threshold.unit,
+                      basis: "per_serving",
+                    },
+                  ],
+                }
+              : {}),
           });
           if (!cancelled) {
             settledKey.current = requestKey;
@@ -380,9 +394,7 @@ export function CheckWorkspace() {
   const humanSummary = item
     ? [
         summarizeItem(item),
-        sodiumHit || human.threshold
-          ? "The sodium limit is met."
-          : null,
+        sodiumHit ? "The sodium limit is met." : null,
       ]
         .filter(Boolean)
         .join(" ")
@@ -465,10 +477,14 @@ export function CheckWorkspace() {
           )}
           {mode === "human" ? (
             <>
-              <p className="sec-label">KEEP UNDER</p>
-              <p style={{ fontSize: 14, margin: "0 0 20px" }}>
-                Keep <strong>sodium</strong> under <strong>{thresholdMax} mg</strong> per serving
-              </p>
+              {checkThreshold ? (
+                <>
+                  <p className="sec-label">KEEP UNDER</p>
+                  <p style={{ fontSize: 14, margin: "0 0 20px" }}>
+                    Keep <strong>sodium</strong> under <strong>{thresholdMax} mg</strong> per serving
+                  </p>
+                </>
+              ) : null}
               <p className="sec-label">WHAT YOU CHECKED</p>
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
                 <div

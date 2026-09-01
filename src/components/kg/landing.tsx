@@ -167,12 +167,20 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
       const result = await knownGateClient.checkItem({
         restrictions: restrictionKeys.map((key) => ({ key: chipToKey(key) })),
         subject: subjectFromInput(subjectValue),
-        thresholds: thresholds.map((t) => ({
-          nutrient: t.nutrient,
-          max: t.max,
-          unit: t.unit,
-          basis: "per_serving",
-        })),
+        // Omitted rather than sent empty when the premise carries no number.
+        // An absent key and a bare [] should mean the same thing, and the API
+        // now accepts both, but a restriction-only premise is the common case
+        // and it should not depend on that.
+        ...(thresholds.length
+          ? {
+              thresholds: thresholds.map((t) => ({
+                nutrient: t.nutrient,
+                max: t.max,
+                unit: t.unit,
+                basis: "per_serving",
+              })),
+            }
+          : {}),
       });
       sessionStorage.setItem(LANDING_RESULT_KEY, JSON.stringify(result));
       const q = new URLSearchParams();
