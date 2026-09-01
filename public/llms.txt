@@ -2,6 +2,15 @@
 
 > KnownGate is the food verification layer for people and AI agents with dietary restrictions: it checks food against a stated premise and returns evidence-backed verdicts with sources and dates.
 
+## The standard these verdicts are issued under
+
+The rules are published in full at https://www.knowngate.com/standard,
+and as a document you can build against at
+https://www.knowngate.com/standard/v1.json: the four verdicts, the
+highest verdict each kind of source can reach, the invariants, and the
+policy for how the standard changes. Every verdict is issued under a
+stated version of it.
+
 ## If you are an agent arriving to check food
 
 Ordered by what you can actually do. Most browsing agents drive pages by

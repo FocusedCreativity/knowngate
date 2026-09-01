@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DataTable, Orient } from "@/components/kg/data-table";
 import { KNOWNGATE_DEFINITION } from "@/lib/kg/entity";
+import { CHANGELOG, CHANGE_POLICY, SOURCE_CEILINGS } from "@/lib/kg/evidence-standard";
 
 export const metadata: Metadata = {
   title: "The evidence standard · KnownGate",
@@ -91,20 +92,13 @@ export default function StandardPage() {
           Who wrote the evidence decides how far it can take you, not whether it happens to be right. A
           correct reading of a PDF is still our reading, not theirs.
         </p>
+        {/* Rendered from the published profile, so this table and
+            /standard/v1.json can never state different ceilings. */}
         <DataTable
           headers={["Source", "What it is", "Ceiling"]}
-          rows={[
-            { cells: ["Manufacturer label", "A legal declaration by the party that made the food", "no conflict found"] },
-            { cells: ["Nutrition panel", "A mandatory declaration by the party that made the food, per stated serving", "no conflict found"] },
-            { cells: ["Venue statement", "Filed by a named person at the venue, dated and superseding", "no conflict found"] },
-            { cells: ["Structured menu field", "Item names in a machine-readable field the venue maintains", "no conflict found"] },
-            { cells: ["Q-PREP answer", "A dated answer attributed to a named person", "no conflict found"] },
-            { cells: ["Document", "A PDF or HTML menu we parsed", "ask one question"] },
-            { cells: ["Image", "A menu or label we transcribed from a photo", "ask one question"] },
-            { cells: ["Agent claim", "Ingredients or menu text supplied by an agent", "ask one question"] },
-            { cells: ["Spoken claim", "“It has no nuts”, unattributed or unrecorded", "couldn't verify"] },
-            { cells: ["Nothing", "No source on either axis", "couldn't verify"] },
-          ]}
+          rows={SOURCE_CEILINGS.map((r) => ({
+            cells: [r.source, r.what_it_is, r.ceiling.replace(/_/g, " ").replace("couldnt", "couldn\u2019t")],
+          }))}
         />
         <div className="kg-callout" style={{ marginTop: 24 }}>
           <strong>A claim can create a conflict. It can never create a clear.</strong>
@@ -183,11 +177,35 @@ export default function StandardPage() {
 
       <section className="kg-section">
         <h2>Changing this standard</h2>
-        <p className="sub">Versioned, dated, and public. Proposals are welcome and are answered in public.</p>
+        <p className="sub">
+          Versioned, dated, and public. A standard you write policy against has to promise its own
+          stability, so here is what a change can and cannot do to a verdict you already hold.
+        </p>
+        <DataTable
+          headers={["Rule", "Detail"]}
+          rows={[
+            { cells: ["Versioning", CHANGE_POLICY.versioning] },
+            { cells: ["What breaks", CHANGE_POLICY.breaking_change] },
+            { cells: ["What does not", CHANGE_POLICY.non_breaking_change] },
+            { cells: ["Announcement", CHANGE_POLICY.announcement] },
+            { cells: ["Verdicts already issued", CHANGE_POLICY.effect_on_existing_verdicts] },
+          ]}
+        />
+        <h3 style={{ fontSize: 17, margin: "28px 0 10px" }}>Versions</h3>
         <DataTable
           headers={["Version", "Date", "Change"]}
-          rows={[{ cells: ["v1.0", "30 Aug 2026", "First published."] }]}
+          rows={CHANGELOG.map((c) => ({ cells: [`v${c.version}`, c.date, c.change] }))}
         />
+        <div className="kg-callout" style={{ marginTop: 24 }}>
+          <strong>The machine-readable profile.</strong>
+          <p>
+            The same rules as a document you can build against, at{" "}
+            <a href="/standard/v1.json">/standard/v1.json</a>: the verdicts, the source ceilings, the
+            invariants, and this change policy. The table above is rendered from it, so the page and the
+            profile cannot disagree. Take it and build on it. A standard others build against is worth
+            more to us than a database others cannot see.
+          </p>
+        </div>
       </section>
     </>
   );

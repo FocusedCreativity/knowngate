@@ -106,5 +106,11 @@
       "rest": "https://www.knowngate.com/api/knowngate/v0",
       "key": "Free. Create one in-band with the register tool, or POST /v0/keys."
     }
+  },
+  "evidence_standard": {
+    "name": "KnownGate Evidence Standard",
+    "version": "1.0",
+    "human_url": "https://www.knowngate.com/standard",
+    "profile_url": "https://www.knowngate.com/standard/v1.json"
   }
 }
