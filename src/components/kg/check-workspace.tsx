@@ -740,7 +740,7 @@ export function CheckWorkspace() {
                 </div>
               </div>
               <SummaryLine text={humanSummary} />
-              <MustNotOmit items={item?.must_not_omit ?? []} />
+              <MustNotOmit items={item?.must_not_omit ?? human.must_not_omit ?? []} />
               <p className="sec-label" style={{ marginTop: 24 }}>
                 THE EVIDENCE
               </p>
@@ -848,7 +848,7 @@ export function CheckWorkspace() {
               {load === "loading" ? (
                 <p style={{ color: "var(--kg-ink2)" }}>Ruling the venue against the live chart…</p>
               ) : null}
-              <MustNotOmit items={place?.must_not_omit ?? []} />
+              <MustNotOmit items={place?.must_not_omit ?? agent.must_not_omit ?? []} />
               <div className="kg-chip-row" style={{ marginBottom: 20 }}>
                 <span className="chip on">{placeCounts.no_conflict_found} clear</span>
                 <span className="chip">{placeCounts.ask_one_question} ask</span>
@@ -982,7 +982,7 @@ function EmptyLanding({ step, agent }: { step: number; agent?: boolean }) {
         </p>
         {agent ? (
           <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 16 }}>
-            Agent mode. Waiting for your agent to call set_restrictions and load_subject.
+            Work mode. Waiting for your agent to call set_restrictions and load_subject.
           </p>
         ) : (
           <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 16 }}>

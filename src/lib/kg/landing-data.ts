@@ -53,6 +53,8 @@ export type LandingMenuCard = {
   };
   readDate: string | null;
   sourceName: string | null;
+  /** Rendered with a visible label; a venue result's cross-contact caveat lives here. */
+  mustNotOmit: string[];
   notable: Array<{
     name: string;
     verdict: DesignVerdict;
@@ -211,6 +213,7 @@ export async function loadLandingExamples(): Promise<LandingExamples> {
       counts,
       readDate: rawVenue.source?.read_date ? formatReadDate(rawVenue.source.read_date) : null,
       sourceName: rawVenue.source?.name ?? null,
+      mustNotOmit: rawVenue.must_not_omit ?? [],
       notable: rawVenue.notable.slice(0, 5).map((n) => {
         const verdict = toDesignVerdict(n.verdict);
         return {

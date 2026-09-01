@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import "../kg.css";
 import { KgShell } from "@/components/kg/shell";
 import { KgFooter } from "@/components/kg/footer";
+import { AgentDirections } from "@/components/kg/agent-directions";
 
 export default function KgLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,6 +16,9 @@ export default function KgLayout({ children }: { children: React.ReactNode }) {
         <KgShell />
       </Suspense>
       <main className="kg-main">{children}</main>
+      {/* On every page, not only /check: a searching model lands wherever the
+          index sent it and never drives to the workspace. */}
+      <AgentDirections />
       <KgFooter />
     </div>
   );

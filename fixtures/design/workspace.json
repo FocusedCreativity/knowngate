@@ -59,7 +59,8 @@
       "name": "retailer product data (Kroger API)",
       "read_at": "29 Aug 2026"
     },
-    "rail_summary": "1 item checked · tap to change the premise"
+    "rail_summary": "1 item checked · tap to change the premise",
+    "must_not_omit": []
   },
   "agent": {
     "venue": {
@@ -135,7 +136,10 @@
       }
     ],
     "more_line": "Live check_place fills notable dishes from the chart.",
-    "rail_summary": "Krystal, 84 items · tap to see what the agent did"
+    "rail_summary": "Krystal, 84 items · tap to see what the agent did",
+    "must_not_omit": [
+      "caveat, Be aware that there may still be a chance for cross-contact on shared surfaces, including fryers."
+    ]
   },
   "console_keys": {
     "shown_once": "kg_live_7c41f9930b2e4a1d88f2a6e0",

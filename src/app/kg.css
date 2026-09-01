@@ -423,8 +423,9 @@
   border-left: 3px solid var(--kg-ask); background: var(--kg-ask-bg);
   padding: 12px 14px; margin-top: 8px;
 }
-.kg-must-not-omit ul { margin: 6px 0 0; padding-left: 1.1rem; }
-.kg-must-not-omit li { margin: 4px 0; }
+.kg-must-not-omit ul { margin: 0; padding: 0; list-style: none; }
+.kg-must-not-omit li { margin: 4px 0; font-size: 13.5px; line-height: 1.55; }
+.kg-must-not-omit .mno-label { font-weight: 700; letter-spacing: 0.02em; color: var(--kg-ask); }
 
 .kg-source { font-size: 13px; color: var(--kg-ink2); }
 .kg-summary { font-size: 15px; color: var(--kg-ink); }

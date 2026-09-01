@@ -313,14 +313,21 @@ export function QuestionsTable({
   );
 }
 
+/**
+ * The label is inside each line on purpose. A model that only reads the page
+ * has no access to the field name in our payload, and one that was left to
+ * infer it labelled the wrong sentence. Ugly beats lost: this text exists to
+ * survive being relayed by something that never called the API.
+ */
 export function MustNotOmit({ items }: { items: string[] }) {
   if (!items.length) return null;
   return (
     <div className="kg-must-not-omit">
-      <strong>must_not_omit</strong>
       <ul>
         {items.map((i) => (
-          <li key={i}>{i}</li>
+          <li key={i}>
+            <span className="mno-label">MUST NOT OMIT:</span> {i}
+          </li>
         ))}
       </ul>
     </div>

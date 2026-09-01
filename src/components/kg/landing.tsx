@@ -7,6 +7,7 @@ import { knownGateClient } from "@/lib/knowngate/client";
 import type { Restriction } from "@/lib/knowngate/contracts";
 import type { LandingExamples } from "@/lib/kg/landing-data";
 import { LANDING_RESULT_KEY } from "@/lib/kg/landing-handoff";
+import { MustNotOmit } from "@/components/kg/primitives";
 import {
   PARSE_MAX_CHARS,
   parsePremise,
@@ -222,7 +223,10 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
                 >
                   Use ChatGPT instead
                 </a>
-                <p>Opens ChatGPT with the task ready. Its agent comes back here and does the checking.</p>
+                <p>
+                  Opens ChatGPT with the task ready. Switch to work mode so its agent can come back here and
+                  do the checking.
+                </p>
               </div>
               <div className="kg-landing-composer">
                 <input
@@ -529,6 +533,7 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
                 </div>
                 {menu.sourceName ? <span className="chip">{menu.sourceName}</span> : null}
               </div>
+              <MustNotOmit items={menu.mustNotOmit} />
               <ul className="kg-landing-menu-list">
                 {menu.notable.map((n) => {
                   const cls = verdictClass(n.verdict);
