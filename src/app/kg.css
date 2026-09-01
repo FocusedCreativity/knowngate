@@ -463,9 +463,20 @@
 }
 
 /* —— Footer —— */
-.kg-footer {
-  border-top: 1px solid var(--kg-line); padding: 52px var(--kg-pad) 28px; margin-top: auto;
+/*
+ * globals.css styles the bare `footer` element for the RulingRoom: display
+ * flex, a capped width and margin-inline auto. Those win wherever .kg-footer
+ * does not set the same property, which laid the footer grid and its bottom
+ * row side by side inside a centred 1180px box. Reset them explicitly.
+ */
+.kg-root .kg-footer {
+  display: block; width: 100%; margin: auto 0 0; gap: 0;
+  align-items: stretch; justify-content: flex-start;
+  border-top: 1px solid var(--kg-line); padding: 52px var(--kg-pad) 28px;
+  font-size: 14px; color: var(--kg-ink);
 }
+.kg-root .kg-footer-grid { margin: 0 auto; }
+.kg-root .kg-footer-bottom { max-width: var(--kg-max); margin: 32px auto 0; }
 .kg-footer-grid {
   display: grid; grid-template-columns: 300px 1fr repeat(3, 180px); gap: 32px; max-width: var(--kg-max);
 }
@@ -951,7 +962,12 @@
 }
 .kg-landing-dev {
   margin: 0;
-  padding: 48px var(--kg-pad);
+  /*
+   * The band is full bleed, its content is not. Centring padding keeps the
+   * row inside the same 1200px column as every other section, instead of
+   * throwing the heading and the button to opposite edges of a wide screen.
+   */
+  padding: 36px max(var(--kg-pad), calc((100% - var(--kg-max)) / 2));
   background: #182018;
   color: #f4f7ef;
   display: flex;
@@ -960,6 +976,18 @@
   gap: 24px;
   flex-wrap: wrap;
 }
+/* 140:38: the two lines are one column, the button sits beside them. */
+.kg-landing-dev > div { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.kg-landing-dev strong { font-size: 19px; font-weight: 600; line-height: 1.5; }
+.kg-landing-dev p { margin: 0; font-size: 14px; line-height: 1.6; }
+/* 140:41 draws this lime, not the white quiet button. */
+.kg-root a.kg-dev-cta {
+  flex-shrink: 0; display: inline-flex; align-items: center;
+  background: var(--kg-lime); color: var(--kg-ink);
+  font-size: 14.5px; font-weight: 600; padding: 14px 22px; border-radius: 10px;
+  text-decoration: none;
+}
+.kg-root a.kg-dev-cta:hover { filter: brightness(0.96); }
 .kg-landing-dev h2 {
   font-family: var(--kg-serif);
   font-size: clamp(24px, 3vw, 34px);
@@ -1024,8 +1052,10 @@
   .kg-landing-section h2 { text-align: left; }
   .kg-landing-section .sub.center { text-align: left; margin-left: 0; }
   .kg-landing-menu-head { flex-direction: column; }
-  .kg-landing-dev { padding: 36px 20px; }
+
   .kg-landing-actions { justify-content: flex-start; }
+  .kg-landing-dev { flex-direction: column; align-items: flex-start; }
+  .kg-landing-dev > div { flex: none; width: 100%; }
   .kg-close { padding: 44px var(--kg-pad); text-align: left; align-items: flex-start; }
   .kg-signup-split { grid-template-columns: 1fr; }
 }
@@ -1192,3 +1222,22 @@
 .kg-question-wrap { margin-top: 24px; }
 .kg-question-wrap .kg-eyebrow { margin-bottom: 10px; }
 .kg-question-note { margin: 12px 0 0; font-size: 13px; line-height: 1.6; color: var(--kg-ink2); }
+
+/*
+ * Present for anything reading the page, absent for anyone looking at it.
+ * Not display:none: that would drop the text from innerText and the
+ * accessibility tree, which is exactly the audience this is for.
+ */
+.visually-hidden,
+.kg-agent-note {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

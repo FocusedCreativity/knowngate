@@ -707,12 +707,14 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
       </section>
 
       <section className="kg-landing-dev">
-        <strong>Building an agent that talks about food?</strong>
-        <p>
-          One call returns the answer with its source and date, for allergens and for numbers. A free key
-          covers API and MCP access.
-        </p>
-        <Link className="kg-btn quiet" href="/developers">
+        <div>
+          <strong>Building an agent that talks about food?</strong>
+          <p>
+            One call returns the answer with its source and date, for allergens and for numbers. A free key
+            covers API and MCP access.
+          </p>
+        </div>
+        <Link className="kg-dev-cta" href="/developers">
           Read the docs
         </Link>
       </section>
