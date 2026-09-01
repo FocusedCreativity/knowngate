@@ -65,6 +65,8 @@ export function CheckWorkspace() {
   const thresholdMax =
     Number.isFinite(urlMax) && urlMax > 0 ? urlMax : premise.threshold.max;
   const urlSubject = sp.get("subject")?.trim() || null;
+  /** A dish needs the venue it is served at; it is the only subject that can carry a question. */
+  const urlVenue = sp.get("venue")?.trim() || null;
   const subjectDigits = urlSubject ? urlSubject.replace(/\D/g, "") : "";
   const subjectIsUpc = subjectDigits.length >= 8 && subjectDigits.length <= 14;
 
@@ -86,6 +88,7 @@ export function CheckWorkspace() {
     agentRestrictions.join(","),
     thresholdMax,
     urlSubject ?? "",
+    urlVenue ?? "",
   ].join("|");
   const settledKey = useRef<string | null>(null);
 
@@ -245,7 +248,9 @@ export function CheckWorkspace() {
             subject: urlSubject
               ? subjectIsUpc
                 ? { kind: "upc", value: subjectDigits.padStart(14, "0").slice(-14) }
-                : { kind: "product_query", value: urlSubject }
+                : urlVenue
+                  ? { kind: "menu_item", value: urlSubject, venue: urlVenue }
+                  : { kind: "product_query", value: urlSubject }
               : {
                   kind: "upc",
                   value: human.subject.upc_display ?? human.subject.upc,
