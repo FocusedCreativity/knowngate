@@ -8,7 +8,12 @@
  * it in one surface and the search and model layers see two products.
  */
 export const KNOWNGATE_DEFINITION =
-  "KnownGate is the food verification layer for people and AI agents with dietary restrictions: it checks food against a stated premise and returns evidence-backed verdicts with sources and dates.";
+  "KnownGate is the food verification layer for people and AI agents: it checks food against what must not be in it, or a number it must stay under, and returns evidence-backed verdicts with their sources and read dates.";
+
+/** The endpoint we publish. The versioned path still works and is documented
+ *  on /agents and /developers, but it is never the address we hand out: a
+ *  mirrored registry entry carrying "v0" cannot be corrected later. */
+export const KNOWNGATE_MCP_ENDPOINT = "https://mcp.knowngate.com";
 
 export const KNOWNGATE_ORIGIN = "https://www.knowngate.com";
 

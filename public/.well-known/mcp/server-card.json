@@ -1,7 +1,7 @@
 {
   "name": "knowngate",
   "version": "0.1.0",
-  "description": "KnownGate is the food verification layer for people and AI agents with dietary restrictions: it checks food against a stated premise and returns evidence-backed verdicts with sources and dates.",
+  "description": "KnownGate is the food verification layer for people and AI agents: it checks food against what must not be in it, or a number it must stay under, and returns evidence-backed verdicts with their sources and read dates.",
   "vendor": {
     "name": "fuda",
     "url": "https://www.knowngate.com"
@@ -9,8 +9,9 @@
   "documentation": "https://www.knowngate.com/agents",
   "llms_txt": "https://www.knowngate.com/llms.txt",
   "endpoints": {
-    "mcp": "https://www.knowngate.com/api/knowngate/v0/mcp",
-    "rest": "https://www.knowngate.com/api/knowngate/v0"
+    "mcp": "https://mcp.knowngate.com",
+    "rest": "https://www.knowngate.com/api/knowngate/v0",
+    "mcp_direct": "https://www.knowngate.com/api/knowngate/v0/mcp"
   },
   "transport": [
     "streamable-http",
@@ -113,5 +114,9 @@
     "version": "1.0",
     "human_url": "https://www.knowngate.com/standard",
     "profile_url": "https://www.knowngate.com/standard/v1.json"
+  },
+  "license": {
+    "code": "MIT",
+    "standard": "CC-BY-4.0"
   }
 }
