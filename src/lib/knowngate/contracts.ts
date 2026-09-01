@@ -80,7 +80,7 @@ export type CheckPlaceRequest = {
   venue: { name: string; location?: string };
 };
 
-export type CoverageState = "covered" | "silent" | "unknown";
+export type CoverageState = "covered" | "not_covered" | "silent" | "unknown";
 
 export type Source = {
   name: string;

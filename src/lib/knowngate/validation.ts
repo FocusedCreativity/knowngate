@@ -13,13 +13,18 @@ import {
   type Restriction,
 } from "./contracts.ts";
 
+// The canon four the API returns today, plus the v0 names still present in
+// records frozen before the rename. A stale set here rejects a real record.
 const VERDICTS = new Set([
+  "no_conflict_found",
+  "conflict_found",
+  "ask_one_question",
+  "couldnt_verify",
   "no_conflict",
   "conflict",
-  "ask_one_question",
   "cannot_verify",
 ]);
-const COVERAGE = new Set(["covered", "silent", "unknown"]);
+const COVERAGE = new Set(["covered", "not_covered", "silent", "unknown"]);
 const CHART_STATES = new Set([
   "ruled",
   "published_not_machine_readable",
@@ -233,7 +238,22 @@ export function parseItemResult(value: unknown): ItemResult {
       const unverified = record(entry, "unverified");
       return { restriction: text(unverified.restriction, "unverified.restriction"), reason: text(unverified.reason, "unverified.reason") };
     }),
-    question: nullableText(input.question, "question"),
+    // The API sends { code, text }; older records carry a bare string.
+    question:
+      input.question === null || input.question === undefined
+        ? null
+        : typeof input.question === "string"
+          ? input.question
+          : (() => {
+              const q = record(input.question, "question");
+              return {
+                code: text(q.code, "question.code"),
+                text: text(q.text, "question.text"),
+                ...(q.what_counts === undefined || q.what_counts === null
+                  ? {}
+                  : { what_counts: text(q.what_counts, "question.what_counts") }),
+              };
+            })(),
     source: source(input.source),
     caveat: input.caveat === null || input.caveat === undefined ? null : (() => {
       const caveat = record(input.caveat, "caveat");
