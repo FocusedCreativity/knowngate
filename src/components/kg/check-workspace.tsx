@@ -356,6 +356,14 @@ export function CheckWorkspace() {
   })();
 
   const designVerdict: DesignVerdict | null = item ? toDesignVerdict(item.verdict) : null;
+  /**
+   * What was actually checked. The API returns name: null for a query it could
+   * not resolve, and falling through to the fixture put a real verdict beside
+   * a product the person never named.
+   */
+  const checkedSubject = item
+    ? (item.subject.name ?? item.subject.value)
+    : human.subject.name;
   const placeCounts = place ? mapPlaceCounts(place) : agent.counts;
   const notable = place ? mapNotable(place) : agent.notable;
   const itemTotal =
@@ -503,8 +511,14 @@ export function CheckWorkspace() {
                   PACK
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600 }}>{human.subject.short}</div>
-                  <div style={{ fontSize: 12, color: "var(--kg-ink2)" }}>{human.subject.scanned_line}</div>
+                  <div style={{ fontWeight: 600 }}>{checkedSubject}</div>
+                  <div style={{ fontSize: 12, color: "var(--kg-ink2)" }}>
+                    {item
+                      ? item.subject.kind === "upc"
+                        ? `scanned · UPC ${item.subject.value}`
+                        : "as you named it"
+                      : human.subject.scanned_line}
+                  </div>
                 </div>
               </div>
               <button type="button" className="kg-btn quiet block">
@@ -750,7 +764,7 @@ export function CheckWorkspace() {
                 <div style={{ flex: 1, minWidth: 220 }}>
                   <VerdictCard
                     verdict={designVerdict ?? (human.verdict as DesignVerdict)}
-                    subject={item?.subject.name ?? human.subject.name}
+                    subject={checkedSubject}
                     chips={chips}
                   />
                 </div>
