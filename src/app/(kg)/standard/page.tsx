@@ -136,7 +136,7 @@ export default function StandardPage() {
           </article>
           <article className="kg-tile">
             <span className="dot held" aria-hidden />
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>couldn't verify</div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>couldn&rsquo;t verify</div>
             <p className="lbl">The gap cannot be closed by any question available. Stated plainly, never softened.</p>
           </article>
         </div>

@@ -1,5 +1,5 @@
-import type { CheckItemRequest, CheckPlaceRequest, FreezeCreated, FreezeRequest, ItemResult, PlaceResult } from "./contracts.ts";
-import { normalizeItemResult, normalizePlaceResult } from "./normalize.ts";
+import type { CheckItemRequest, CheckPlaceRequest, FreezeCreated, FreezeRequest, ItemResult, LabelResult, PlaceResult } from "./contracts.ts";
+import { normalizeItemResult, normalizeLabelResult, normalizePlaceResult } from "./normalize.ts";
 
 export class KnownGateClientError extends Error {
   constructor(readonly code: string, message: string, readonly missing?: string) {
@@ -23,6 +23,10 @@ export const knownGateClient = {
     normalizeItemResult(await request("/api/knowngate/v0/check_item", { method: "POST", body: JSON.stringify(body) })),
   checkPlace: async (body: CheckPlaceRequest): Promise<PlaceResult> =>
     normalizePlaceResult(await request("/api/knowngate/v0/check_venue", { method: "POST", body: JSON.stringify(body) })),
+  // Every packaged result carries label_url; one fetch of it returns the photo,
+  // the ingredient statement and the typed panel the verdict already ruled on.
+  getLabel: async (labelUrl: string): Promise<LabelResult> =>
+    normalizeLabelResult(await request(`/api/knowngate/v0${labelUrl}`)),
   freeze: (body: FreezeRequest) =>
     request("/api/knowngate/v0/freeze", { method: "POST", body: JSON.stringify(body) }) as Promise<FreezeCreated>,
 };

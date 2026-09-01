@@ -12,6 +12,7 @@ import {
   type Premise,
   type Restriction,
 } from "./contracts.ts";
+import { nutritionPanel, optionalText } from "./normalize.ts";
 
 // The canon four the API returns today, plus the v0 names still present in
 // records frozen before the rename. A stale set here rejects a real record.
@@ -343,6 +344,10 @@ export function parseLabelResult(value: unknown): LabelResult {
       };
     }),
     source: source(input.source),
+    image_url: optionalText(input.image_url),
+    ingredients_verbatim: optionalText(input.ingredients_verbatim),
+    allergens_description: optionalText(input.allergens_description),
+    nutrition: nutritionPanel(input.nutrition),
   };
 }
 

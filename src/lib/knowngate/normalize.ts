@@ -1,5 +1,7 @@
 import type {
   CoverageState,
+  LabelResult,
+  NutritionPanel,
   ItemResult,
   LiveVerdict,
   PlaceResult,
@@ -146,5 +148,65 @@ export function normalizePlaceResult(raw: unknown): PlaceResult {
       : [],
     caveat: mapCaveat(input.caveat),
     source: mapSource(input.source),
+  };
+}
+
+/** Absent, null and empty all mean the same thing here: nothing to render. */
+export function optionalText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+const NUTRITION_NUMBERS = [
+  "serving_qty",
+  "energy_kcal",
+  "protein_g",
+  "fat_g",
+  "saturated_fat_g",
+  "trans_fat_g",
+  "carbohydrate_g",
+  "sugar_g",
+  "added_sugar_g",
+  "fiber_g",
+  "sodium_mg",
+  "cholesterol_mg",
+  "calcium_mg",
+  "iron_mg",
+  "potassium_mg",
+  "vitamin_d_mcg",
+] as const;
+
+/**
+ * A panel is only a panel if a number survived. Packs with no panel on file
+ * come back null, and that absence is rendered as itself rather than as a
+ * table of blanks.
+ */
+export function nutritionPanel(value: unknown): NutritionPanel | null {
+  if (!value || typeof value !== "object") return null;
+  const input = value as Record<string, unknown>;
+  const panel = { serving_unit: optionalText(input.serving_unit) } as NutritionPanel;
+  let stated = false;
+  for (const key of NUTRITION_NUMBERS) {
+    const raw = input[key];
+    const num = typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+    panel[key] = num;
+    if (num !== null) stated = true;
+  }
+  return stated ? panel : null;
+}
+
+/** Client-side twin of parseLabelResult: lenient, same field meanings. */
+export function normalizeLabelResult(raw: unknown): LabelResult {
+  const input = asRecord(raw) ?? {};
+  return {
+    gtin: typeof input.gtin === "string" ? input.gtin : "",
+    name: typeof input.name === "string" ? input.name : "",
+    brand: typeof input.brand === "string" ? input.brand : "",
+    statement_read: Boolean(input.statement_read),
+    findings: [],
+    source: mapSource(input.source),
+    image_url: optionalText(input.image_url),
+    ingredients_verbatim: optionalText(input.ingredients_verbatim),
+    allergens_description: optionalText(input.allergens_description),
+    nutrition: nutritionPanel(input.nutrition),
   };
 }

@@ -1,8 +1,8 @@
 import "server-only";
 
-import type { ItemResult } from "@/lib/knowngate/contracts";
+import type { ItemResult, LabelResult, NutritionPanel } from "@/lib/knowngate/contracts";
 import { questionText } from "@/lib/knowngate/contracts";
-import { normalizeItemResult, normalizePlaceResult } from "@/lib/knowngate/normalize";
+import { normalizeItemResult, normalizeLabelResult, normalizePlaceResult } from "@/lib/knowngate/normalize";
 import { toDesignVerdict, formatReadDate } from "@/lib/kg/live-map";
 import type { DesignVerdict } from "@/lib/kg/types";
 import { VERDICT_PROSE } from "@/lib/kg/types";
@@ -39,6 +39,8 @@ export type LandingProductCard = {
   detail: string;
   chips: string[];
   readDate: string | null;
+  imageUrl: string | null;
+  nutrition: NutritionPanel | null;
 };
 
 export type LandingMenuCard = {
@@ -100,6 +102,18 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
   return res.json();
 }
 
+/** GET twin of postJson: same base, same site header, same failure meaning. */
+async function getJson(path: string): Promise<unknown> {
+  const base = apiBase();
+  const url = base ? `${base}${path}` : `https://www.knowngate.com/api/knowngate/v0${path}`;
+  const headers: Record<string, string> = {};
+  const siteSecret = process.env.KNOWNGATE_SITE_SECRET;
+  if (base && siteSecret) headers["x-knowngate-site"] = siteSecret;
+  const res = await fetch(url, { headers, cache: "no-store" });
+  if (!res.ok) throw new Error(`landing ${path} failed: ${res.status}`);
+  return res.json();
+}
+
 function productDetail(result: ItemResult): string {
   const hit = result.threshold_hits?.find((h) => h.nutrient === "sodium");
   const design = toDesignVerdict(result.verdict);
@@ -133,7 +147,12 @@ function productChips(result: ItemResult): string[] {
   return chips;
 }
 
-function toProductCard(upc: string, fallbackName: string, result: ItemResult): LandingProductCard {
+function toProductCard(
+  upc: string,
+  fallbackName: string,
+  result: ItemResult,
+  label: LabelResult | null,
+): LandingProductCard {
   const verdict = toDesignVerdict(result.verdict);
   return {
     upc,
@@ -143,6 +162,8 @@ function toProductCard(upc: string, fallbackName: string, result: ItemResult): L
     detail: productDetail(result),
     chips: productChips(result),
     readDate: result.source?.read_date ? formatReadDate(result.source.read_date) : null,
+    imageUrl: label?.image_url ?? null,
+    nutrition: label?.nutrition ?? null,
   };
 }
 
@@ -177,6 +198,21 @@ export async function loadLandingExamples(): Promise<LandingExamples> {
     })(),
   ]);
 
+  // The photo and the panel come from the label each result points at. Fetched
+  // after the checks because label_url is what the check returns, and in
+  // parallel because three sequential round trips would show on first paint.
+  const labels = await Promise.all(
+    rawProducts.map(async (result) => {
+      if (!result?.label_url) return null;
+      try {
+        return normalizeLabelResult(await getJson(result.label_url));
+      } catch {
+        // The card still rules without its photograph.
+        return null;
+      }
+    }),
+  );
+
   const products: LandingProductCard[] = LANDING_PRODUCTS.map((p, i) => {
     const result = rawProducts[i];
     if (!result) {
@@ -188,9 +224,11 @@ export async function loadLandingExamples(): Promise<LandingExamples> {
         detail: "Live check unavailable right now.",
         chips: ["retry"],
         readDate: null,
+        imageUrl: null,
+        nutrition: null,
       };
     }
-    return toProductCard(p.upc, p.expectedName, result);
+    return toProductCard(p.upc, p.expectedName, result, labels[i]);
   });
 
   let menu: LandingMenuCard | null = null;

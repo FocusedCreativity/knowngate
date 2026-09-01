@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { knownGateClient } from "@/lib/knowngate/client";
 import { compactBoard, compactItem, compactPlace } from "@/lib/knowngate/compact";
-import type { ItemResult, PlaceResult, Restriction } from "@/lib/knowngate/contracts";
+import type { ItemResult, LabelResult, PlaceResult, Restriction } from "@/lib/knowngate/contracts";
+import { IngredientPanel, NutritionPanelTable, PackShot } from "./label-panels";
 import { parseCheckItemRequest, parseCheckPlaceRequest, parsePremise } from "@/lib/knowngate/validation";
 import { rulingRoomSchemas } from "@/lib/webmcp/schemas";
 import { useWebMcpTools, type RegisteredTool } from "@/lib/webmcp/use-webmcp-tools";
@@ -49,6 +50,10 @@ export function CheckWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [item, setItem] = useState<ItemResult | null>(null);
   const [place, setPlace] = useState<PlaceResult | null>(null);
+  // Held with the url it was fetched for, so a label is only ever shown beside
+  // the result that asked for it and no reset is needed when the subject
+  // changes.
+  const [label, setLabel] = useState<{ url: string; data: LabelResult } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -217,6 +222,29 @@ export function CheckWorkspace() {
     },
   ];
   useWebMcpTools(tools);
+
+  // The panels are drawn from the label, not from the check: one fetch of the
+  // url the result already carries returns the photo, the ingredient statement
+  // and the typed panel. Keyed to the result so a slow fetch can never paint
+  // one product's label beside another product's verdict.
+  const labelUrl = item?.label_url ?? null;
+  const shownLabel = label && label.url === labelUrl ? label.data : null;
+  useEffect(() => {
+    if (!labelUrl) return;
+    let cancelled = false;
+    knownGateClient
+      .getLabel(labelUrl)
+      .then((data) => {
+        if (!cancelled) setLabel({ url: labelUrl, data });
+      })
+      .catch(() => {
+        // A missing label costs the panels their content, nothing more. The
+        // verdict stands on the check, which has already returned.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [labelUrl]);
 
   useEffect(() => {
     if (!(showHumanResult || showAgentResult || rulingInProgress)) return;
@@ -763,22 +791,7 @@ export function CheckWorkspace() {
                 <p style={{ color: "var(--kg-ink2)" }}>Ruling against the live evidence…</p>
               ) : null}
               <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
-                <div
-                  style={{
-                    width: 180,
-                    height: 150,
-                    background: "var(--kg-paper-2)",
-                    borderRadius: 12,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    flexShrink: 0,
-                  }}
-                >
-                  PACK SHOT
-                </div>
+                <PackShot src={shownLabel?.image_url ?? null} alt={checkedSubject} />
                 <div style={{ flex: 1, minWidth: 220 }}>
                   <VerdictCard
                     verdict={designVerdict ?? (human.verdict as DesignVerdict)}
@@ -798,22 +811,8 @@ export function CheckWorkspace() {
                     <span className="dot" aria-hidden />
                     Composition, {item?.coverage.composition === "covered" ? "covered" : "not covered"}
                   </div>
-                  <div
-                    style={{
-                      height: 110,
-                      background: "var(--kg-paper-2)",
-                      borderRadius: 8,
-                      margin: "10px 0",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 10,
-                      fontWeight: 600,
-                    }}
-                  >
-                    INGREDIENT PANEL
-                  </div>
-                  <p style={{ margin: 0, fontSize: 13 }}>
+                  <IngredientPanel label={shownLabel} />
+                  <p style={{ margin: "10px 0 0", fontSize: 13 }}>
                     {item ? compositionDetail : human.axes.composition.detail}
                   </p>
                 </div>
@@ -832,22 +831,11 @@ export function CheckWorkspace() {
                     <span className="dot" aria-hidden />
                     Threshold, {sodiumHit?.nutrient ?? human.threshold.nutrient}
                   </div>
-                  <div
-                    style={{
-                      height: 72,
-                      background: "var(--kg-paper-2)",
-                      borderRadius: 8,
-                      margin: "10px 0",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 10,
-                      fontWeight: 600,
-                    }}
-                  >
-                    NUTRITION PANEL
-                  </div>
-                  <p style={{ margin: 0, fontSize: 13 }}>{thresholdDetail}</p>
+                  <NutritionPanelTable
+                    nutrition={shownLabel?.nutrition ?? null}
+                    highlight={sodiumHit?.nutrient ?? null}
+                  />
+                  <p style={{ margin: "10px 0 0", fontSize: 13 }}>{thresholdDetail}</p>
                 </div>
                 ) : null}
               </div>

@@ -8,6 +8,7 @@ import type { Restriction } from "@/lib/knowngate/contracts";
 import type { LandingExamples } from "@/lib/kg/landing-data";
 import { LANDING_RESULT_KEY } from "@/lib/kg/landing-handoff";
 import { MustNotOmit } from "@/components/kg/primitives";
+import { NutritionPanelTable, PackShot } from "@/components/kg/label-panels";
 import {
   PARSE_MAX_CHARS,
   parsePremise,
@@ -501,7 +502,8 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
             const cls = verdictClass(p.verdict);
             return (
               <article key={p.upc} className={`kg-landing-example ${cls}`}>
-                <div className="ph">{cls === "held" ? "NO PANEL" : "NUTRITION PANEL"}</div>
+                <PackShot src={p.imageUrl} alt={p.name} className="kg-example-shot" />
+                <NutritionPanelTable nutrition={p.nutrition} highlight="sodium" />
                 <div className="name">
                   <span className={`dot ${cls}`} aria-hidden />
                   {p.name}

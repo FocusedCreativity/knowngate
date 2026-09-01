@@ -147,6 +147,30 @@ export type LabelFinding = {
   matched_text: string;
 };
 
+/**
+ * The typed panel as the corpus holds it. A null means the pack does not
+ * state that row, which is not the same as a zero and is never rendered.
+ */
+export type NutritionPanel = {
+  serving_qty: number | null;
+  serving_unit: string | null;
+  energy_kcal: number | null;
+  protein_g: number | null;
+  fat_g: number | null;
+  saturated_fat_g: number | null;
+  trans_fat_g: number | null;
+  carbohydrate_g: number | null;
+  sugar_g: number | null;
+  added_sugar_g: number | null;
+  fiber_g: number | null;
+  sodium_mg: number | null;
+  cholesterol_mg: number | null;
+  calcium_mg: number | null;
+  iron_mg: number | null;
+  potassium_mg: number | null;
+  vitamin_d_mcg: number | null;
+};
+
 export type LabelResult = {
   gtin: string;
   name: string;
@@ -154,6 +178,14 @@ export type LabelResult = {
   statement_read: boolean;
   findings: LabelFinding[];
   source: Source | null;
+  /** Retailer product photo. Null when the corpus holds none. */
+  image_url: string | null;
+  /** The ingredient statement as captured. Rendered verbatim or not at all. */
+  ingredients_verbatim: string | null;
+  /** The retailer's own "Contains:" line, likewise verbatim. */
+  allergens_description: string | null;
+  /** Null for packs with no panel on file, which is a fact worth printing. */
+  nutrition: NutritionPanel | null;
 };
 
 export type BoardResult = ItemResult | PlaceResult;
