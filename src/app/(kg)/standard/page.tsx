@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { DataTable, Orient } from "@/components/kg/data-table";
+import { KNOWNGATE_DEFINITION } from "@/lib/kg/entity";
 
 export const metadata: Metadata = {
-  title: "Evidence standard v1.0 · KnownGate",
-  description: "What counts as proof. Published in full so the reasoning can be checked rather than trusted.",
+  title: "The evidence standard · KnownGate",
+  description:
+    "The evidence standard v1.0: what counts as proof, the four verdicts, and the rules KnownGate checks against. Published in full so the reasoning can be checked rather than trusted.",
+  alternates: { canonical: "/standard" },
 };
 
 export default function StandardPage() {
@@ -12,10 +15,12 @@ export default function StandardPage() {
       <header className="kg-hero">
         <p className="kg-eyebrow">EVIDENCE STANDARD</p>
         <h1>What counts as proof.</h1>
+        {/* Opens on the canonical definition, in the same words as every
+            other surface, before the page narrows to this document. */}
         <p className="lead">
-          The rules we check against: what must not be in the food, and what must stay under a number.
-          Published in full, so you can check our reasoning instead of trusting it. Version 1.0, effective
-          30 August 2026.
+          {KNOWNGATE_DEFINITION} This is the standard it checks against: what must not be in the food,
+          and what must stay under a number. Published in full, so you can check our reasoning instead
+          of trusting it. Version 1.0, effective 30 August 2026.
         </p>
         <div className="kg-chips">
           <span className="kg-chip">v1.0</span>

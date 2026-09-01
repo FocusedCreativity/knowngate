@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Terms of Service · KnownGate",
   description:
     "Checking is free and stores nothing unless you save a record. A finding is dated evidence, never a promise.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

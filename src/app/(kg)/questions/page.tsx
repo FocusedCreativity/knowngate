@@ -6,7 +6,9 @@ import { getQuestionLibrary } from "@/lib/kg/questions-data";
 
 export const metadata: Metadata = {
   title: "Question library · KnownGate",
-  description: "Every question, published. The preparation and serving questions the gate can ask.",
+  description:
+    "The question library: every preparation and serving question KnownGate can ask, published in full, with what counts as an answer to each.",
+  alternates: { canonical: "/questions" },
 };
 
 export default async function QuestionsPage() {

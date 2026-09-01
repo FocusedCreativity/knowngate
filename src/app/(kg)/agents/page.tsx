@@ -8,7 +8,9 @@ import { MustNotOmit } from "@/components/kg/primitives";
 
 export const metadata: Metadata = {
   title: "Agents · KnownGate",
-  description: "The machine front door. WebMCP, MCP, and REST. Same engine, same verdicts.",
+  description:
+    "The machine front door for AI agents: WebMCP on the page, MCP over streamable HTTP, and REST. Same engine, same verdicts, same sources and dates.",
+  alternates: { canonical: "/agents" },
 };
 
 export default function AgentsPage() {

@@ -7,10 +7,30 @@ import { getQuestionLibrary } from "@/lib/kg/questions-data";
 import { getCorpusSnapshot } from "@/lib/kg/corpus-data";
 import { FREE_TIER_CHECKS } from "@/lib/kg/types";
 import { formatInt } from "@/lib/kg/fixtures";
+import { KNOWNGATE_DEFINITION, KNOWNGATE_ORIGIN } from "@/lib/kg/entity";
 
 export const metadata: Metadata = {
   title: "Developers · KnownGate",
-  description: "Don't let your agent guess. MCP, REST, free key, evidence standard v1.0.",
+  description:
+    "The KnownGate API for developers: MCP, WebMCP and REST, a free key, and evidence standard v1.0. One call returns a verdict with its source and read date.",
+  alternates: { canonical: "/developers" },
+};
+
+/**
+ * The API as an addressable thing, for machines cataloguing capabilities
+ * rather than reading the page. Only what is true and already public: the
+ * documentation is this page, and the endpoint is the one the site itself
+ * calls.
+ */
+const apiSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebAPI",
+  name: "KnownGate API",
+  description: KNOWNGATE_DEFINITION,
+  documentation: `${KNOWNGATE_ORIGIN}/developers`,
+  url: `${KNOWNGATE_ORIGIN}/api/knowngate/v0`,
+  termsOfService: `${KNOWNGATE_ORIGIN}/terms`,
+  provider: { "@type": "Organization", name: "KnownGate", url: KNOWNGATE_ORIGIN },
 };
 
 export default async function DevelopersPage() {
@@ -18,6 +38,12 @@ export default async function DevelopersPage() {
   const corpus = await getCorpusSnapshot();
   return (
     <>
+      <script
+        type="application/ld+json"
+        // A literal object authored above, serialised; no external input
+        // reaches it.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(apiSchema) }}
+      />
       <header className="kg-hero">
         <p className="kg-eyebrow">FOR DEVELOPERS</p>
         <h1>Don&apos;t let your agent guess.</h1>

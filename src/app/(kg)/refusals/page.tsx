@@ -12,7 +12,9 @@ import { getCorpusSnapshot } from "@/lib/kg/corpus-data";
 
 export const metadata: Metadata = {
   title: "Refusal rate · KnownGate",
-  description: "How often we decline. Counted across both kinds of premise.",
+  description:
+    "The refusal rate: how often KnownGate declines to rule, counted across both kinds of premise, with the reasons it gives.",
+  alternates: { canonical: "/refusals" },
 };
 
 export default async function RefusalsPage({

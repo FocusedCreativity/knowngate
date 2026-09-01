@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KNOWNGATE_DEFINITION } from "@/lib/kg/entity";
 
 /**
  * Server component, and deliberately outside the shell's Suspense boundary.
@@ -20,10 +21,9 @@ export function KgFooter() {
               <span>every answer, with its source</span>
             </span>
           </Link>
-          <p>
-            A verification layer for food. It rules on what it is handed, shows its sources and their dates,
-            and says so plainly when nobody knows.
-          </p>
+          {/* The canonical definition, verbatim. Every surface that says what
+              KnownGate is says it in exactly these words. */}
+          <p>{KNOWNGATE_DEFINITION}</p>
           <span className="kg-footer-std">
             <span className="dot" aria-hidden />
             Evidence standard v1.0

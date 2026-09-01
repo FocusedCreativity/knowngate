@@ -1,4 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Developer console · KnownGate",
+  description:
+    "Your developer console: the keys you hold, what they have asked, and how much of the free tier is left.",
+  alternates: { canonical: "/console" },
+  // A signed-in surface with nothing public on it; there is nothing here to
+  // index and an empty console in the index helps nobody.
+  robots: { index: false, follow: true },
+};
 
 export default function ConsolePage() {
   return (

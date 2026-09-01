@@ -1,6 +1,6 @@
 # KnownGate
 
-> A verification layer for food. It rules on what it is handed, shows its sources and their dates, and says so plainly when nobody knows.
+> KnownGate is the food verification layer for people and AI agents with dietary restrictions: it checks food against a stated premise and returns evidence-backed verdicts with sources and dates.
 
 ## If you are an agent arriving to check food
 

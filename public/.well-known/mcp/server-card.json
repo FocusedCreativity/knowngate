@@ -1,7 +1,7 @@
 {
   "name": "knowngate",
   "version": "0.1.0",
-  "description": "Checks food claims against evidence. Returns one of four verdicts with its source and the date that source was read, for what must not be present and for what must stay under a number.",
+  "description": "KnownGate is the food verification layer for people and AI agents with dietary restrictions: it checks food against a stated premise and returns evidence-backed verdicts with sources and dates.",
   "vendor": {
     "name": "fuda",
     "url": "https://www.knowngate.com"

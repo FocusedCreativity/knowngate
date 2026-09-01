@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy · KnownGate",
   description:
     "Checking stores nothing. We keep a record only if you save one, and we sell nothing about you to anyone.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {
