@@ -32,10 +32,12 @@ export function formatReadDate(isoOrDisplay: string): string {
 export function summarizeItem(result: ItemResult): string {
   const design = toDesignVerdict(result.verdict);
   if (design === "conflict_found") {
-    const names = result.conflicts.map((c) => c.restriction).join(", ");
-    return names
-      ? `Conflict found. ${names} present on the evidence.`
-      : "Conflict found.";
+    const names = result.conflicts.map((c) => c.restriction);
+    if (!names.length) return "Conflict found.";
+    // These arrive as bare keys ("peanut"), and they open a sentence.
+    const listed = names.join(", ");
+    const opener = listed.charAt(0).toUpperCase() + listed.slice(1);
+    return `Conflict found. ${opener} ${names.length > 1 ? "are" : "is"} present on the evidence.`;
   }
   if (design === "ask_one_question") {
     return questionText(result.question) ?? "Ask one question to close the remaining gap.";

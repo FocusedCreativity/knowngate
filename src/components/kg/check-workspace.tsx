@@ -398,6 +398,9 @@ export function CheckWorkspace() {
   const sodiumHit = item?.threshold_hits?.find((h) => h.nutrient === "sodium");
   const thresholdDetail = sodiumHit ? describeThresholdHit(sodiumHit) : human.threshold.detail;
   const thresholdState = sodiumHit && thresholdBreached(sodiumHit) ? "not_covered" : "covered";
+  // No limit in the premise means no limit panel. Showing one anyway put a
+  // 600 mg line under a check that only ever asked about peanuts.
+  const showThreshold = item ? !!sodiumHit : true;
 
   // The API gives a coverage state and, where something was found, the words
   // it was found in. It does not ship prose for these panels. Say what the
@@ -823,10 +826,11 @@ export function CheckWorkspace() {
                     {item ? preparationDetail : human.axes.preparation.detail}
                   </p>
                 </div>
+                {showThreshold ? (
                 <div className={`kg-axis ${thresholdState}`}>
                   <div className="axis-label">
                     <span className="dot" aria-hidden />
-                    Threshold, sodium
+                    Threshold, {sodiumHit?.nutrient ?? human.threshold.nutrient}
                   </div>
                   <div
                     style={{
@@ -845,6 +849,7 @@ export function CheckWorkspace() {
                   </div>
                   <p style={{ margin: 0, fontSize: 13 }}>{thresholdDetail}</p>
                 </div>
+                ) : null}
               </div>
               <SourceLine
                 kind="label"

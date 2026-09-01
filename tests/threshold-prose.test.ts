@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   describeThresholdHit,
+  summarizeItem,
   summarizeThresholdHit,
   thresholdBreached,
 } from "../src/lib/kg/live-map.ts";
@@ -48,4 +49,26 @@ test("a minimum is breached from below", () => {
   };
   assert.equal(thresholdBreached(belowMin), true);
   assert.equal(describeThresholdHit(belowMin), "2 g per serving, over the 5 g minimum.");
+});
+
+test("a named conflict opens its sentence in upper case and agrees in number", () => {
+  const one = {
+    verdict: "conflict_found" as const,
+    conflicts: [{ restriction: "peanut", evidence: "" }],
+  };
+  assert.equal(
+    summarizeItem(one as never),
+    "Conflict found. Peanut is present on the evidence.",
+  );
+  const two = {
+    verdict: "conflict_found" as const,
+    conflicts: [
+      { restriction: "peanut", evidence: "" },
+      { restriction: "milk", evidence: "" },
+    ],
+  };
+  assert.equal(
+    summarizeItem(two as never),
+    "Conflict found. Peanut, milk are present on the evidence.",
+  );
 });
