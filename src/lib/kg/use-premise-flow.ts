@@ -26,6 +26,14 @@ export function usePremiseFlow({
   /** Called as the flow advances, so a workspace can log it as it happens. */
   onStep?: (event: "premise_set" | "subject_set" | "check_started") => void;
 }) {
+  /**
+   * A person types words, sees the rules we read out of them, and only then
+   * checks: that confirm step is the promise on the landing. An agent driving
+   * the workspace has already stated the subject in the same submit, and the
+   * rail shows it the parse as it happens, so making it press twice buys
+   * nobody a second look and costs a round trip in the middle of a check.
+   */
+  const continuesWhenSubjectKnown = mode === "agent";
   const router = useRouter();
 
   const [stage, setStage] = useState<Stage>("compose");
@@ -78,25 +86,39 @@ export function usePremiseFlow({
       return;
     }
     setParsed(outcome.premise);
-    setSubject(outcome.premise.subject?.value ?? "");
+    const nextSubject = subject.trim() || outcome.premise.subject?.value || "";
+    setSubject(nextSubject);
     setStage("confirm");
     onStep?.("premise_set");
+    if (continuesWhenSubjectKnown && nextSubject) {
+      // Straight on to the check, with the rules just read.
+      void runCheck(
+        nextSubject,
+        outcome.premise.restrictions,
+        outcome.premise.thresholds,
+        amounts,
+        outcome.premise.needs_number ?? [],
+      );
+    }
   }
 
-  async function onCheck(e: FormEvent) {
-    e.preventDefault();
-    const subjectValue = subject.trim();
-    if (!subjectValue) {
-      setError("Add what you want checked: a product name, a barcode, or a dish.");
-      return;
-    }
-
-    const restrictionKeys = parserDown ? manual : (parsed?.restrictions ?? []);
-    const thresholds: ParsedThreshold[] = [...(parsed?.thresholds ?? [])];
+  /**
+   * The check itself, given a subject and the rules to rule it against. Taken
+   * as arguments rather than read from state so it can run in the same tick
+   * the rules were parsed, before React has committed them.
+   */
+  async function runCheck(
+    subjectValue: string,
+    restrictionKeys: string[],
+    parsedThresholds: ParsedThreshold[],
+    extraAmounts: Record<string, string> = amounts,
+    needs: { nutrient: string; said: string }[] = [],
+  ) {
+    const thresholds: ParsedThreshold[] = [...parsedThresholds];
     // A number typed at the confirm step becomes a rule. One never given stays
     // off the check entirely.
-    for (const need of parsed?.needs_number ?? []) {
-      const raw = amounts[need.nutrient];
+    for (const need of needs) {
+      const raw = extraAmounts[need.nutrient];
       const max = Number(raw);
       if (raw && Number.isFinite(max) && max > 0) {
         thresholds.push({
@@ -118,6 +140,13 @@ export function usePremiseFlow({
     // "venue: Krystal" asks about a whole menu. Same premise, same rules, the
     // other call: without this the DOM path could only ever reach one product.
     const venue = venueFromInput(subjectValue);
+    const q = new URLSearchParams();
+    // Who was driving. The engine and the calls are identical either way; this
+    // only decides which workspace the result is shown in.
+    q.set("mode", mode);
+    q.set("step", "4");
+    q.set("from", mode === "agent" ? "agent" : "landing");
+    if (restrictionKeys.length) q.set("restrictions", restrictionKeys.join(","));
     try {
       if (venue) {
         const place = await knownGateClient.checkPlace({
@@ -125,22 +154,14 @@ export function usePremiseFlow({
           venue: { name: venue },
         });
         sessionStorage.setItem(LANDING_RESULT_KEY, JSON.stringify(place));
-        const vq = new URLSearchParams();
-        vq.set("mode", mode);
-        vq.set("step", "4");
-        vq.set("from", mode === "agent" ? "agent" : "landing");
-        if (restrictionKeys.length) vq.set("restrictions", restrictionKeys.join(","));
-        vq.set("venue", venue);
-        router.push(`/check?${vq.toString()}`);
+        q.set("venue", venue);
+        router.push(`/check?${q.toString()}`);
         return;
       }
       const result = await knownGateClient.checkItem({
         restrictions: restrictionKeys.map((key) => ({ key: chipToKey(key) })),
         subject: subjectFromInput(subjectValue),
         // Omitted rather than sent empty when the premise carries no number.
-        // An absent key and a bare [] should mean the same thing, and the API
-        // now accepts both, but a restriction-only premise is the common case
-        // and it should not depend on that.
         ...(thresholds.length
           ? {
               thresholds: thresholds.map((t) => ({
@@ -153,13 +174,6 @@ export function usePremiseFlow({
           : {}),
       });
       sessionStorage.setItem(LANDING_RESULT_KEY, JSON.stringify(result));
-      const q = new URLSearchParams();
-      // Who was driving. The engine and the calls above are identical either
-      // way; this only decides which workspace the result is shown in.
-      q.set("mode", mode);
-      q.set("step", "4");
-      q.set("from", mode === "agent" ? "agent" : "landing");
-      if (restrictionKeys.length) q.set("restrictions", restrictionKeys.join(","));
       q.set("subject", subjectValue);
       const sodium = thresholds.find((t) => t.nutrient === "sodium");
       if (sodium) q.set("sodium", String(sodium.max));
@@ -168,6 +182,22 @@ export function usePremiseFlow({
       setError(err instanceof Error ? err.message : "The check could not be completed.");
       setBusy(false);
     }
+  }
+
+  async function onCheck(e: FormEvent) {
+    e.preventDefault();
+    const subjectValue = subject.trim();
+    if (!subjectValue) {
+      setError("Add what you want checked: a product name, a barcode, or a dish.");
+      return;
+    }
+    await runCheck(
+      subjectValue,
+      parserDown ? manual : (parsed?.restrictions ?? []),
+      parsed?.thresholds ?? [],
+      amounts,
+      parsed?.needs_number ?? [],
+    );
   }
 
   function startOver() {

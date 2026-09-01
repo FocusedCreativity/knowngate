@@ -117,24 +117,38 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
   const subjectDigits = urlSubject ? urlSubject.replace(/\D/g, "") : "";
   const subjectIsUpc = subjectDigits.length >= 8 && subjectDigits.length <= 14;
 
-  const statedPremise = [
-    ...humanRestrictions,
-    checkThreshold ? `sodium under ${thresholdMax} mg per serving` : null,
+  /** Only what the url actually states. Never the fixture's rules. */
+  const urlPremiseLine = [
+    ...urlRestrictions,
+    hasUrlMax ? `sodium under ${urlMax} mg per serving` : null,
   ]
     .filter(Boolean)
     .join(" · ");
+  /** What the agent set on this screen, before any of it reaches the url. */
+  const agentPremiseLine = agentFlow.parserDown
+    ? agentFlow.manual.join(" · ")
+    : agentFlow.parsed
+    ? [
+        ...agentFlow.parsed.restrictions.map((r) => r.replace(/_/g, " ")),
+        ...agentFlow.parsed.thresholds.map(
+          (t) => `${t.nutrient} under ${t.max} ${t.unit} per serving`,
+        ),
+      ].join(" · ")
+    : "";
   /**
    * Whether anything has actually been set. The banner used to fall through
    * to the fixture whenever nothing had, so a fresh agent workspace announced
    * "peanut · sesame · sodium under 600 mg per serving · Set by your agent"
    * with nothing set and nothing checked.
    */
-  const premiseIsSet = hasUrlPremise || agentLog.length > 0;
-  const bannerLine = premiseIsSet
-    ? statedPremise
-    : demo
-      ? (mode === "agent" ? (premise.agent_line ?? "milk") : premise.line)
-      : "no premise yet";
+  const premiseIsSet = hasUrlPremise || !!agentPremiseLine;
+  const bannerLine = hasUrlPremise
+    ? urlPremiseLine
+    : agentPremiseLine
+      ? agentPremiseLine
+      : demo
+        ? (mode === "agent" ? (premise.agent_line ?? "milk") : premise.line)
+        : "no premise yet";
   // Who set it. In agent mode the premise arrives from the agent, whether it
   // typed into the field or wrote through a tool.
   // Who set it, only once somebody has. An empty workspace claims no author.
@@ -175,8 +189,15 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
   );
   /** Each restriction is one thing to rule, and the threshold is one more. */
   const thingsRuled = humanRestrictions.length + 1;
-  const showHumanResult = mode === "human" && step >= 4;
-  const showAgentResult = mode === "agent" && step === 4;
+  /**
+   * Something real to rule on. Bare /check defaults to step 4, which used to
+   * run a live check against the fixture's product and the fixture's premise
+   * and print the result as if someone had asked for it: a Montini ruling,
+   * with a real read date, under a 600 mg limit nobody set.
+   */
+  const hasSomethingToCheck = demo || hasUrlPremise || !!urlSubject || !!urlVenue;
+  const showHumanResult = mode === "human" && step >= 4 && hasSomethingToCheck;
+  const showAgentResult = mode === "agent" && step === 4 && hasSomethingToCheck;
   /** A named subject is an item wherever it was driven from. */
   const resultIsItem = !!urlSubject || (!!item && !place);
   const showItemResult = (showHumanResult || showAgentResult) && resultIsItem;
@@ -642,7 +663,7 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
           )}
           {mode === "human" ? (
             <>
-              {checkThreshold ? (
+              {checkThreshold && hasSomethingToCheck ? (
                 <>
                   <p className="sec-label">KEEP UNDER</p>
                   <p style={{ fontSize: 14, margin: "0 0 20px" }}>
@@ -650,6 +671,8 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
                   </p>
                 </>
               ) : null}
+              {hasSomethingToCheck ? (
+                <>
               <p className="sec-label">WHAT YOU CHECKED</p>
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
                 <div
@@ -681,6 +704,12 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
               <button type="button" className="kg-btn quiet block">
                 + Add another item
               </button>
+                </>
+              ) : (
+                <p style={{ fontSize: 13, color: "var(--kg-ink2)" }}>
+                  Nothing checked yet. Tell us what cannot be in it, or a number to stay under.
+                </p>
+              )}
             </>
           ) : (
             agentIdle ? (
@@ -1250,7 +1279,9 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
             </div>
           ) : null}
 
-          {step < 4 && mode === "human" ? <EmptyLanding step={step} /> : null}
+          {mode === "human" && (step < 4 || !hasSomethingToCheck) ? (
+            <EmptyLanding step={step} />
+          ) : null}
         </div>
       </div>
       {saved ? (
