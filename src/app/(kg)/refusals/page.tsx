@@ -277,14 +277,14 @@ export default async function RefusalsPage({
               cells: [
                 "Order in",
                 { token: "CORPUS" },
-                "No kitchen reachable. An unanswered question stays unanswered.",
+                "The same kitchens and the same published charts as eating out, so the evidence is the same. What differs is that nobody is there to ask, so a question the chart leaves open stays open.",
               ],
             },
             {
               cells: [
-                "Potluck",
+                "Snack and drink",
                 { token: "CORPUS" },
-                "No venue, no label, no barcode. The normal case, not the failure case.",
+                "Branded, barcoded and label-heavy, so coverage is naturally strongest here. Convenience and vending brands skew away from grocery shelves, and that is where the gaps sit.",
               ],
             },
             {
@@ -306,9 +306,11 @@ export default async function RefusalsPage({
           ]}
         />
         <p style={{ marginTop: 20, fontSize: 14, color: "var(--kg-ink2)" }}>
-          Corpus values above were measured {c ? c.measured_at : "not available"} against production. They are never
-          estimates and never filled in by hand. Order-in and potluck are structural refusals, not covered by
-          any source, not a fake zero.
+          Corpus values above were measured {c ? c.measured_at : "not available"} against production. They are
+          never estimates and never filled in by hand. Where an arm refuses more, it is because the evidence
+          it depends on is thinner, not because the rules change: a restaurant dish has no panel to read, and
+          ordering in removes the person who could have answered the question. Those are structural refusals,
+          not a fake zero.
         </p>
       </section>
 
