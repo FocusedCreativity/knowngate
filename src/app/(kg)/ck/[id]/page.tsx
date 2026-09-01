@@ -28,9 +28,27 @@ function isItem(result: FrozenCheck["payload"]["results"][number]): result is It
   return "verdict" in result;
 }
 
-/** The premise as the banner states it, in the household's own terms. */
+/**
+ * The premise as the banner states it. The frozen payload carries the
+ * restrictions; the numeric limits live in the hits the ruling produced, so
+ * they are read back from there. Without them a record that turned on a
+ * sodium limit would state only the allergens and understate what was ruled.
+ */
 function premiseLine(frozen: FrozenCheck): string {
   const parts = frozen.payload.premise.restrictions.map((r) => r.note ?? r.key);
+  const seen = new Set<string>();
+  for (const result of frozen.payload.results) {
+    if (!isItem(result)) continue;
+    for (const hit of result.threshold_hits ?? []) {
+      if (typeof hit.max !== "number" && typeof hit.min !== "number") continue;
+      const bound = typeof hit.max === "number" ? `under ${hit.max}` : `at least ${hit.min}`;
+      const basis = hit.basis ? ` ${hit.basis.replace(/_/g, " ")}` : "";
+      const line = `${hit.nutrient} ${bound} ${hit.unit}${basis}`;
+      if (seen.has(line)) continue;
+      seen.add(line);
+      parts.push(line);
+    }
+  }
   return parts.length ? parts.join(" · ") : "no restrictions set";
 }
 
@@ -65,11 +83,13 @@ export default async function FrozenPage({ params }: { params: Promise<{ id: str
         a frozen record cannot be edited, and the freeze stamp in its place.
       */}
       <div className="kg-subbar is-record">
-        <span className="kg-eyebrow">SAVED RECORD</span>
-        <strong>{premiseLine(frozen)}</strong>
-        <span className="kg-subbar-right">
-          Frozen {frozenOn} · {frozen.ck_id}
-        </span>
+        <div className="kg-subbar-inner">
+          <span className="kg-eyebrow">SAVED RECORD</span>
+          <strong>{premiseLine(frozen)}</strong>
+          <span className="kg-subbar-right">
+            Frozen {frozenOn} · {frozen.ck_id}
+          </span>
+        </div>
       </div>
 
       <div className="kg-record-body">

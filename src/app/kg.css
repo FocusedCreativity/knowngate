@@ -1481,14 +1481,22 @@
 /* The workspace's premise bar in record dress: no Change, because a frozen
    record cannot be edited, and the freeze stamp in its place. */
 .kg-root .kg-subbar.is-record {
+  background: var(--kg-ink);
+  color: var(--kg-on-dark);
+  padding: 15px var(--kg-pad);
+  font-size: 15px;
+}
+
+/* An inner wrapper does the centring. Percentage padding on the flex row
+   itself resolved against a width it had just inflated, and the feedback ran
+   the page 700px wide. */
+.kg-root .kg-subbar-inner {
   display: flex;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  background: var(--kg-ink);
-  color: var(--kg-on-dark);
-  padding: 15px max(var(--kg-pad), calc((100% - var(--kg-max)) / 2));
-  font-size: 15px;
+  max-width: var(--kg-max);
+  margin: 0 auto;
 }
 
 .kg-root .kg-subbar.is-record .kg-eyebrow { color: var(--kg-lime); margin: 0; }
