@@ -1,6 +1,6 @@
-import type { ItemResult, PlaceResult, LiveVerdict } from "@/lib/knowngate/contracts";
-import { questionText } from "@/lib/knowngate/contracts";
-import type { DesignVerdict } from "./types";
+import type { ItemResult, PlaceResult, LiveVerdict, ThresholdHit } from "../knowngate/contracts.ts";
+import { questionText } from "../knowngate/contracts.ts";
+import type { DesignVerdict } from "./types.ts";
 
 /** Accept legacy adapter verdicts and live API design names. */
 export function toDesignVerdict(verdict: LiveVerdict | DesignVerdict | string): DesignVerdict {
@@ -69,4 +69,49 @@ export function mapNotable(result: PlaceResult) {
       ? `${n.source.name}, ${formatReadDate(n.source.read_date)}`
       : "No source",
   }));
+}
+
+/** "per_serving" is how the API says it; people say it the other way. */
+function basisWords(basis?: string): string {
+  if (!basis) return "";
+  return ` ${basis.replace(/_/g, " ")}`;
+}
+
+/** Whether a hit breaches the limit it was measured against. */
+export function thresholdBreached(hit: ThresholdHit): boolean {
+  if (hit.found === null) return false;
+  if (typeof hit.max === "number" && hit.found > hit.max) return true;
+  if (typeof hit.min === "number" && hit.found < hit.min) return true;
+  return toDesignVerdict(hit.verdict) === "conflict_found";
+}
+
+/**
+ * The evidence line under a threshold panel. Read off the hit every time:
+ * whether a number clears its limit is exactly what the reader is here for,
+ * so it is never safe to assume the direction.
+ */
+export function describeThresholdHit(hit: ThresholdHit): string {
+  const where = `${hit.nutrient}${basisWords(hit.basis)}`;
+  if (hit.found === null) {
+    return `No ${where} figure on the evidence, so the limit could not be checked.`;
+  }
+  const limit =
+    typeof hit.max === "number"
+      ? `the ${hit.max} ${hit.unit} limit`
+      : typeof hit.min === "number"
+        ? `the ${hit.min} ${hit.unit} minimum`
+        : null;
+  const measured = `${hit.found} ${hit.unit}${basisWords(hit.basis)}`;
+  if (!limit) return `${measured}.`;
+  return thresholdBreached(hit)
+    ? `${measured}, over ${limit}.`
+    : `${measured}, under ${limit}.`;
+}
+
+/** The same fact as a sentence, for the line under the verdict. */
+export function summarizeThresholdHit(hit: ThresholdHit): string {
+  if (hit.found === null) return `The ${hit.nutrient} limit could not be checked.`;
+  return thresholdBreached(hit)
+    ? `The ${hit.nutrient} limit is exceeded.`
+    : `The ${hit.nutrient} limit is met.`;
 }

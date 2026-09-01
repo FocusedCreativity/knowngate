@@ -11,10 +11,13 @@ import { rulingRoomSchemas } from "@/lib/webmcp/schemas";
 import { useWebMcpTools, type RegisteredTool } from "@/lib/webmcp/use-webmcp-tools";
 import { getWorkspace } from "@/lib/kg/fixtures";
 import {
+  describeThresholdHit,
   formatReadDate,
   mapNotable,
   mapPlaceCounts,
   summarizeItem,
+  summarizeThresholdHit,
+  thresholdBreached,
   toDesignVerdict,
 } from "@/lib/kg/live-map";
 import { MustNotOmit, QuestionBlock, SourceLine, SummaryLine, VerdictCard } from "@/components/kg/primitives";
@@ -393,16 +396,28 @@ export function CheckWorkspace() {
   };
 
   const sodiumHit = item?.threshold_hits?.find((h) => h.nutrient === "sodium");
-  const thresholdDetail =
-    sodiumHit && sodiumHit.found !== null
-      ? `${sodiumHit.found} ${sodiumHit.unit} per serving, under the ${thresholdMax} mg limit.`
-      : human.threshold.detail;
+  const thresholdDetail = sodiumHit ? describeThresholdHit(sodiumHit) : human.threshold.detail;
+  const thresholdState = sodiumHit && thresholdBreached(sodiumHit) ? "not_covered" : "covered";
+
+  // The API gives a coverage state and, where something was found, the words
+  // it was found in. It does not ship prose for these panels. Say what the
+  // payload supports and nothing beyond it: the fixture's own sentences
+  // describe a different product and would be a false claim about this one.
+  const compositionDetail = item?.conflicts[0]?.evidence
+    ? item.conflicts[0].evidence
+    : item?.coverage.composition === "covered"
+      ? "The ingredient list was read. Nothing you asked about appears on it."
+      : "The evidence read does not cover what is in it.";
+  const preparationDetail =
+    item?.coverage.preparation === "covered"
+      ? "The evidence read covers how it is prepared."
+      : "The evidence read does not cover how it is prepared.";
 
   const conflictNames = item?.conflicts.map((c) => c.restriction) ?? [];
   const humanSummary = item
     ? [
         summarizeItem(item),
-        sodiumHit ? "The sodium limit is met." : null,
+        sodiumHit ? summarizeThresholdHit(sodiumHit) : null,
       ]
         .filter(Boolean)
         .join(" ")
@@ -796,7 +811,7 @@ export function CheckWorkspace() {
                     INGREDIENT PANEL
                   </div>
                   <p style={{ margin: 0, fontSize: 13 }}>
-                    {item?.conflicts[0]?.evidence ?? human.axes.composition.detail}
+                    {item ? compositionDetail : human.axes.composition.detail}
                   </p>
                 </div>
                 <div className={`kg-axis ${item?.coverage.preparation === "covered" ? "covered" : "not_covered"}`}>
@@ -804,9 +819,11 @@ export function CheckWorkspace() {
                     <span className="dot" aria-hidden />
                     Preparation, {item?.coverage.preparation === "covered" ? "covered" : "not covered"}
                   </div>
-                  <p style={{ margin: "10px 0 0", fontSize: 13 }}>{human.axes.preparation.detail}</p>
+                  <p style={{ margin: "10px 0 0", fontSize: 13 }}>
+                    {item ? preparationDetail : human.axes.preparation.detail}
+                  </p>
                 </div>
-                <div className="kg-axis covered">
+                <div className={`kg-axis ${thresholdState}`}>
                   <div className="axis-label">
                     <span className="dot" aria-hidden />
                     Threshold, sodium
