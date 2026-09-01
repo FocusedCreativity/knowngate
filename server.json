@@ -1,43 +1,44 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.FocusedCreativity/knowngate",
-  "description": "KnownGate is the food verification layer for people and AI agents: it checks food against what must not be in it, or a number it must stay under, and returns evidence-backed verdicts with their sources and read dates.",
+  "title": "KnownGate",
+  "description": "Food verification for people and AI agents: evidence-backed verdicts, with sources and dates.",
   "version": "0.1.0",
+  "websiteUrl": "https://www.knowngate.com",
   "repository": {
     "url": "https://github.com/FocusedCreativity/knowngate",
     "source": "github"
   },
-  "websiteUrl": "https://www.knowngate.com",
   "remotes": [
     {
       "type": "streamable-http",
       "url": "https://mcp.knowngate.com"
-    },
-    {
-      "type": "sse",
-      "url": "https://mcp.knowngate.com"
     }
   ],
   "_meta": {
-    "io.knowngate": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "fullDescription": "KnownGate is the food verification layer for people and AI agents: it checks food against what must not be in it, or a number it must stay under, and returns evidence-backed verdicts with their sources and read dates.",
       "serverCard": "https://www.knowngate.com/.well-known/mcp/server-card.json",
       "evidenceStandard": {
         "human": "https://www.knowngate.com/standard",
         "profile": "https://www.knowngate.com/standard/v1.json",
-        "version": "1.0"
+        "version": "1.0",
+        "license": "CC-BY-4.0"
       },
-      "license": {
-        "code": "MIT",
-        "standard": "CC-BY-4.0"
-      },
-      "tools": ["check_item", "check_venue", "check_plan", "register"],
+      "codeLicense": "MIT",
+      "tools": [
+        "check_item",
+        "check_venue",
+        "check_plan",
+        "register"
+      ],
       "verdicts": [
         "no_conflict_found",
         "conflict_found",
         "ask_one_question",
         "couldnt_verify"
       ],
-      "authentication": "Bearer key. A free one is created in-band with the register tool; no signup.",
+      "authentication": "Bearer key; a free one is created in-band with the register tool, no signup.",
       "signedVerdicts": false
     }
   }
