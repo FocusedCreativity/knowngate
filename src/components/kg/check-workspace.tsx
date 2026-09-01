@@ -327,9 +327,15 @@ export function CheckWorkspace() {
     }
   }
 
-  /** Normalises the coded and legacy string forms. what_counts is shown only if sent. */
+  /**
+   * Only ask_one_question can carry a question. couldnt_verify means no
+   * question that exists would close the gap, so a question shown beside one
+   * would contradict the verdict above it, whatever the payload happens to
+   * include.
+   */
   const askQuestion = (() => {
-    const q = item?.question;
+    if (!item || toDesignVerdict(item.verdict) !== "ask_one_question") return null;
+    const q = item.question;
     if (!q) return null;
     if (typeof q === "string") return { code: "", text: q, what_counts: undefined };
     return { code: q.code, text: q.text, what_counts: q.what_counts };
