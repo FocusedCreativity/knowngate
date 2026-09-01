@@ -1,3 +1,5 @@
+import type { RestrictionKey } from "@/lib/knowngate/contracts";
+
 /**
  * Client for POST /v0/premise/parse.
  *
@@ -117,3 +119,38 @@ export async function parsePremise(text: string, signal?: AbortSignal): Promise<
   if (!body) return { status: "unavailable" };
   return { status: "parsed", premise: normalizeParsed(body) };
 }
+
+/**
+ * A confirm-step chip back to the contract's restriction key. The chips read
+ * as people write ("tree nuts"); the API takes keys ("tree_nut").
+ */
+export function chipToKey(chip: string): RestrictionKey {
+  if (chip === "tree nuts") return "tree_nut";
+  return chip.replace(/\s+/g, "_") as RestrictionKey;
+}
+
+/**
+ * What the person typed, as a subject. A run of 8 to 14 digits is a barcode
+ * and is padded to a GTIN-14; anything else is a name to resolve.
+ */
+export function subjectFromInput(raw: string): { kind: "upc" | "product_query"; value: string } {
+  const trimmed = raw.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length >= 8 && digits.length <= 14) {
+    return { kind: "upc", value: digits.padStart(14, "0").slice(-14) };
+  }
+  return { kind: "product_query", value: trimmed };
+}
+
+/** The fallback picker, shown on either surface when the parser is unreachable. */
+export const RESTRICTION_CHIPS = [
+  "milk",
+  "egg",
+  "fish",
+  "shellfish",
+  "tree nuts",
+  "peanut",
+  "wheat",
+  "soy",
+  "sesame",
+] as const;

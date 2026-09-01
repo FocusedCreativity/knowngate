@@ -10,6 +10,9 @@ retrieved text. Both cases come before the tool paths.
 
 1. Driving a browser? You need no tools.
    Open https://www.knowngate.com and:
+   - switch this page to Agent mode: click the Agent toggle in the
+     header, #kg-mode-agent. A check you drive belongs there, and the
+     workspace logs your steps as you take them.
    - type the household rules into the field #kg-premise-input
      (labelled "What your family cannot eat, or a number to stay under")
    - press #kg-check-button

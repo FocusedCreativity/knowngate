@@ -74,6 +74,7 @@
     "1_browser_no_tools": {
       "url": "https://www.knowngate.com",
       "steps": [
+        "Switch the page to Agent mode: click the Agent toggle in the header, #kg-mode-agent. A check you drive belongs there, and the workspace logs your steps as you take them.",
         "Type the household rules into #kg-premise-input (labelled 'What your family cannot eat, or a number to stay under').",
         "Press #kg-check-button.",
         "Confirm what it read, put the subject into #kg-subject-input, press #kg-confirm-button.",

@@ -8,6 +8,8 @@ import { compactBoard, compactItem, compactPlace } from "@/lib/knowngate/compact
 import type { ItemResult, LabelResult, PlaceResult, Restriction } from "@/lib/knowngate/contracts";
 import { IngredientPanel, NutritionPanelTable, PackShot } from "./label-panels";
 import { SaveModal } from "./save-modal";
+import { usePremiseFlow } from "@/lib/kg/use-premise-flow";
+import { PARSE_MAX_CHARS, RESTRICTION_CHIPS } from "@/lib/kg/premise-parse";
 import { parseCheckItemRequest, parseCheckPlaceRequest, parsePremise } from "@/lib/knowngate/validation";
 import { rulingRoomSchemas } from "@/lib/webmcp/schemas";
 import { useWebMcpTools, type RegisteredTool } from "@/lib/webmcp/use-webmcp-tools";
@@ -59,6 +61,28 @@ export function CheckWorkspace() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState<{ url: string; on: string } | null>(null);
+  /**
+   * What the agent has done on this screen, in order. Driving arrives either
+   * through the tools or through the DOM; the rail is meant to show the steps
+   * either way, so both write here.
+   */
+  const [agentLog, setAgentLog] = useState<{ name: string; detail: string }[]>([]);
+
+  const AGENT_STEP_LABELS = {
+    premise_set: { name: "premise set", detail: "rules read from the agent's words" },
+    subject_set: { name: "subject loaded", detail: "what the agent asked us to check" },
+    check_started: { name: "check run", detail: "ruled against the live evidence" },
+  } as const;
+
+  /**
+   * The agent's own copy of the flow the landing uses. Same hook, same calls,
+   * same engine; the only difference is that the result comes back into the
+   * agent workspace, and every step it takes is logged to the rail.
+   */
+  const agentFlow = usePremiseFlow({
+    mode: "agent",
+    onStep: (event) => setAgentLog((prev) => [...prev, AGENT_STEP_LABELS[event]]),
+  });
 
   const premise = data.premise;
   const human = data.human;
@@ -94,7 +118,14 @@ export function CheckWorkspace() {
         .join(" · ")
     : premise.line;
   const bannerLine = mode === "agent" ? (premise.agent_line ?? "milk") : humanPremiseLine;
-  const bannerMeta = mode === "human" ? premise.human_meta : premise.agent_meta;
+  // Who set it. In agent mode the premise arrives from the agent, whether it
+  // typed into the field or wrote through a tool.
+  const bannerMeta =
+    mode === "human"
+      ? premise.human_meta
+      : agentLog.length
+        ? "Set by your agent"
+        : premise.agent_meta;
   const railLine =
     mode === "human"
       ? [...humanRestrictions, checkThreshold ? `sodium under ${thresholdMax} mg` : null]
@@ -125,6 +156,10 @@ export function CheckWorkspace() {
   const thingsRuled = humanRestrictions.length + 1;
   const showHumanResult = mode === "human" && step >= 4;
   const showAgentResult = mode === "agent" && step === 4;
+  /** A named subject is an item wherever it was driven from. */
+  const resultIsItem = !!urlSubject || (!!item && !place);
+  const showItemResult = (showHumanResult || showAgentResult) && resultIsItem;
+  const showPlaceResult = showAgentResult && !resultIsItem;
 
   const tools: RegisteredTool[] = [
     {
@@ -263,7 +298,8 @@ export function CheckWorkspace() {
         // it before anything announces loading, so arriving from the hero
         // shows the verdict rather than flashing a spinner at a result we
         // are already holding.
-        if (mode === "human" && sp.get("from") === "landing") {
+        const handedOver = sp.get("from") === "landing" || sp.get("from") === "agent";
+        if (handedOver) {
           const raw = sessionStorage.getItem(LANDING_RESULT_KEY);
           if (raw) {
             sessionStorage.removeItem(LANDING_RESULT_KEY);
@@ -283,8 +319,13 @@ export function CheckWorkspace() {
         setLoad("loading");
         setError(null);
 
-        if (mode === "human") {
-          const restrictions: Restriction[] = humanRestrictions.map((key) => ({
+        // A named subject is an item check whoever drove it. Only a bare venue
+        // premise goes down the place path.
+        if (mode === "human" || urlSubject) {
+          const restrictions: Restriction[] = (mode === "agent" && !urlRestrictions.length
+            ? agentRestrictions
+            : humanRestrictions
+          ).map((key) => ({
             key: key as Restriction["key"],
           }));
           const result = await knownGateClient.checkItem({
@@ -579,19 +620,148 @@ export function CheckWorkspace() {
               <div className="kg-agent-idle-head">
                 <strong>Your agent checks.</strong>
                 <p>
-                  Nothing to fill in here. Ask your agent what you want to eat and who it is for, it sets the
-                  premise and calls the gate.
+                  Ask your agent what you want to eat and who it is for. It can call the tools, or drive
+                  these same fields in its browser. Either way the state lands here.
                 </p>
               </div>
-              <p className="sec-label">PREMISE</p>
-              <div className="kg-agent-empty">
-                <strong>nothing yet</strong>
-                <p>Your agent will set this and you can correct any of it.</p>
-              </div>
-              <p className="sec-label">SUBJECT</p>
-              <div className="kg-agent-empty">
-                <strong>nothing loaded</strong>
-              </div>
+
+              {/*
+                One form, both fields, per 137:1833. The dark button reads the
+                premise into rules on its first press and runs the check on the
+                next, which is exactly the two presses the directions publish:
+                it carries #kg-check-button until the rules are read, then
+                #kg-confirm-button.
+              */}
+              <form
+                className="kg-agent-rail-form"
+                onSubmit={agentFlow.stage === "compose" ? agentFlow.onRead : agentFlow.onCheck}
+              >
+                <p className="sec-label">PREMISE</p>
+                <div className="kg-agent-rail-field">
+                  <input
+                    id="kg-premise-input"
+                    name="premise"
+                    className="kg-input"
+                    value={agentFlow.text}
+                    onChange={(e) => agentFlow.setText(e.target.value)}
+                    maxLength={PARSE_MAX_CHARS}
+                    aria-label="What your family cannot eat, or a number to stay under"
+                    placeholder="e.g. milk allergy, and keep sodium under 200 mg"
+                  />
+                  <p className="hint">Your agent sets this, by tool or by typing here. You can correct any of it.</p>
+                </div>
+
+                {agentFlow.parsed?.restrictions.length || agentFlow.parsed?.thresholds.length ? (
+                  <div className="kg-chip-row kg-agent-rail-chips">
+                    {agentFlow.parsed.restrictions.map((r) => (
+                      <span key={r} className="chip on">
+                        {r.replace(/_/g, " ")}
+                        <button
+                          type="button"
+                          aria-label={`Remove ${r}`}
+                          onClick={() => agentFlow.dropRestriction(r)}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    {agentFlow.parsed.thresholds.map((t) => (
+                      <span key={t.nutrient} className="chip on">
+                        {t.nutrient} under {t.max}
+                        {t.unit}
+                        <button
+                          type="button"
+                          aria-label={`Remove the ${t.nutrient} rule`}
+                          onClick={() => agentFlow.dropThreshold(t.nutrient)}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                {/* The parser is a convenience; when it is unreachable the
+                    agent picks the rules instead of being stranded. */}
+                {agentFlow.parserDown ? (
+                  <div className="kg-chip-row kg-agent-rail-chips">
+                    {RESTRICTION_CHIPS.map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        className={`chip${agentFlow.manual.includes(chip) ? " on" : ""}`}
+                        aria-pressed={agentFlow.manual.includes(chip)}
+                        onClick={() => agentFlow.toggleManual(chip)}
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
+                {agentFlow.parsed?.needs_number.map((need) => (
+                  <label className="kg-confirm-amount" key={need.nutrient}>
+                    <span>{need.nutrient} under</span>
+                    <input
+                      inputMode="numeric"
+                      value={agentFlow.amounts[need.nutrient] ?? ""}
+                      onChange={(e) =>
+                        agentFlow.setAmounts((a) => ({ ...a, [need.nutrient]: e.target.value }))
+                      }
+                      aria-label={`Maximum ${need.nutrient} per serving`}
+                    />
+                    <span>{need.nutrient === "sodium" ? "mg" : "g"} per serving</span>
+                  </label>
+                ))}
+
+                <p className="sec-label">SUBJECT</p>
+                <div className="kg-agent-rail-field">
+                  <input
+                    id="kg-subject-input"
+                    name="subject"
+                    className="kg-input"
+                    value={agentFlow.subject}
+                    onChange={(e) => agentFlow.setSubject(e.target.value)}
+                    aria-label="What to check"
+                    placeholder="e.g. Kroger 99% Fat Free Chicken Broth"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  id={agentFlow.stage === "compose" ? "kg-check-button" : "kg-confirm-button"}
+                  className="kg-btn dark kg-agent-rail-go"
+                  disabled={agentFlow.busy}
+                  aria-label={agentFlow.stage === "compose" ? "Read these words into rules" : "Run the check"}
+                >
+                  {agentFlow.busy
+                    ? agentFlow.stage === "compose"
+                      ? "Reading…"
+                      : "Checking…"
+                    : "Check"}
+                </button>
+                {agentFlow.error ? <p className="kg-landing-error">{agentFlow.error}</p> : null}
+              </form>
+
+              {/* The steps as they happen. This is the same list whether the
+                  agent wrote through a tool or typed into the fields, because
+                  both report through the flow. */}
+              {agentLog.length ? (
+                <>
+                  <p className="sec-label">AGENT ACTIVITY</p>
+                  <div className="kg-activity">
+                    {agentLog.map((a, i) => (
+                      <div key={`${a.name}-${i}`} className="kg-activity-item">
+                        <div className="name">
+                          <span className="dot" aria-hidden />
+                          {a.name}
+                        </div>
+                        <div className="detail">{a.detail}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : null}
               <p className="sec-label">TOOLS EXPOSED TO YOUR AGENT</p>
               <div className="kg-activity">
                 {AGENT_TOOLS.map((t) => (
@@ -787,7 +957,7 @@ export function CheckWorkspace() {
             </div>
           ) : null}
 
-          {showHumanResult ? (
+          {showItemResult ? (
             <div id="kg-result" role="region" aria-label="Check result" data-settled={load === "ready"} data-state={load}>
               {load === "loading" ? (
                 <p style={{ color: "var(--kg-ink2)" }}>Ruling against the live evidence…</p>
@@ -885,7 +1055,7 @@ export function CheckWorkspace() {
             </div>
           ) : null}
 
-          {showAgentResult ? (
+          {showPlaceResult ? (
             <div id="kg-result" role="region" aria-label="Check result" data-settled={load === "ready"} data-state={load}>
               {load === "loading" ? (
                 <p style={{ color: "var(--kg-ink2)" }}>Ruling the venue against the live chart…</p>
@@ -964,11 +1134,11 @@ export function CheckWorkspace() {
               <p>Ask your agent what you want to eat and who it is for.</p>
               <p>Or switch to &ldquo;I&rsquo;m checking myself&rdquo; and do it by hand.</p>
               <div className="kg-callout">
-                <strong>The two modes are not the same screen with a different label.</strong>
+                <strong>Two modes, one engine, one set of controls.</strong>
                 <p>
-                  A person needs controls: chips to tap, a field to type in, a button to press. An agent needs
-                  none of that, it writes to the same state through the tools. Showing a human the empty agent
-                  workspace would look broken; showing an agent a form would be pointless.
+                  A tool-calling agent writes the premise and subject directly. A browser-driving agent,
+                  like ChatGPT operating this page, types into the same fields and presses the same
+                  button. Either way the rail records each step, and the person can correct any of it.
                 </p>
               </div>
             </div>

@@ -1,34 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import { knownGateClient } from "@/lib/knowngate/client";
-import type { Restriction } from "@/lib/knowngate/contracts";
 import type { LandingExamples } from "@/lib/kg/landing-data";
-import { LANDING_RESULT_KEY } from "@/lib/kg/landing-handoff";
 import { MustNotOmit } from "@/components/kg/primitives";
 import { NutritionPanelTable, PackShot } from "@/components/kg/label-panels";
-import {
-  PARSE_MAX_CHARS,
-  parsePremise,
-  type ParsedPremise,
-  type ParsedThreshold,
-} from "@/lib/kg/premise-parse";
+import { PARSE_MAX_CHARS, RESTRICTION_CHIPS } from "@/lib/kg/premise-parse";
+import { usePremiseFlow } from "@/lib/kg/use-premise-flow";
 
 /** Fallback picker, shown only when the parser cannot be reached. */
-const RESTRICTIONS = [
-  "milk",
-  "egg",
-  "fish",
-  "shellfish",
-  "tree nuts",
-  "peanut",
-  "wheat",
-  "soy",
-  "sesame",
-] as const;
-
 const DONT = [
   "No advice",
   "No meal plans",
@@ -37,20 +16,6 @@ const DONT = [
   "No pantry",
   "No “is this healthy”",
 ] as const;
-
-function chipToKey(chip: string): Restriction["key"] {
-  if (chip === "tree nuts") return "tree_nut";
-  return chip.replace(/\s+/g, "_") as Restriction["key"];
-}
-
-function subjectFromInput(raw: string): { kind: "upc" | "product_query"; value: string } {
-  const trimmed = raw.trim();
-  const digits = trimmed.replace(/\D/g, "");
-  if (digits.length >= 8 && digits.length <= 14) {
-    return { kind: "upc", value: digits.padStart(14, "0").slice(-14) };
-  }
-  return { kind: "product_query", value: trimmed };
-}
 
 function verdictClass(verdict: string): string {
   if (verdict === "conflict_found") return "shut";
@@ -64,7 +29,6 @@ function noDash(text: string): string {
   return text.replace(/\s*—\s*/g, ", ");
 }
 
-type Stage = "compose" | "confirm";
 
 /**
  * Canon copy. The relay rules are part of the product law, not phrasing, so
@@ -83,129 +47,28 @@ function chatGptPrompt(typed: string): string {
 }
 
 export function LandingPage({ examples }: { examples: LandingExamples }) {
-  const router = useRouter();
-
-  const [stage, setStage] = useState<Stage>("compose");
-  const [text, setText] = useState("");
-  const [parsed, setParsed] = useState<ParsedPremise | null>(null);
-  /** Numbers the person still owes us, keyed by nutrient. */
-  const [amounts, setAmounts] = useState<Record<string, string>>({});
-  const [subject, setSubject] = useState("");
-  const [manual, setManual] = useState<string[]>([]);
-  const [parserDown, setParserDown] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function toggleManual(chip: string) {
-    setManual((prev) => (prev.includes(chip) ? prev.filter((c) => c !== chip) : [...prev, chip]));
-  }
-
-  function dropRestriction(key: string) {
-    setParsed((p) => (p ? { ...p, restrictions: p.restrictions.filter((r) => r !== key) } : p));
-  }
-
-  function dropThreshold(nutrient: string) {
-    setParsed((p) =>
-      p ? { ...p, thresholds: p.thresholds.filter((t) => t.nutrient !== nutrient) } : p,
-    );
-  }
-
-  async function onRead(e: FormEvent) {
-    e.preventDefault();
-    const value = text.trim();
-    if (!value) {
-      setError("Tell us what your family cannot eat, or what to keep under a number.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    const outcome = await parsePremise(value);
-    setBusy(false);
-
-    if (outcome.status === "invalid") {
-      setError(outcome.message);
-      return;
-    }
-    if (outcome.status === "unavailable") {
-      // The parser is only a convenience. The check itself never depended on it.
-      setParserDown(true);
-      setStage("confirm");
-      setSubject(value);
-      return;
-    }
-    setParsed(outcome.premise);
-    setSubject(outcome.premise.subject?.value ?? "");
-    setStage("confirm");
-  }
-
-  async function onCheck(e: FormEvent) {
-    e.preventDefault();
-    const subjectValue = subject.trim();
-    if (!subjectValue) {
-      setError("Add what you want checked: a product name, a barcode, or a dish.");
-      return;
-    }
-
-    const restrictionKeys = parserDown ? manual : (parsed?.restrictions ?? []);
-    const thresholds: ParsedThreshold[] = [...(parsed?.thresholds ?? [])];
-    // A number the person typed in the confirm step becomes a rule. One they
-    // never gave stays off the check entirely.
-    for (const need of parsed?.needs_number ?? []) {
-      const raw = amounts[need.nutrient];
-      const max = Number(raw);
-      if (raw && Number.isFinite(max) && max > 0) {
-        thresholds.push({ nutrient: need.nutrient, max, unit: need.nutrient === "sodium" ? "mg" : "g" });
-      }
-    }
-    if (!restrictionKeys.length && !thresholds.length) {
-      setError("Add at least one rule: something that cannot be in it, or a number to stay under.");
-      return;
-    }
-
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await knownGateClient.checkItem({
-        restrictions: restrictionKeys.map((key) => ({ key: chipToKey(key) })),
-        subject: subjectFromInput(subjectValue),
-        // Omitted rather than sent empty when the premise carries no number.
-        // An absent key and a bare [] should mean the same thing, and the API
-        // now accepts both, but a restriction-only premise is the common case
-        // and it should not depend on that.
-        ...(thresholds.length
-          ? {
-              thresholds: thresholds.map((t) => ({
-                nutrient: t.nutrient,
-                max: t.max,
-                unit: t.unit,
-                basis: "per_serving",
-              })),
-            }
-          : {}),
-      });
-      sessionStorage.setItem(LANDING_RESULT_KEY, JSON.stringify(result));
-      const q = new URLSearchParams();
-      q.set("mode", "human");
-      q.set("step", "4");
-      q.set("from", "landing");
-      if (restrictionKeys.length) q.set("restrictions", restrictionKeys.join(","));
-      q.set("subject", subjectValue);
-      const sodium = thresholds.find((t) => t.nutrient === "sodium");
-      if (sodium) q.set("sodium", String(sodium.max));
-      router.push(`/check?${q.toString()}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "The check could not be completed.");
-      setBusy(false);
-    }
-  }
-
-  function startOver() {
-    setStage("compose");
-    setParsed(null);
-    setParserDown(false);
-    setAmounts({});
-    setError(null);
-  }
+  // The whole words-to-rules-to-check flow lives in the hook, shared with the
+  // agent workspace so the two can never diverge on what a premise means.
+  const {
+    stage,
+    text,
+    setText,
+    parsed,
+    amounts,
+    setAmounts,
+    subject,
+    setSubject,
+    manual,
+    toggleManual,
+    parserDown,
+    busy,
+    error,
+    onRead,
+    onCheck,
+    startOver,
+    dropRestriction,
+    dropThreshold,
+  } = usePremiseFlow({ mode: "human" });
 
   const menu = examples.menu;
 
@@ -285,7 +148,7 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
                     yet.
                   </p>
                   <div className="kg-chip-row">
-                    {RESTRICTIONS.map((c) => (
+                    {RESTRICTION_CHIPS.map((c) => (
                       <button
                         type="button"
                         key={c}

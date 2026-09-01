@@ -14,7 +14,9 @@ export function AgentDirections() {
     <aside className="kg-agent-note">
       <p className="kg-eyebrow">FOR AGENTS</p>
       <p>
-        <strong>1. Driving a browser? You need no tools.</strong> Go to knowngate.com, type the household
+        <strong>1. Driving a browser? You need no tools.</strong> Go to knowngate.com and switch this page
+        to Agent mode: click the Agent toggle in the header, <code>#kg-mode-agent</code>. That is where a
+        check you drive belongs, and it shows your steps as you take them. Then type the household
         rules into the field <code>#kg-premise-input</code> (labelled &ldquo;What your family cannot eat, or
         a number to stay under&rdquo;), press <code>#kg-check-button</code>. Confirm what it read, put what
         you want checked into <code>#kg-subject-input</code>, and press <code>#kg-confirm-button</code>. The

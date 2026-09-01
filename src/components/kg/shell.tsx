@@ -36,10 +36,22 @@ function ModeSwitch({
 }) {
   return (
     <div className="kg-mode" role="group" aria-label="Checker mode">
-      <button type="button" aria-pressed={mode === "human"} onClick={() => onChange("human")}>
+      {/* Stable ids: the agent directions tell a browsing agent to press
+          #kg-mode-agent before it does anything else. */}
+      <button
+        type="button"
+        id="kg-mode-human"
+        aria-pressed={mode === "human"}
+        onClick={() => onChange("human")}
+      >
         {humanLabel}
       </button>
-      <button type="button" aria-pressed={mode === "agent"} onClick={() => onChange("agent")}>
+      <button
+        type="button"
+        id="kg-mode-agent"
+        aria-pressed={mode === "agent"}
+        onClick={() => onChange("agent")}
+      >
         {agentLabel}
       </button>
     </div>
@@ -134,7 +146,12 @@ export function KgHeader({
     const q = new URLSearchParams(searchParams.toString());
     q.set("mode", next);
     if (resolvedModeHref) {
-      if (!q.has("step")) q.set("step", "4");
+      // Step 4 is the result. Defaulting there is right when the url already
+      // carries a premise to show, and wrong on a fresh switch: an agent that
+      // presses Agent first would land on a result screen with nothing ruled.
+      const hasPremise = q.has("restrictions") || q.has("subject");
+      if (!q.has("step")) q.set("step", hasPremise ? "4" : "1");
+      if (!hasPremise) q.set("step", "1");
       router.push(`${resolvedModeHref}?${q.toString()}`);
       return;
     }

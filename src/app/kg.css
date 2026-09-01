@@ -1564,3 +1564,78 @@
 
   a[href]::after { content: ""; }
 }
+
+/* ---- The agent workspace, when the agent is driving the DOM ---- */
+
+.kg-root .kg-agent-drive {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 36px 0 48px;
+}
+
+.kg-root .kg-agent-drive h1 { font-size: clamp(1.7rem, 3vw, 2.3rem); margin: 6px 0 10px; }
+
+.kg-root .kg-agent-drive-lede {
+  color: var(--kg-ink2);
+  font-size: 14.5px;
+  line-height: 1.65;
+  margin: 0 0 24px;
+}
+
+.kg-root .kg-agent-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.kg-root .kg-agent-form .kg-eyebrow { margin: 6px 0 0; }
+
+/* The field and its button on one line, so the pair an agent is told to use
+   reads as one control. */
+.kg-root .kg-agent-field { display: flex; gap: 10px; align-items: stretch; }
+.kg-root .kg-agent-field .kg-input { flex: 1; min-width: 0; }
+.kg-root .kg-agent-field .kg-btn { flex-shrink: 0; }
+
+@media (max-width: 560px) {
+  .kg-root .kg-agent-field { flex-direction: column; }
+}
+
+/* ---- Agent rail controls (137:1833) ---- */
+
+/* The frame puts the agent's controls in the rail, beside the tools it can
+   call: one place the state comes from, whichever way it arrives. */
+.kg-root .kg-agent-rail-form { display: block; margin-bottom: 8px; }
+
+.kg-root .kg-agent-rail-field {
+  border: 1px solid var(--kg-line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+}
+
+.kg-root .kg-agent-rail-field .kg-input {
+  border: 0;
+  padding: 0;
+  width: 100%;
+  font-size: 13.5px;
+  background: transparent;
+}
+
+.kg-root .kg-agent-rail-field .kg-input:focus { outline: none; }
+
+.kg-root .kg-agent-rail-field .hint {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--kg-ink3);
+}
+
+.kg-root .kg-agent-rail-chips { margin: 8px 0 4px; }
+
+.kg-root .kg-btn.kg-agent-rail-go {
+  margin: 12px 0 4px;
+  padding: 9px 20px;
+  font-size: 13.5px;
+}
