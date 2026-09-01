@@ -529,7 +529,27 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
    * than borrowing the fixture's venue run.
    */
   const settledLog: { name: string; detail: string }[] = !resultIsItem
-    ? []
+    ? // A venue ruled on this screen has its own steps too. Falling through to
+      // the fixture put "load_subject, Krystal" beside a check on In-N-Out.
+      showPlaceResult && (agentLog.length || urlVenue)
+      ? [
+          ...(agentLog.length
+            ? agentLog
+            : [
+                { name: "premise set", detail: railLine },
+                { name: "subject loaded", detail: urlVenue ?? "the venue you named" },
+              ]),
+          {
+            name: "check_venue",
+            detail: venueRuledCount
+              ? `${venueRuledCount} items ruled against the published chart`
+              : "no chart to rule against",
+          },
+          ...(load === "ready"
+            ? [{ name: "result settled", detail: "verdict, source and read date returned" }]
+            : []),
+        ]
+      : []
     : agentLog.length
       ? [
           ...agentLog,
@@ -1277,11 +1297,11 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
                   </article>
                 ))}
               </div>
-              <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 12 }}>
-                {itemTotal > notable.length
-                  ? `${itemTotal - notable.length} more items ruled. ${remainder.conflict_found} conflict found, ${remainder.ask_one_question} ask one question.`
-                  : agent.more_line}
-              </p>
+              {venueRuledCount && itemTotal > notable.length ? (
+                <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 12 }}>
+                  {`${itemTotal - notable.length} more items ruled. ${remainder.conflict_found} conflict found, ${remainder.ask_one_question} ask one question.`}
+                </p>
+              ) : null}
               <div className="kg-action-row">
                 <button
                   type="button"
@@ -1296,6 +1316,7 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
                   Change the premise
                 </Link>
               </div>
+              {venueRuledCount ? (
               <div className="kg-callout" style={{ marginTop: 16 }}>
                 <strong>The agent ruled nothing. It asked, and it is showing you what came back.</strong>
                 <p>
@@ -1305,6 +1326,7 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
                   into &ldquo;mostly fine&rdquo;.
                 </p>
               </div>
+              ) : null}
             </div>
           ) : null}
 
