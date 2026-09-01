@@ -86,3 +86,24 @@ test("a venue is recognised by prefix, and a product is not mistaken for one", a
     value: "00005150024177",
   });
 });
+
+test("a handed-over payload is recognised as a menu or an item, never guessed", () => {
+  // The workspace stores both kinds in one slot and has to tell them apart.
+  // Reading a menu back as an item is what crashed the agent workspace: the
+  // first thing rendered is subject.name, and a menu has no subject.
+  const isPlace = (r: Record<string, unknown>) => "venue" in r || "verdict_counts" in r;
+  assert.equal(isPlace({ venue: { name: "Krystal" }, notable: [] }), true);
+  assert.equal(isPlace({ verdict_counts: { conflict: 1 } }), true);
+  assert.equal(
+    isPlace({ verdict: "conflict_found", subject: { kind: "upc", value: "0001" } }),
+    false,
+  );
+});
+
+test("a menu with a nameless item still renders a name", async () => {
+  const { mapNotable } = await import("../src/lib/kg/live-map.ts");
+  const rows = mapNotable({
+    notable: [{ verdict: "conflict_found", subject: undefined, conflicts: [], source: null }],
+  } as never);
+  assert.equal(rows[0].name, "an item on this menu");
+});

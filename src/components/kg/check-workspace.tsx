@@ -201,7 +201,9 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
   /** A named subject is an item wherever it was driven from. */
   const resultIsItem = !!urlSubject || (!!item && !place);
   const showItemResult = (showHumanResult || showAgentResult) && resultIsItem;
-  const showPlaceResult = showAgentResult && !resultIsItem;
+  // A menu ruled from the landing is still a menu. Gating this on agent mode
+  // meant a human venue check rendered nothing at all.
+  const showPlaceResult = (showHumanResult || showAgentResult) && !resultIsItem;
 
   const tools: RegisteredTool[] = [
     {
@@ -345,11 +347,16 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
           const raw = sessionStorage.getItem(LANDING_RESULT_KEY);
           if (raw) {
             sessionStorage.removeItem(LANDING_RESULT_KEY);
-            const result = JSON.parse(raw) as ItemResult;
+            // A venue check hands over a PlaceResult through the same slot.
+            // Reading one back as an item put a menu in the item state, where
+            // the first thing rendered is subject.name on a payload that has
+            // no subject, and the workspace died on it.
+            const handed = JSON.parse(raw) as ItemResult | PlaceResult;
+            const isPlace = "venue" in handed || "verdict_counts" in handed;
             if (!cancelled) {
               settledKey.current = requestKey;
-              setItem(result);
-              setPlace(null);
+              setItem(isPlace ? null : (handed as ItemResult));
+              setPlace(isPlace ? (handed as PlaceResult) : null);
               setError(null);
               setLoad("ready");
             }
@@ -489,8 +496,8 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
    * a product the person never named.
    */
   const checkedSubject = item
-    ? (item.subject.name ?? item.subject.value)
-    : human.subject.name;
+    ? (item.subject?.name ?? item.subject?.value ?? urlSubject ?? "what you asked about")
+    : (urlSubject ?? human.subject.name);
   const placeCounts = place ? mapPlaceCounts(place) : agent.counts;
   const notable = place ? mapNotable(place) : agent.notable;
   const itemTotal =
@@ -896,7 +903,7 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
                       verdict beside somebody else's subject is the worst
                       thing this rail can say. */}
                   <div style={{ fontWeight: 600 }}>
-                    {resultIsItem ? checkedSubject : (place?.venue.name ?? urlVenue ?? agent.venue.name)}
+                    {resultIsItem ? checkedSubject : (place?.venue?.name || urlVenue || agent.venue.name)}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--kg-ink2)" }}>
                     {resultIsItem

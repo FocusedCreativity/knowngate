@@ -63,8 +63,8 @@ export function mapPlaceCounts(result: PlaceResult) {
 }
 
 export function mapNotable(result: PlaceResult) {
-  return result.notable.map((n) => ({
-    name: n.subject.name ?? n.subject.value,
+  return (result.notable ?? []).map((n) => ({
+    name: n.subject?.name ?? n.subject?.value ?? "an item on this menu",
     verdict: toDesignVerdict(n.verdict),
     line: summarizeItem(n),
     source: n.source
