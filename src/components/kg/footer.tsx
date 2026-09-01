@@ -14,7 +14,7 @@ export function KgFooter() {
         <div className="kg-footer-brand">
           <Link className="kg-mark" href="/">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/kg/living-loop.svg" alt="" width={26} height={26} />
+            <img src="/kg/living-loop-light.svg" alt="" width={26} height={26} />
             <span className="kg-mark-text">
               <strong>KnownGate</strong>
               <span>every answer, with its source</span>

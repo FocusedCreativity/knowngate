@@ -19,7 +19,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}<footer className="site-footer">KnownGate reports sourced evidence, not medical advice. Always verify with the manufacturer or venue when the stakes are high.</footer></body>
+      {/*
+        One footer per page. The scaffold's disclaimer used to sit here as a
+        second one, saying something no frame draws and duplicating the line
+        the real footer already carries.
+      */}
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
