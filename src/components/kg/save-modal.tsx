@@ -68,12 +68,21 @@ export function SaveModal({
           Saved {savedOn}. The dated link below is the one thing KnownGate stores. Anyone with the
           link sees this ruling exactly as frozen, and can re-run it fresh.
         </p>
-        <p className="kg-modal-link">{shown}</p>
+        {/* The link an agent reads back into the conversation. */}
+        <p className="kg-modal-link" id="kg-record-link" data-record-url={url}>
+          {shown}
+        </p>
         <div className="kg-modal-actions">
           <button type="button" className="kg-btn" onClick={copy}>
             {copied ? "Link copied" : "Copy link"}
           </button>
-          <a className="kg-btn dark" href={url} target="_blank" rel="noopener noreferrer">
+          <a
+            className="kg-btn dark"
+            id="kg-open-record"
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Open the record
           </a>
           {/*

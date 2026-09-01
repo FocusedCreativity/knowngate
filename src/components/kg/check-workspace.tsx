@@ -117,7 +117,15 @@ export function CheckWorkspace() {
         .filter(Boolean)
         .join(" · ")
     : premise.line;
-  const bannerLine = mode === "agent" ? (premise.agent_line ?? "milk") : humanPremiseLine;
+  // A url that states a premise states all of it, in either mode. Agent mode
+  // used to fall back to the fixture's line, which said "milk" beside a
+  // ruling that turned on 200 mg of sodium.
+  const bannerLine =
+    hasUrlPremise || agentLog.length
+      ? humanPremiseLine
+      : mode === "agent"
+        ? (premise.agent_line ?? "milk")
+        : humanPremiseLine;
   // Who set it. In agent mode the premise arrives from the agent, whether it
   // typed into the field or wrote through a tool.
   const bannerMeta =
@@ -482,6 +490,15 @@ export function CheckWorkspace() {
               : []),
           ]
         : [];
+
+  /**
+   * The same log the rail shows, for the card in the main area. It carried
+   * the fixture's venue run, so "load_subject, Krystal" and "check_venue, 84
+   * items ruled" sat beside a ruling on one carton of broth.
+   */
+  const mainActivity: { name: string; detail: string; status?: string }[] = resultIsItem
+    ? settledLog
+    : shownActivity;
   /**
    * What is left after the items already listed. Reporting the full counts
    * here would count the six shown twice, which is how it read as "84 more
@@ -921,12 +938,12 @@ export function CheckWorkspace() {
                     marginBottom: activityOpen ? 12 : 0,
                   }}
                 >
-                  <span>AGENT ACTIVITY · {shownActivity.length} CALLS</span>
+                  <span>AGENT ACTIVITY · {mainActivity.length} CALLS</span>
                   <span aria-hidden>{activityOpen || rulingInProgress ? "▴" : "▾"}</span>
                 </div>
                 {(activityOpen || rulingInProgress) && (
                   <div className="kg-activity">
-                    {shownActivity.map((a) => (
+                    {mainActivity.map((a) => (
                       <div key={a.name} className="kg-activity-item">
                         <div className="name">
                           <span className="dot" aria-hidden />
@@ -1089,7 +1106,13 @@ export function CheckWorkspace() {
                 </div>
               ) : null}
               <div className="kg-action-row">
-                <button type="button" className="kg-btn dark" onClick={saveRecord} disabled={saving}>
+                <button
+                  type="button"
+                  id="kg-save-button"
+                  className="kg-btn dark"
+                  onClick={saveRecord}
+                  disabled={saving}
+                >
                   {saving ? "Saving…" : "Save this record to share"}
                 </button>
                 <Link className="kg-action-quiet" href="/">
@@ -1164,7 +1187,13 @@ export function CheckWorkspace() {
                   : agent.more_line}
               </p>
               <div className="kg-action-row">
-                <button type="button" className="kg-btn dark" onClick={saveRecord} disabled={saving}>
+                <button
+                  type="button"
+                  id="kg-save-button"
+                  className="kg-btn dark"
+                  onClick={saveRecord}
+                  disabled={saving}
+                >
                   {saving ? "Saving…" : "Save this record to share"}
                 </button>
                 <Link className="kg-action-quiet" href="/check?mode=agent&step=1">
@@ -1174,7 +1203,8 @@ export function CheckWorkspace() {
               <div className="kg-callout" style={{ marginTop: 16 }}>
                 <strong>The agent ruled nothing. It asked, and it is showing you what came back.</strong>
                 <p>
-                  It cannot raise a verdict, answer a question on your behalf, or save this without you.{" "}
+                  It cannot raise a verdict or answer a question on your behalf, and it saves a record
+                  only where you have asked it to, on this page or in what you told it.{" "}
                   {placeCounts.conflict_found} items conflict, and it is not allowed to round any of that
                   into &ldquo;mostly fine&rdquo;.
                 </p>

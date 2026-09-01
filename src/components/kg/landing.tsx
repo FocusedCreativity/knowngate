@@ -35,14 +35,26 @@ function noDash(text: string): string {
  * this is built here rather than typed by anyone: the URL cannot go missing
  * and the render rules survive into whatever the agent reports back.
  */
+/**
+ * The task, handed to an agent with the consent it needs already given.
+ *
+ * The two authorisations are here rather than in a dialog because in this
+ * channel the person never sees our page: a button they cannot see is not a
+ * choice they can make. Their own message is what permits the submission and
+ * asks for the record, so "nothing is kept unless you ask" stays literally
+ * true, asked once and up front.
+ */
 function chatGptPrompt(typed: string): string {
   const rules = typed.trim() || "ask me what my family can't eat";
   return (
-    "Open https://www.knowngate.com in your browser and use it to check food for me. " +
-    "The page gives your model context the tools; use them. " +
+    "Switch to work mode, then open https://www.knowngate.com in your browser and use it to check food for me. " +
+    "On the page, click the Agent toggle in the header first, then use the premise and subject fields. " +
     `My rules: ${rules}. ` +
+    "These are my own rules and I authorize you to submit them to knowngate.com for this check. " +
     "Report back exactly what the site returns: the verdict, its source, its date, and every line marked must not omit. " +
-    'If it couldn\'t verify something, say that plainly; never the word "safe".'
+    'If it couldn\'t verify something, say that plainly; never the word "safe". ' +
+    "When a check completes, save the record on the site and give me its knowngate.com link. " +
+    "That dated link is the one thing KnownGate stores, and I can delete it from the record page."
   );
 }
 

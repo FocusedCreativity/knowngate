@@ -87,7 +87,7 @@
       },
       {
         "name": "save_record",
-        "detail": "Only a person presses save. The agent cannot write this down for you.",
+        "detail": "A record is saved only when the person asks for it, on the page or in their instructions to an agent. Saving returns a dated link the record page can delete.",
         "status": "not called"
       }
     ],
