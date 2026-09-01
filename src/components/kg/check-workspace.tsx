@@ -2,17 +2,20 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { knownGateClient } from "@/lib/knowngate/client";
 import { compactBoard, compactItem, compactPlace } from "@/lib/knowngate/compact";
 import type { ItemResult, LabelResult, PlaceResult, Restriction } from "@/lib/knowngate/contracts";
 import { IngredientPanel, NutritionPanelTable, PackShot } from "./label-panels";
+import { SaveModal } from "./save-modal";
 import { parseCheckItemRequest, parseCheckPlaceRequest, parsePremise } from "@/lib/knowngate/validation";
 import { rulingRoomSchemas } from "@/lib/webmcp/schemas";
 import { useWebMcpTools, type RegisteredTool } from "@/lib/webmcp/use-webmcp-tools";
 import { getWorkspace } from "@/lib/kg/fixtures";
 import {
+  compositionDetail,
   describeThresholdHit,
+  preparationDetail,
   formatReadDate,
   mapNotable,
   mapPlaceCounts,
@@ -40,7 +43,6 @@ function chipToKey(chip: string): Restriction["key"] {
 
 export function CheckWorkspace() {
   const sp = useSearchParams();
-  const router = useRouter();
   const mode = sp.get("mode") === "agent" ? "agent" : "human";
   const step = Math.min(4, Math.max(1, Number(sp.get("step") || "4")));
   const data = getWorkspace();
@@ -56,6 +58,7 @@ export function CheckWorkspace() {
   const [label, setLabel] = useState<{ url: string; data: LabelResult } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ url: string; on: string } | null>(null);
 
   const premise = data.premise;
   const human = data.human;
@@ -365,7 +368,14 @@ export function CheckWorkspace() {
         },
         results,
       });
-      router.push(`/ck/${frozen.ck_id}`);
+      // Confirm rather than navigate. The record is a real page because being
+      // handed to someone is its whole purpose, but arriving there the instant
+      // you press Save throws you out of your own session.
+      setSaving(false);
+      setSaved({
+        url: new URL(`/ck/${frozen.ck_id}`, window.location.origin).toString(),
+        on: formatReadDate(frozen.frozen_at.slice(0, 10)),
+      });
     } catch (e) {
       setSaving(false);
       setSaveError(e instanceof Error ? e.message : "The record could not be saved.");
@@ -430,19 +440,11 @@ export function CheckWorkspace() {
   // 600 mg line under a check that only ever asked about peanuts.
   const showThreshold = item ? !!sodiumHit : true;
 
-  // The API gives a coverage state and, where something was found, the words
-  // it was found in. It does not ship prose for these panels. Say what the
-  // payload supports and nothing beyond it: the fixture's own sentences
-  // describe a different product and would be a false claim about this one.
-  const compositionDetail = item?.conflicts[0]?.evidence
-    ? item.conflicts[0].evidence
-    : item?.coverage.composition === "covered"
-      ? "The ingredient list was read. Nothing you asked about appears on it."
-      : "The evidence read does not cover what is in it.";
-  const preparationDetail =
-    item?.coverage.preparation === "covered"
-      ? "The evidence read covers how it is prepared."
-      : "The evidence read does not cover how it is prepared.";
+  // Both panels read the payload through the shared helpers, so a frozen
+  // record and the live workspace can never describe the same result
+  // differently.
+  const compositionLine = item ? compositionDetail(item) : human.axes.composition.detail;
+  const preparationLine = item ? preparationDetail(item) : human.axes.preparation.detail;
 
   const conflictNames = item?.conflicts.map((c) => c.restriction) ?? [];
   const humanSummary = item
@@ -813,7 +815,7 @@ export function CheckWorkspace() {
                   </div>
                   <IngredientPanel label={shownLabel} />
                   <p style={{ margin: "10px 0 0", fontSize: 13 }}>
-                    {item ? compositionDetail : human.axes.composition.detail}
+                    {compositionLine}
                   </p>
                 </div>
                 <div className={`kg-axis ${item?.coverage.preparation === "covered" ? "covered" : "not_covered"}`}>
@@ -822,7 +824,7 @@ export function CheckWorkspace() {
                     Preparation, {item?.coverage.preparation === "covered" ? "covered" : "not covered"}
                   </div>
                   <p style={{ margin: "10px 0 0", fontSize: 13 }}>
-                    {item ? preparationDetail : human.axes.preparation.detail}
+                    {preparationLine}
                   </p>
                 </div>
                 {showThreshold ? (
@@ -860,11 +862,11 @@ export function CheckWorkspace() {
                   </p>
                 </div>
               ) : null}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 24 }}>
-                <button type="button" className="kg-btn" onClick={saveRecord} disabled={saving}>
+              <div className="kg-action-row">
+                <button type="button" className="kg-btn dark" onClick={saveRecord} disabled={saving}>
                   {saving ? "Saving…" : "Save this record to share"}
                 </button>
-                <Link className="kg-btn quiet" href="/">
+                <Link className="kg-action-quiet" href="/">
                   Check something else
                 </Link>
               </div>
@@ -935,13 +937,13 @@ export function CheckWorkspace() {
                   ? `${itemTotal - notable.length} more items ruled. ${remainder.conflict_found} conflict found, ${remainder.ask_one_question} ask one question.`
                   : agent.more_line}
               </p>
-              <div style={{ display: "grid", gap: 12, marginTop: 24 }}>
-                <button type="button" className="kg-btn" onClick={saveRecord} disabled={saving}>
+              <div className="kg-action-row">
+                <button type="button" className="kg-btn dark" onClick={saveRecord} disabled={saving}>
                   {saving ? "Saving…" : "Save this record to share"}
                 </button>
-                <button type="button" className="kg-btn quiet">
+                <Link className="kg-action-quiet" href="/check?mode=agent&step=1">
                   Change the premise
-                </button>
+                </Link>
               </div>
               <div className="kg-callout" style={{ marginTop: 16 }}>
                 <strong>The agent ruled nothing. It asked, and it is showing you what came back.</strong>
@@ -975,6 +977,9 @@ export function CheckWorkspace() {
           {step < 4 && mode === "human" ? <EmptyLanding step={step} /> : null}
         </div>
       </div>
+      {saved ? (
+        <SaveModal url={saved.url} savedOn={saved.on} onClose={() => setSaved(null)} />
+      ) : null}
     </>
   );
 }

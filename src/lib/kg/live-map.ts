@@ -117,3 +117,23 @@ export function summarizeThresholdHit(hit: ThresholdHit): string {
     ? `The ${hit.nutrient} limit is exceeded.`
     : `The ${hit.nutrient} limit is met.`;
 }
+
+/**
+ * The composition panel's line. The API ships a coverage state and, where
+ * something was found, the words it was found in; it ships no prose. Both the
+ * workspace and a frozen record read this, so neither can drift from the other.
+ */
+export function compositionDetail(result: ItemResult): string {
+  const evidence = result.conflicts[0]?.evidence;
+  if (evidence) return evidence;
+  return result.coverage.composition === "covered"
+    ? "The ingredient list was read. Nothing you asked about appears on it."
+    : "The evidence read does not cover what is in it.";
+}
+
+/** The preparation panel's line, on the same terms. */
+export function preparationDetail(result: ItemResult): string {
+  return result.coverage.preparation === "covered"
+    ? "The evidence read covers how it is prepared."
+    : "The evidence read does not cover how it is prepared.";
+}

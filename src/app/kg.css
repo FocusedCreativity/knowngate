@@ -1389,3 +1389,170 @@
   margin: 0 0 12px;
   font-size: 12px;
 }
+
+/* ---- The result's action row (137:1634) ---- */
+
+/* One primary action. Two equal full-width slabs read as two equally
+   important choices, and only one of these writes anything down. */
+.kg-root .kg-action-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.kg-root .kg-btn.dark {
+  background: var(--kg-ink);
+  color: var(--kg-on-dark);
+  border-color: var(--kg-ink);
+}
+
+.kg-root .kg-btn.dark:hover { background: #243024; }
+
+.kg-root a.kg-action-quiet {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--kg-ink2);
+  text-decoration: none;
+  padding: 4px 2px;
+}
+
+.kg-root a.kg-action-quiet:hover { color: var(--kg-ink); text-decoration: underline; }
+
+/* ---- The save confirmation (229:6) ---- */
+
+.kg-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(24, 32, 24, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.kg-modal {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px 32px 26px;
+  box-shadow: 0 24px 60px rgba(24, 32, 24, 0.28);
+}
+
+.kg-modal h2 { margin: 6px 0 12px; font-size: 25px; line-height: 1.25; }
+.kg-modal-lede { margin: 0 0 18px; font-size: 14px; line-height: 1.6; color: var(--kg-ink2); }
+
+/* The link is the record. It is set apart so it reads as the thing being
+   handed over, and stays selectable when the clipboard is refused. */
+.kg-modal-link {
+  margin: 0 0 18px;
+  background: var(--kg-paper-2);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 14px;
+  word-break: break-all;
+  user-select: all;
+}
+
+.kg-modal-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.kg-modal-note { margin: 18px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--kg-ink3); }
+
+.kg-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: 0;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--kg-ink3);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.kg-modal-close:hover { color: var(--kg-ink); }
+
+/* ---- The record page (229:193) ---- */
+
+/* The workspace's premise bar in record dress: no Change, because a frozen
+   record cannot be edited, and the freeze stamp in its place. */
+.kg-root .kg-subbar.is-record {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--kg-ink);
+  color: var(--kg-on-dark);
+  padding: 15px max(var(--kg-pad), calc((100% - var(--kg-max)) / 2));
+  font-size: 15px;
+}
+
+.kg-root .kg-subbar.is-record .kg-eyebrow { color: var(--kg-lime); margin: 0; }
+.kg-root .kg-subbar.is-record strong { font-weight: 500; color: #fff; }
+.kg-root .kg-subbar-right { margin-left: auto; font-size: 13px; color: var(--kg-ink2); }
+
+.kg-root .kg-record-body {
+  max-width: var(--kg-max);
+  margin: 0 auto;
+  padding: 28px var(--kg-pad) 64px;
+}
+
+.kg-root .kg-record-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+
+.kg-root .kg-record-note { margin-top: 20px; }
+.kg-root .kg-record-place { margin-bottom: 28px; }
+
+@media (max-width: 640px) {
+  .kg-root .kg-subbar-right { margin-left: 0; width: 100%; }
+  .kg-root .kg-record-actions .kg-btn { flex: 1 1 auto; }
+}
+
+/* ---- Print: the record is the document ---- */
+
+@media print {
+  /* Chrome, the nav, the actions and the agent block are screen furniture.
+     What prints is the ruling, its evidence and the frozen note. */
+  .kg-header,
+  .kg-footer,
+  .kg-record-actions,
+  .kg-agent-note,
+  .kg-webmcp-pill,
+  .kg-rail-summary {
+    display: none !important;
+  }
+
+  .kg-root .kg-subbar.is-record {
+    background: transparent;
+    color: #000;
+    border-bottom: 1px solid #999;
+    padding: 0 0 10px;
+  }
+
+  .kg-root .kg-subbar.is-record strong,
+  .kg-root .kg-subbar.is-record .kg-eyebrow,
+  .kg-root .kg-subbar-right {
+    color: #000;
+  }
+
+  .kg-root .kg-record-body { padding: 0; max-width: none; }
+
+  /* The three evidence panels stack rather than squeeze onto one line, and
+     no panel is allowed to break across a page. */
+  .kg-root .kg-axes { display: block; }
+  .kg-root .kg-axis { break-inside: avoid; margin-bottom: 12px; }
+
+  /* These lines are the reason the record exists; they never split. */
+  .kg-must-not-omit { break-inside: avoid; }
+
+  a[href]::after { content: ""; }
+}
