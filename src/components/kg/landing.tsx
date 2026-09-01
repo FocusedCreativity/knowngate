@@ -226,10 +226,12 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
               </div>
               <div className="kg-landing-composer">
                 <input
+                  id="kg-premise-input"
+                  name="premise"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   maxLength={PARSE_MAX_CHARS}
-                  aria-label="Tell us what your family cannot eat, in your own words"
+                  aria-label="What your family cannot eat, or a number to stay under"
                   placeholder="Tell us in your own words: “no peanuts, and keep sugar under 10g”"
                 />
                 <span className="kg-composer-icon" aria-hidden title="Scan a barcode">
@@ -238,7 +240,13 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
                 <span className="kg-composer-icon" aria-hidden title="Upload a photo">
                   CAM
                 </span>
-                <button type="submit" className="kg-btn" disabled={busy}>
+                <button
+                  type="submit"
+                  id="kg-check-button"
+                  className="kg-btn"
+                  disabled={busy}
+                  aria-label="Read my words into rules"
+                >
                   {busy ? "Reading…" : "Check it"}
                 </button>
               </div>
@@ -351,6 +359,8 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
               <div className="kg-confirm-row">
                 <span className="kg-eyebrow">WHAT TO CHECK</span>
                 <input
+                  id="kg-subject-input"
+                  name="subject"
                   className="kg-input"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
@@ -360,7 +370,13 @@ export function LandingPage({ examples }: { examples: LandingExamples }) {
               </div>
 
               {error ? <p className="kg-landing-error">{error}</p> : null}
-              <button type="submit" className="kg-btn" disabled={busy}>
+              <button
+                type="submit"
+                id="kg-confirm-button"
+                className="kg-btn"
+                disabled={busy}
+                aria-label="Run the check"
+              >
                 {busy ? "Checking…" : "Check it"}
               </button>
               <div className="kg-landing-form-note">

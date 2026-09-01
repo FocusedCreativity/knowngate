@@ -104,6 +104,10 @@ export function normalizeItemResult(raw: unknown): ItemResult {
     source: mapSource(input.source),
     caveat: mapCaveat(input.caveat),
     label_url: typeof input.label_url === "string" ? input.label_url : null,
+    // The standard forbids dropping these, so they survive normalisation.
+    must_not_omit: Array.isArray(input.must_not_omit)
+      ? input.must_not_omit.filter((v): v is string => typeof v === "string")
+      : [],
     threshold_hits: Array.isArray(input.threshold_hits)
       ? (input.threshold_hits as ItemResult["threshold_hits"])
       : undefined,
@@ -128,6 +132,9 @@ export function normalizePlaceResult(raw: unknown): PlaceResult {
       city: typeof venue.city === "string" ? venue.city : null,
     },
     chart: (typeof input.chart === "string" ? input.chart : "none_found") as PlaceResult["chart"],
+    must_not_omit: Array.isArray(input.must_not_omit)
+      ? input.must_not_omit.filter((v): v is string => typeof v === "string")
+      : [],
     verdict_counts: {
       no_conflict: number("no_conflict", "no_conflict_found"),
       conflict: number("conflict", "conflict_found"),

@@ -2,18 +2,30 @@
   "name": "knowngate",
   "version": "0.1.0",
   "description": "Checks food claims against evidence. Returns one of four verdicts with its source and the date that source was read, for what must not be present and for what must stay under a number.",
-  "vendor": { "name": "fuda", "url": "https://www.knowngate.com" },
+  "vendor": {
+    "name": "fuda",
+    "url": "https://www.knowngate.com"
+  },
   "documentation": "https://www.knowngate.com/agents",
   "llms_txt": "https://www.knowngate.com/llms.txt",
   "endpoints": {
     "mcp": "https://www.knowngate.com/api/knowngate/v0/mcp",
     "rest": "https://www.knowngate.com/api/knowngate/v0"
   },
-  "transport": ["streamable-http", "sse"],
+  "transport": [
+    "streamable-http",
+    "sse"
+  ],
   "authentication": {
     "type": "bearer",
-    "required_for": ["check_item", "check_venue", "check_plan"],
-    "open": ["register"],
+    "required_for": [
+      "check_item",
+      "check_venue",
+      "check_plan"
+    ],
+    "open": [
+      "register"
+    ],
     "how_to_obtain": "Call the register tool with { agent_name, contact_email }, or POST /api/knowngate/v0/keys. The key is returned in the response body; no browser and no confirmation click.",
     "note": "Checking on knowngate.com itself never requires a key."
   },
@@ -39,7 +51,12 @@
       "returns": "A key in the response body."
     }
   ],
-  "verdicts": ["no_conflict_found", "conflict_found", "ask_one_question", "couldnt_verify"],
+  "verdicts": [
+    "no_conflict_found",
+    "conflict_found",
+    "ask_one_question",
+    "couldnt_verify"
+  ],
   "rendering_rules": [
     "Pass verdicts through unchanged; the four names are canon.",
     "Never render any verdict as \"safe\". The word is not used in this system.",
@@ -51,5 +68,33 @@
     "evidence_standard": "https://www.knowngate.com/standard",
     "question_library": "https://www.knowngate.com/questions",
     "refusal_rate": "https://www.knowngate.com/refusals"
+  },
+  "how_to_use": {
+    "note": "Ordered by capability. Most browsing agents drive pages by clicking and typing and are never handed page tools, so the DOM path is first.",
+    "1_browser_no_tools": {
+      "url": "https://www.knowngate.com",
+      "steps": [
+        "Type the household rules into #kg-premise-input (labelled 'What your family cannot eat, or a number to stay under').",
+        "Press #kg-check-button.",
+        "Confirm what it read, put the subject into #kg-subject-input, press #kg-confirm-button.",
+        "Read #kg-result, a region labelled 'Check result', verdict name in #kg-verdict. Settled when #kg-result has data-settled='true'. If it has data-state='error', nothing was checked: say so and do not guess a verdict.",
+        "The verdict, source, read date, caveat and every must_not_omit line are plain text in that region."
+      ]
+    },
+    "2_webmcp": {
+      "url": "https://www.knowngate.com/check",
+      "note": "Only if your environment exposes page tools to your model context.",
+      "sequence": [
+        "set_restrictions",
+        "load_subject",
+        "check_item or check_venue",
+        "get_result"
+      ]
+    },
+    "3_http": {
+      "mcp": "https://www.knowngate.com/api/knowngate/v0/mcp",
+      "rest": "https://www.knowngate.com/api/knowngate/v0",
+      "key": "Free. Create one in-band with the register tool, or POST /v0/keys."
+    }
   }
 }

@@ -17,7 +17,7 @@ import {
   summarizeItem,
   toDesignVerdict,
 } from "@/lib/kg/live-map";
-import { QuestionBlock, SourceLine, SummaryLine, VerdictCard } from "@/components/kg/primitives";
+import { MustNotOmit, QuestionBlock, SourceLine, SummaryLine, VerdictCard } from "@/components/kg/primitives";
 import type { DesignVerdict } from "@/lib/kg/types";
 import { LANDING_RESULT_KEY } from "@/lib/kg/landing-handoff";
 
@@ -710,7 +710,7 @@ export function CheckWorkspace() {
           ) : null}
 
           {showHumanResult ? (
-            <div>
+            <div id="kg-result" role="region" aria-label="Check result" data-settled={load === "ready"} data-state={load}>
               {load === "loading" ? (
                 <p style={{ color: "var(--kg-ink2)" }}>Ruling against the live evidence…</p>
               ) : null}
@@ -740,6 +740,7 @@ export function CheckWorkspace() {
                 </div>
               </div>
               <SummaryLine text={humanSummary} />
+              <MustNotOmit items={item?.must_not_omit ?? []} />
               <p className="sec-label" style={{ marginTop: 24 }}>
                 THE EVIDENCE
               </p>
@@ -843,10 +844,11 @@ export function CheckWorkspace() {
           ) : null}
 
           {showAgentResult ? (
-            <div>
+            <div id="kg-result" role="region" aria-label="Check result" data-settled={load === "ready"} data-state={load}>
               {load === "loading" ? (
                 <p style={{ color: "var(--kg-ink2)" }}>Ruling the venue against the live chart…</p>
               ) : null}
+              <MustNotOmit items={place?.must_not_omit ?? []} />
               <div className="kg-chip-row" style={{ marginBottom: 20 }}>
                 <span className="chip on">{placeCounts.no_conflict_found} clear</span>
                 <span className="chip">{placeCounts.ask_one_question} ask</span>

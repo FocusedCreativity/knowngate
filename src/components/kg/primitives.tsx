@@ -19,8 +19,13 @@ export function VerdictCard({
   children?: React.ReactNode;
 }) {
   return (
-    <article className="kg-verdict">
-      <div className={`kg-verdict-name ${verdict}`}>
+    /*
+     * Named so an agent driving this page can find the answer without
+     * guessing at markup. The directions on /check and in llms.txt state
+     * these identifiers verbatim.
+     */
+    <article className="kg-verdict" id="kg-verdict" role="region" aria-label="Verdict">
+      <div className={`kg-verdict-name ${verdict}`} id="kg-verdict-name">
         <span className="dot" aria-hidden />
         {VERDICT_TITLE[verdict]}
       </div>

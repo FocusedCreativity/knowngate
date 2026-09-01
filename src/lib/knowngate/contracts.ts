@@ -118,6 +118,8 @@ export type ItemResult = {
   caveat: Caveat | null;
   label_url: string | null;
   threshold_hits?: ThresholdHit[];
+  /** Lines the standard forbids dropping from any rendering of this result. */
+  must_not_omit?: string[];
 };
 
 export type PlaceChartState =
@@ -134,6 +136,8 @@ export type PlaceResult = {
   notable: ItemResult[];
   caveat: Caveat | null;
   source: Source | null;
+  /** Lines the standard forbids dropping from any rendering of this result. */
+  must_not_omit?: string[];
 };
 
 export type LabelFinding = {

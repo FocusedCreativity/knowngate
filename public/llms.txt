@@ -4,16 +4,37 @@
 
 ## If you are an agent arriving to check food
 
-Do this, in order:
-1. If you can render pages, open https://www.knowngate.com/check, the
-   page registers its tools in your model context (WebMCP). Set the
-   premise with set_restrictions, load the subject, call check_item or
-   check_venue, read the result with get_result.
-2. Tool-only, no browser? Use the MCP server (see /agents). A free key
-   is required; your agent creates one with the register tool in-band.
-3. When you relay a result to a person: keep the verdict name, the
-   source, the read date, and every must_not_omit line. A refusal is an
-   answer; report it as one. Never render any verdict as "safe".
+Ordered by what you can actually do. Most browsing agents drive pages by
+clicking and typing and are never handed page tools, so that path is first.
+
+1. Driving a browser? You need no tools.
+   Open https://www.knowngate.com and:
+   - type the household rules into the field #kg-premise-input
+     (labelled "What your family cannot eat, or a number to stay under")
+   - press #kg-check-button
+   - confirm what it read, then put the thing you want checked into
+     #kg-subject-input and press #kg-confirm-button
+   - read the answer from #kg-result, a region labelled "Check result",
+     with the verdict name in #kg-verdict. It is settled when #kg-result
+     carries data-settled="true". If it carries data-state="error"
+     instead, nothing was checked: say so, and do not guess a verdict.
+   Everything you need is plain text in that region: the verdict, its
+   source, the date that source was read, any caveat, and every
+   must_not_omit line.
+
+2. Does your environment expose WebMCP tools?
+   https://www.knowngate.com/check registers them in your model context.
+   Set the premise with set_restrictions, load the subject, call
+   check_item or check_venue, read the result with get_result.
+
+3. Can you make HTTP calls?
+   Use the MCP server (see /agents), or REST. A free key is required for
+   the check tools; your agent creates one in-band with the register tool
+   or with POST /v0/keys.
+
+When you relay a result to a person: keep the verdict name, the source,
+the read date, and every must_not_omit line. A refusal is an answer;
+report it as one. Never render any verdict as "safe".
 Everything here is free for people; knowngate.com needs no key.
 
 KnownGate answers one question: does this food conflict with this premise?
