@@ -4,7 +4,7 @@
 
 - Confirmed the project framing: **Page as Authority** — agent proposes, page rules, human owns the premise.
 - Participant is an experienced solo builder and can commit the time needed through the deadline.
-- The live `fuda` API is ready; the public app must also ship fixtures and a mock mode.
+- The live private KnownGate API is ready; the public app must also ship fixtures and a mock mode.
 - Vercel is already connected to the repository.
 - Scope posture is to deliver the complete brief without planned cuts.
 - Active shaping: participant pushed back on redundant interview questions — “why all these questions, I gave you the brief already.” Downstream guided steps must treat `docs/build-brief.md` as comprehensive context, avoid reopening frozen decisions, and ask only about material gaps.

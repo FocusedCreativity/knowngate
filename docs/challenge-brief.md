@@ -35,7 +35,7 @@ Fine print to comply with
 All materials in English · one prize per project · submission must be solely our own work (IP warranty) · judges get free access until judging ends (21 Sep) · no changes to the submission after the deadline, though the live product may keep evolving · Netlify credit requests close 1 Sep if wanted.
 
 Repo consequence
-Settled: the check API lives in fuda — private, production, where the evidence and ruling logic already are. The public repo is the KnownGate app: the pages, the registered tools, the eval harness, the pattern write-up — consuming the fuda API the way any project consumes a data service. To satisfy "functional from the repo," it ships the documented API contract plus a fixture corpus so it runs standalone without fuda credentials; judges use the live URL.
+Settled: the check API lives in the private KnownGate backend — private, production, where the evidence and ruling logic already are. The public repo is the KnownGate app: the pages, the registered tools, the eval harness, the pattern write-up — consuming the KnownGate API the way any project consumes a data service. To satisfy "functional from the repo," it ships the documented API contract plus a fixture corpus so it runs standalone without backend credentials; judges use the live URL.
 Judging — pass/fail on theme fit, then four equal criteria
 WebMCP leverage
 25%
@@ -132,16 +132,16 @@ Conflict found
 The evidence names the restriction.
 Couldn't verify
 Nothing published, nobody to ask. Unknown counts as no. Always hatch, never a colour alone.
-The substrate is the last week of fuda's US work, untouched and read-only: FDC ingredient statements joined by UPC with multi-record agreement, retailer product evidence, chain allergen charts and venue/menu pools across the ops metros, US recipe resolution, all ruled in the FDA-9 vocabulary. Packaged goods and recipes are national on day one; venues are national in mechanism — any published chart can be read — and graded in depth, which the product states rather than hides.
+The substrate is the last week of KnownGate's US work, untouched and read-only: FDC ingredient statements joined by UPC with multi-record agreement, retailer product evidence, chain allergen charts and venue/menu pools across the ops metros, US recipe resolution, all ruled in the FDA-9 vocabulary. Packaged goods and recipes are national on day one; venues are national in mechanism — any published chart can be read — and graded in depth, which the product states rather than hides.
 
 Four frames for what it becomes owner decides
 1 · The planning board
-ruled out — that is fuda
-A surface where the agent plans dinner, fills a cart, drafts the menu, and each item gets ruled as it lands. Ruled out by the owner: planning is fuda's job. If KnownGate grows a board it becomes fuda again. KnownGate stays the gate — the planning happens elsewhere, and what's planned is brought to the gate.
+ruled out: that is a planner, not a gate
+A surface where the agent plans dinner, fills a cart, drafts the menu, and each item gets ruled as it lands. Ruled out by the owner: planning is the planner's job. If KnownGate grows a board it becomes a planner again. KnownGate stays the gate — the planning happens elsewhere, and what's planned is brought to the gate.
 
 2 · The household page
 recommended build
-The household owns a page, and agents come to it — the family's own, and other people's. Grandma's agent asks "what can I cook for this family?" and gets sourced verdicts without ever seeing the restrictions themselves. Any agent's plan — including fuda's — passes through the gate for admission: candidates in, rulings out, eligibility not ranking. The conversation Mum "doesn't really get," her agent gets perfectly. Impossible before agents, pure verification, zero overlap with fuda.
+The household owns a page, and agents come to it — the family's own, and other people's. Grandma's agent asks "what can I cook for this family?" and gets sourced verdicts without ever seeing the restrictions themselves. Any agent's plan — including a planner's — passes through the gate for admission: candidates in, rulings out, eligibility not ranking. The conversation Mum "doesn't really get," her agent gets perfectly. Impossible before agents, pure verification, zero overlap with a planner.
 
 3 · The operator side
 roadmap, not build
@@ -180,7 +180,7 @@ decisions + first moves
 Registered on Devpost ✓
 Done 30 Aug.
 Demo settled: the ruling room
-Agent brings candidates with its own intelligence; the gate rules with sources; the human owns the premise and decides the ambers. Labels ship as the distribution layer underneath (every verdict links to one), never the demo. Boards stay in fuda; household-as-destination shelved.
+Agent brings candidates with its own intelligence; the gate rules with sources; the human owns the premise and decides the ambers. Labels ship as the distribution layer underneath (every verdict links to one), never the demo. Boards stay with the planner; household-as-destination shelved.
 Customer layers written in, not pivoted to
 Households check free (demo) · practitioners issue premises (credibility) · manufacturers/operators pay to close evidence gaps and be green to agents (revenue) · schools/caterers rule menus against many households (expansion).
 Name and document the pattern
@@ -188,7 +188,7 @@ The page-as-authority pattern (agent proposes · page rules · human owns the pr
 Build the eval, not just the app
 Bare agent vs gated agent on questions with golden-set ground truth; small AX panel (tool-choice, completion, recovery); one graceful failure in the video. Numbers must come from real runs.
 Name the public repo and license
-Public repo = the KnownGate app (pages, tools, evals, fixtures); check API = new routes in fuda. License visible in About. Spelling on record: KnownGate. Coverage at launch: all ~50 ops metros for eat-out and order-in, national for packaged goods and recipes.
+Public repo = the KnownGate app (pages, tools, evals, fixtures); check API = new routes in the private KnownGate backend. License visible in About. Spelling on record: KnownGate. Coverage at launch: all ~50 ops metros for eat-out and order-in, national for packaged goods and recipes.
 Tool contract drafted ✓
 v0 above: five ruling-room tools, two per label page, the non-tools enforced. Schemas finalize in the repo.
 Decide the coverage sentence

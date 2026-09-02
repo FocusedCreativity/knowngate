@@ -1,7 +1,7 @@
 {
   "specVersion": "1.0",
   "host": {
-    "displayName": "KnownGate, a fuda company",
+    "displayName": "KnownGate",
     "identifier": "did:web:knowngate.com",
     "documentationUrl": "https://www.knowngate.com/standard"
   },

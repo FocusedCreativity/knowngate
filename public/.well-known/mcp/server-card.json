@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "KnownGate is the food verification layer for people and AI agents: it checks food against what must not be in it, or a number it must stay under, and returns evidence-backed verdicts with their sources and read dates.",
   "vendor": {
-    "name": "fuda",
+    "name": "KnownGate",
     "url": "https://www.knowngate.com"
   },
   "documentation": "https://www.knowngate.com/agents",

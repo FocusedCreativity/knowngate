@@ -23,7 +23,7 @@
 - Preferred pace: Fast, decisive, implementation-focused.
 - Likely support needs: Convert the existing brief into sequenced build artifacts, implement precisely, verify continuously, and avoid redundant discovery questions.
 - Delivery context: Solo build with full time commitment through the deadline.
-- Backend: The private `fuda` KnownGate API is ready for integration; fixtures must still support standalone development and judging requirements.
+- Backend: The private KnownGate API is ready for integration; fixtures must still support standalone development and judging requirements.
 - Deployment: Vercel is already connected to the Git repository.
 - Scope posture: Preserve the complete brief; no planned scope cuts.
 - Notes for downstream commands: Treat FROZEN sections of `docs/build-brief.md` as product law. Use YOUR CALL only where the brief delegates judgment. Ask only when a material decision is genuinely absent.

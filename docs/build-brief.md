@@ -143,7 +143,7 @@ sending a frozen record. The README's pattern section explains why.
 ## 5. API contract (FROZEN — the API is BUILT and these shapes are its real,
 ## tested responses. Build fixtures to exactly these shapes.)
 
-The API is live in the private fuda backend at
+The API is live in the private KnownGate backend at
 `{KNOWNGATE_API_BASE}/api/knowngate/v0` (base URL supplied later via env; it
 is public, CORS-open `*`, no auth). Ship a mock layer: `lib/api.ts` reads
 `KNOWNGATE_API_BASE`; when `KNOWNGATE_MOCK=1` (default in dev) serve

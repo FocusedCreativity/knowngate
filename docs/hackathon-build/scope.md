@@ -57,7 +57,7 @@ KnownGate makes verification a callable page-level primitive. The agent proposes
 - Exactly five ruling-room WebMCP tools: `propose_premise`, `check_item`, `check_place`, `get_board`, and `freeze_check`.
 - Label pages at `/label/[gtin]` and venue pages at `/venue/[slug]`, each with exactly two WebMCP tools.
 - Frozen, tool-free check pages at `/ck/[id]`.
-- Typed API client for the live `fuda` KnownGate v0 API.
+- Typed API client for the live private KnownGate v0 API.
 - Fixture corpus and mock mode that run without secrets and match the real API shapes.
 - Terminal-ledger visual system specified in the build brief, including both themes and accessible non-color verdict signaling.
 - Scenario-based WebMCP evaluation runner and an AX results surface that never invents measurements.
@@ -86,7 +86,7 @@ KnownGate makes verification a callable page-level primitive. The agent proposes
 
 - Solo build.
 - Full focused time through 3 September 2026 at 22:00 CEST.
-- Live `fuda` API is ready to integrate.
+- Live private KnownGate API is ready to integrate.
 - Vercel is already connected to the Git repository.
 - Preserve the complete brief; sequence work to achieve an early end-to-end ruling loop, but do not plan feature cuts.
 - Commit in small descriptive steps so timestamped history clearly separates challenge work.

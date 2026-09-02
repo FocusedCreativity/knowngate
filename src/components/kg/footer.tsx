@@ -84,7 +84,7 @@ export function KgFooter() {
           <Link href="/terms">Terms</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/refusals">Report an error</Link>
-          <span>© 2026 fuda</span>
+          <span>© 2026 KnownGate</span>
         </nav>
       </div>
     </footer>

@@ -4,7 +4,7 @@
 
 KnownGate is a Next.js 16 App Router application deployed on Vercel. It has one stateful client surface—the ruling room—and three evidence-oriented route families rendered primarily on the server: label pages, venue pages, and frozen records. Native WebMCP registration lives only in small client components because it requires `document.modelContext`, React lifecycle hooks, and access to current visible UI state.
 
-The application uses a same-origin API boundary. Browser UI and WebMCP tools call `/api/knowngate/v0/*`; Next.js Route Handlers delegate to a typed adapter in `src/lib/knowngate/api.ts`. The adapter selects real `fuda` requests or repository fixtures based on environment configuration. This keeps the client unaware of backend origins, prevents environment leakage, and gives manual UI and WebMCP calls one identical data path.
+The application uses a same-origin API boundary. Browser UI and WebMCP tools call `/api/knowngate/v0/*`; Next.js Route Handlers delegate to a typed adapter in `src/lib/knowngate/api.ts`. The adapter selects real upstream requests or repository fixtures based on environment configuration. This keeps the client unaware of backend origins, prevents environment leakage, and gives manual UI and WebMCP calls one identical data path.
 
 The ruling room uses a single `useReducer` state machine. Manual controls and WebMCP executors dispatch the same commands, and renderers consume the same state. This directly implements the judged Human/Agent shared-state claim.
 
@@ -313,7 +313,7 @@ The place path follows the same sequence but stores one place entry with counts 
 1. Command verifies confirmed premise plus at least one successful result.
 2. `FREEZE_REQUESTED` opens the human gate.
 3. Human confirmation dispatches `FREEZE_STARTED` and posts `{ premise, results }`.
-4. Live mode persists through `fuda`; mock mode writes the local in-process store.
+4. Live mode persists through the private KnownGate backend; mock mode writes the local in-process store.
 5. Success stores the returned URL visibly and returns compact `{ url }` to the agent.
 6. `/ck/[id]` separately fetches the frozen payload and renders it read-only.
 
