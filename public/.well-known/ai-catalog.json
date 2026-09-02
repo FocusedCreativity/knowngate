@@ -1,0 +1,37 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "KnownGate, a fuda company",
+    "identifier": "did:web:knowngate.com",
+    "documentationUrl": "https://www.knowngate.com/standard"
+  },
+  "entries": [
+    {
+      "@context": "https://agenticresourcediscovery.org/context/v1",
+      "identifier": "urn:air:knowngate.com:server:verify",
+      "displayName": "KnownGate",
+      "type": "application/mcp-server-card+json",
+      "url": "https://www.knowngate.com/.well-known/mcp/server-card.json",
+      "capabilities": ["check_item", "check_venue", "check_plan", "register"],
+      "description": "KnownGate is the food verification layer for people's agents: it checks food against a stated premise and returns evidence-backed verdicts with sources and read dates. Four verdicts; two are honest ways of saying we don't know; the word safe never appears.",
+      "representativeQueries": [
+        "does this product contain peanuts",
+        "is this cereal under 10 grams of sugar per serving",
+        "which items on the Krystal menu are free of sesame",
+        "check this shopping list against my family's allergies",
+        "verify this recipe against a dairy-free household"
+      ],
+      "tags": ["food", "allergens", "nutrition", "verification"],
+      "version": "0.1.0",
+      "metadata": {
+        "mcp_url": "https://mcp.knowngate.com",
+        "mcp_transport": "streamable-http",
+        "rest_docs": "https://www.knowngate.com/developers",
+        "webmcp_page": "https://www.knowngate.com/check",
+        "instructions": "https://www.knowngate.com/llms.txt",
+        "evidence_standard": "https://www.knowngate.com/standard/v1.json",
+        "authentication": "Free key, 100 checks a month, from POST /api/knowngate/v0/keys or the register tool. Checking on knowngate.com itself never needs a key."
+      }
+    }
+  ]
+}

@@ -19,9 +19,9 @@ Two constraints worth knowing, because both have already caught us:
 - **`description` is capped at 100 characters.** The canonical KnownGate
   sentence is 217, so the manifest carries a shortened form and keeps the full
   sentence in `_meta` as `fullDescription`. Shorten it, never reword it.
-- **The name must match the auth method.** GitHub login only permits
-  `io.github.<owner>/*`, which is why the name is
-  `io.github.FocusedCreativity/knowngate`.
+- **The name must match the auth method.** DNS verification of knowngate.com
+  grants `com.knowngate/*`, which is why the name is `com.knowngate/verify`.
+  (GitHub login would only permit `io.github.FocusedCreativity/*`.)
 
 ## Steps
 
@@ -31,14 +31,24 @@ Two constraints worth knowing, because both have already caught us:
    brew install mcp-publisher
    ```
 
-2. Authenticate. This is what proves the `io.github.*` namespace is ours, so
-   log in as the account that owns the repository:
+2. Authenticate. This is what proves the `com.knowngate.*` namespace is ours.
+   The Ed25519 key lives outside the repo at
+   `~/.config/mcp-publisher/knowngate-dns.pem`; its public half is published as
+   a TXT record on the apex `knowngate.com` (managed at Unstoppable Domains):
 
-   ```bash
-   mcp-publisher login github
+   ```
+   v=MCPv1; k=ed25519; p=<public key, base64>
    ```
 
-   It prints a device code and a URL to enter it at.
+   Print the record and log in:
+
+   ```bash
+   openssl pkey -in ~/.config/mcp-publisher/knowngate-dns.pem -pubout -outform DER | tail -c 32 | base64
+   mcp-publisher login dns --domain knowngate.com --private-key "$(openssl pkey -in ~/.config/mcp-publisher/knowngate-dns.pem -noout -text | grep -A3 'priv:' | tail -n +2 | tr -d ' :\n')"
+   ```
+
+   Login prints the expected proof record and fails with a 401 until the TXT
+   record resolves.
 
 3. Publish from the repo root, where `server.json` is:
 
@@ -49,7 +59,7 @@ Two constraints worth knowing, because both have already caught us:
 4. Confirm it landed:
 
    ```bash
-   curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.FocusedCreativity/knowngate"
+   curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=com.knowngate/verify"
    ```
 
 ## What publishing means

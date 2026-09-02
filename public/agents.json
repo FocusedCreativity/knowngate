@@ -1,0 +1,16 @@
+{
+  "name": "KnownGate",
+  "description": "The food verification layer for people's agents. Evidence-backed food verdicts with sources and read dates. Two honest ways of saying we don't know. The word safe never appears.",
+  "url": "https://www.knowngate.com",
+  "instructions": "https://www.knowngate.com/llms.txt",
+  "standard": "https://www.knowngate.com/standard/v1.json",
+  "discovery": {
+    "ard": "https://www.knowngate.com/.well-known/ard.json",
+    "mcp_server_card": "https://www.knowngate.com/.well-known/mcp/server-card.json"
+  },
+  "interfaces": {
+    "webmcp": "https://www.knowngate.com/check",
+    "mcp": "https://mcp.knowngate.com",
+    "rest": "https://www.knowngate.com/developers"
+  }
+}

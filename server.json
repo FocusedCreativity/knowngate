@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.FocusedCreativity/knowngate",
+  "name": "com.knowngate/verify",
   "title": "KnownGate",
   "description": "Food verification for people and AI agents: evidence-backed verdicts, with sources and dates.",
   "version": "0.1.0",
