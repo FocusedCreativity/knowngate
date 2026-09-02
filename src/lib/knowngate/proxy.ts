@@ -9,26 +9,16 @@ import {
   KnownGateApiError,
 } from "./api.ts";
 import {
+  FORWARDED_METHODS,
+  FORWARDED_REQUEST_HEADERS,
+  shouldAttachSiteHeader,
+} from "./site-gate.ts";
+import {
   ContractError,
   parseCheckItemRequest,
   parseCheckPlaceRequest,
   parseFreezeRequest,
 } from "./validation.ts";
-
-const HOP_REQUEST = new Set([
-  // never let a caller supply the site header; the proxy sets it itself
-  "x-knowngate-site",
-  "connection",
-  "keep-alive",
-  "proxy-authenticate",
-  "proxy-authorization",
-  "te",
-  "trailers",
-  "transfer-encoding",
-  "upgrade",
-  "host",
-  "content-length",
-]);
 
 const HOP_RESPONSE = new Set([
   "connection",
@@ -54,18 +44,35 @@ function joinUpstreamPath(base: string, pathParts: string[], search: string): st
   return `${base.replace(/\/$/, "")}/${suffix}${search}`;
 }
 
-function forwardRequestHeaders(request: Request): Headers {
+/**
+ * The client address as the edge saw it. Vercel overwrites x-real-ip with the
+ * connecting address on every request, so a caller cannot plant one. The
+ * caller's own x-forwarded-for is never consulted; with no edge in front
+ * (local dev) nothing is forwarded and the upstream sees the socket address.
+ */
+function clientAddress(request: Request): string | null {
+  return request.headers.get("x-real-ip")?.trim() || null;
+}
+
+function forwardRequestHeaders(request: Request, pathParts: string[]): Headers {
   const headers = new Headers();
   request.headers.forEach((value, key) => {
-    if (HOP_REQUEST.has(key.toLowerCase())) return;
-    headers.set(key, value);
+    const name = key.toLowerCase();
+    if (FORWARDED_REQUEST_HEADERS.has(name) || name.startsWith("mcp-")) headers.set(name, value);
   });
+  // The upstream meters site-header traffic by client address, so it needs
+  // the one the edge recorded, not whatever the caller wrote.
+  const address = clientAddress(request);
+  if (address) headers.set("x-forwarded-for", address);
   // The API gates its checking routes behind a key or this header. It is what
   // keeps knowngate.com itself keyless: the site is the caller, not the agent.
-  // A caller cannot set it themselves, because the inbound copy is dropped
-  // above before this is written.
+  // It is stamped only on the site's own routes, only for a same-origin
+  // browser request, and never over a key the caller brought. The inbound
+  // copy never passes, because it is not in the forwarded set above.
   const siteSecret = process.env.KNOWNGATE_SITE_SECRET;
-  if (siteSecret) headers.set("x-knowngate-site", siteSecret);
+  if (siteSecret && shouldAttachSiteHeader(request, pathParts)) {
+    headers.set("x-knowngate-site", siteSecret);
+  }
   return headers;
 }
 
@@ -93,12 +100,19 @@ async function liveProxy(request: Request, pathParts: string[]): Promise<Respons
     );
   }
 
+  const method = request.method.toUpperCase();
+  if (!FORWARDED_METHODS.has(method)) {
+    return Response.json(
+      { error: { code: "method_not_allowed", message: `${method} is not served here` } },
+      { status: 405, headers: { allow: "GET, POST, HEAD, OPTIONS" } },
+    );
+  }
+
   const url = new URL(request.url);
   const target = joinUpstreamPath(base, pathParts, url.search);
-  const method = request.method.toUpperCase();
   const init: RequestInit & { duplex?: "half" } = {
     method,
-    headers: forwardRequestHeaders(request),
+    headers: forwardRequestHeaders(request, pathParts),
     cache: "no-store",
     redirect: "manual",
   };
@@ -157,7 +171,7 @@ function mockError(error: unknown): Response {
 
 /**
  * Fixture fallback when KNOWNGATE_MOCK=1 or KNOWNGATE_API_BASE is unset.
- * Live mode never enters here — the wildcard forwards every path intact.
+ * Live mode never enters here; the wildcard forwards every path intact.
  */
 async function mockProxy(request: Request, pathParts: string[]): Promise<Response> {
   const method = request.method.toUpperCase();
