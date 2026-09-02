@@ -667,9 +667,13 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
                   "sesame",
                   "+ other",
                 ].map((c) => {
-                  const on = humanRestrictions.some(
-                    (r) => c.includes(r) || r.includes(c.replace("tree nuts", "tree_nut")),
-                  );
+                  // With nothing to check there is no premise, so no chip is
+                  // on; the fixture fallback is for the walkthrough, not here.
+                  const on =
+                    hasSomethingToCheck &&
+                    humanRestrictions.some(
+                      (r) => c.includes(r) || r.includes(c.replace("tree nuts", "tree_nut")),
+                    );
                   return (
                     <span key={c} className={`chip${on ? " on" : ""}`}>
                       {c}
