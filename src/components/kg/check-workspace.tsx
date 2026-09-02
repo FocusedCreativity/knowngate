@@ -1348,9 +1348,7 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
             </div>
           ) : null}
 
-          {mode === "human" && (step < 4 || !hasSomethingToCheck) ? (
-            <EmptyLanding step={step} />
-          ) : null}
+          {mode === "human" && (step < 4 || !hasSomethingToCheck) ? <NothingToCheck /> : null}
         </div>
       </div>
       {saved ? (
@@ -1360,57 +1358,22 @@ export function CheckWorkspace({ demo = false }: { demo?: boolean } = {}) {
   );
 }
 
-function EmptyLanding({ step, agent }: { step: number; agent?: boolean }) {
-  const data = getWorkspace();
+/**
+ * A bare /check in human mode has nothing to rule on. The words a person
+ * types are read on the home page, which hands them here with the rules set;
+ * this says so instead of dressing up as that page with a fixture premise.
+ */
+function NothingToCheck() {
   return (
-    <div style={{ maxWidth: 620, margin: "0 auto", padding: "40px 0" }}>
-      <p style={{ textAlign: "center", fontSize: 13, color: "var(--kg-ink2)", marginBottom: 12 }}>
-        Free · no account to check · nothing stored unless you save a record
+    <div className="kg-callout" style={{ maxWidth: 560, margin: "40px auto" }}>
+      <strong>Nothing to check yet.</strong>
+      <p>
+        Tell us what can&apos;t be in it, or how much is too much, on the home page. We read your words
+        into rules you can see, then bring you back here to check something against them.
       </p>
-      <h1 style={{ textAlign: "center", fontSize: "clamp(2rem,4vw,3rem)", margin: "0 0 12px" }}>
-        “It&apos;s fine.” Says who?
-      </h1>
-      <p style={{ textAlign: "center", color: "var(--kg-ink2)", marginBottom: 24 }}>
-        Tell us what can&apos;t be in it, or how much is too much. We check the label, the menu and the kitchen,
-        and we say so when nobody knows.
-      </p>
-      <div
-        style={{
-          border: "1px solid var(--kg-line)",
-          borderRadius: 14,
-          padding: 18,
-          background: "#fff",
-        }}
-      >
-        <p className="sec-label">Can&apos;t be in it</p>
-        <div className="kg-chip-row">
-          {["milk", "egg", "fish", "shellfish", "tree nuts", "peanut", "wheat", "soy", "sesame", "+ other"].map(
-            (c) => (
-              <span
-                key={c}
-                className={`chip${step >= 2 && data.premise.restrictions.some((r) => c.includes(r)) ? " on" : ""}`}
-              >
-                {c}
-              </span>
-            ),
-          )}
-        </div>
-        <p className="sec-label" style={{ marginTop: 16 }}>
-          How much is too much
-        </p>
-        <p style={{ fontSize: 14 }}>
-          Keep <strong>sodium</strong> under <strong>600 mg</strong> per serving
-        </p>
-        {agent ? (
-          <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 16 }}>
-            Work mode. Waiting for your agent to call set_restrictions and load_subject.
-          </p>
-        ) : (
-          <p style={{ fontSize: 13, color: "var(--kg-ink2)", marginTop: 16 }}>
-            {step === 1 ? "Nothing entered yet." : "Premise set. Enter a subject to check."}
-          </p>
-        )}
-      </div>
+      <Link className="kg-btn" href="/">
+        Start on the home page
+      </Link>
     </div>
   );
 }
